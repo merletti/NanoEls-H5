@@ -1,0 +1,13 @@
+* text=auto
+*.ino text eol=lf
+*.md text eol=lf
+*.pl text eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.pdf binary
+*.svg text eol=lf
+*.bin binary
+*.tft binary
+*.HMI binary
+*.fig binary
