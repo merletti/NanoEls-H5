@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>NanoEls H5 - Mockup TFT 800x480</title>
+<style>
+  :root {
+    --bg: #0A0A0C;
+    --card: #15161A;
+    --card2: #141519;
+    --line: #24252C;
+    --text: #F2F2F2;
+    --muted: #9AA0A8;
+    --muted2: #5B616B;
+    --blue: #1A6DD6;
+    --green: #16A34A;
+    --red: #C81E2B;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    background: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    height: 480px;
+    margin: 0;
+    overflow: hidden;
+    width: 800px;
+  }
+  .screen {
+    background: var(--bg);
+    color: var(--text);
+    display: none;
+    height: 480px;
+    overflow: hidden;
+    position: relative;
+    width: 800px;
+  }
+  .screen.active { display: block; }
+
+  /* ---------- barra in basso stile firmware ---------- */
+  .strip {
+    align-items: center;
+    background: #101114;
+    bottom: 0;
+    display: flex;
+    font-size: 12px;
+    justify-content: space-between;
+    left: 0;
+    padding: 0 12px;
+    position: absolute;
+    right: 0;
+    height: 26px;
+    color: #A8ADB4;
+  }
+  .strip span:last-child { letter-spacing: 0.5px; }
+
+  /* ---------- MENU (prima pagina) ---------- */
+  .home-head {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 12px 0;
+    height: 64px;
+  }
+  .brand { align-items: center; display: flex; gap: 11px; }
+  .logo {
+    align-items: center;
+    background: var(--blue);
+    border-radius: 11px;
+    display: flex;
+    height: 42px;
+    justify-content: center;
+    width: 42px;
+  }
+  .logo svg { width: 25px; height: 25px; }
+  .brand-name { font-size: 24px; font-weight: 800; letter-spacing: 0.8px; line-height: 1; }
+  .brand-sub { color: var(--muted); font-size: 10px; letter-spacing: 2.4px; margin-top: 5px; }
+  .status-pill {
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    display: flex;
+    gap: 10px;
+    height: 40px;
+    padding: 0 14px;
+  }
+  .status-pill .lbl { color: var(--muted); font-size: 10.5px; letter-spacing: 1.6px; }
+  .status-pill .val { font-size: 18px; font-weight: 800; }
+  .home-head .head-right { gap: 8px; }
+  .home-head .chip { font-size: 10px; letter-spacing: 1px; padding: 7px 10px; }
+
+  .menu-modes {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(3, 100px);
+    padding: 0 12px;
+  }
+  .m-ico { color: var(--acc); position: absolute; right: 12px; top: 11px; }
+  .m-ico svg { height: 17px; width: 17px; }
+  .svc-row {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(5, 1fr);
+    margin-top: 8px;
+    padding: 0 12px;
+  }
+  .svc {
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    display: flex;
+    font-size: 12px;
+    font-weight: 800;
+    gap: 8px;
+    height: 54px;
+    justify-content: center;
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    position: relative;
+  }
+  .svc::before {
+    background: var(--acc);
+    bottom: 0;
+    content: "";
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 3px;
+  }
+  .svc svg { color: var(--acc); height: 18px; width: 18px; }
+  .chev {
+    bottom: 12px;
+    color: var(--muted2);
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    position: absolute;
+    right: 14px;
+  }
+  .home-strip-hint { color: #6E7680; }
+  .mode, .svc, .menu-pill { cursor: pointer; }
+
+  /* ---------- SOTTOPAGINA MODALITA ---------- */
+  .mode-layout { display: grid; gap: 12px; grid-template-columns: 1fr 288px; height: 358px; }
+  .mode-left { display: flex; flex-direction: column; }
+  .p-row {
+    align-items: center;
+    border-bottom: 1px solid #1C1D22;
+    display: flex;
+    flex: 0 0 66px;
+    justify-content: space-between;
+    padding: 0 4px;
+  }
+  .p-row:last-of-type { border-bottom: none; }
+  .p-name { font-size: 15px; font-weight: 700; letter-spacing: 0.4px; }
+  .p-sub { color: var(--muted2); display: block; font-size: 10px; font-weight: 700; letter-spacing: 1.1px; margin-top: 4px; }
+  .val-ctl { align-items: center; display: flex; gap: 8px; }
+  .valbox {
+    align-items: center;
+    background: #101114;
+    border: 1px solid #2E3038;
+    border-radius: 7px;
+    display: flex;
+    height: 44px;
+    justify-content: center;
+    min-width: 120px;
+    padding: 0 12px;
+  }
+  .valbox span { font-size: 21px; font-weight: 800; letter-spacing: 0.3px; }
+  .valbox small { color: var(--muted); font-size: 11px; font-weight: 700; margin-left: 4px; }
+  .stepper { display: flex; gap: 7px; }
+  .step {
+    align-items: center;
+    background: #2B2D33;
+    border-radius: 7px;
+    display: flex;
+    font-size: 22px;
+    font-weight: 700;
+    height: 44px;
+    justify-content: center;
+    width: 44px;
+  }
+  .actions-row { display: grid; gap: 10px; grid-template-columns: 1fr 150px; margin-top: auto; }
+  .btn {
+    align-items: center;
+    border-radius: 8px;
+    display: flex;
+    font-size: 17px;
+    font-weight: 800;
+    height: 58px;
+    justify-content: center;
+    letter-spacing: 0.6px;
+  }
+  .btn.go { background: var(--green); }
+  .btn.no { background: #2B2D33; }
+  .mode-side {
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    display: flex;
+    flex-direction: column;
+    height: 358px;
+    justify-content: center;
+    padding: 18px;
+    text-align: center;
+  }
+  .mode-side .big-ico {
+    align-items: center;
+    background: var(--soft);
+    border-radius: 14px;
+    display: flex;
+    height: 64px;
+    justify-content: center;
+    width: 64px;
+  }
+  .mode-side .big-ico svg { color: var(--acc); height: 34px; width: 34px; }
+  .mode-side h3 { font-size: 21px; font-weight: 800; letter-spacing: 0.7px; margin: 14px 0 0; }
+  .mode-side p { color: var(--muted); font-size: 13px; line-height: 1.4; margin: 10px 0 0; }
+  .state-row { border-top: 1px solid #1C1D22; display: flex; font-size: 12.5px; justify-content: space-between; margin-top: 18px; padding-top: 12px; width: 100%; }
+  .state-row .k { color: var(--muted); }
+  .state-row .v { font-weight: 800; }
+  .hint { color: var(--muted2); font-size: 11px; margin-top: 10px; }
+
+  /* ---------- TESTATA PAGINE ---------- */
+  .page-head {
+    align-items: center;
+    display: flex;
+    height: 70px;
+    justify-content: space-between;
+    padding: 12px 12px 0;
+  }
+  .page-head h1 { font-size: 26px; font-weight: 800; letter-spacing: 0.8px; margin: 0; }
+  .page-head .sub { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+  .menu-pill {
+    align-items: center;
+    background: #2B2D33;
+    border-radius: 8px;
+    display: flex;
+    font-size: 15px;
+    font-weight: 700;
+    height: 34px;
+    padding: 0 14px;
+  }
+  .menu-pill .arrow { font-size: 19px; line-height: 1; margin-right: 7px; margin-top: -1px; }
+  .head-right { align-items: center; display: flex; gap: 10px; }
+  .chip {
+    background: #1C1D22;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    padding: 8px 12px;
+  }
+  .content { padding: 4px 12px 0; }
+
+  /* ---------- COMANDO ---------- */
+  .status-row { display: grid; gap: 10px; grid-template-columns: 92px 210px 132px 168px 1fr; }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    height: 56px;
+    padding: 7px 11px;
+  }
+  .stat .k { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1.3px; }
+  .stat .v { font-size: 20px; font-weight: 800; margin-top: 4px; }
+  .stat.on { background: #E9E9EE; border-color: #E9E9EE; color: #0A0A0C; }
+  .stat.on .k { color: #5B616B; }
+  .stat.blue { background: var(--blue); border-color: var(--blue); }
+  .stat.blue .k { color: #BFD7F5; }
+  .stat.green { background: var(--green); border-color: var(--green); }
+  .stat.green .k { color: #C6EFD5; }
+
+  .axes-row { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); margin-top: 12px; }
+  .axis {
+    background: var(--card2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    height: 146px;
+    padding: 9px 11px;
+    position: relative;
+  }
+  .axis-top { color: var(--muted); display: flex; font-size: 10px; font-weight: 700; justify-content: space-between; letter-spacing: 1px; }
+  .axis-top b { color: var(--text); font-size: 12px; }
+  .axis-mid { align-items: center; display: flex; gap: 12px; margin-top: 26px; }
+  .axis-letter {
+    align-items: center;
+    border-radius: 6px;
+    display: flex;
+    font-size: 24px;
+    font-weight: 800;
+    height: 46px;
+    justify-content: center;
+    width: 46px;
+  }
+  .axis-pos { font-size: 25px; font-weight: 800; letter-spacing: 0.5px; }
+  .axis-pos small { color: var(--muted); display: block; font-size: 9.5px; font-weight: 700; letter-spacing: 1.4px; margin-bottom: 3px; }
+  .axis-stops { bottom: 8px; color: var(--muted); display: flex; font-size: 9.5px; font-weight: 700; justify-content: space-between; left: 11px; letter-spacing: 0.6px; position: absolute; right: 11px; }
+
+  .jog-row { display: grid; gap: 8px; grid-template-columns: repeat(6, 1fr); margin-top: 12px; }
+  .jog {
+    align-items: center;
+    background: #E9E9EE;
+    border-radius: 7px;
+    color: #0A0A0C;
+    display: flex;
+    font-size: 15px;
+    font-weight: 800;
+    height: 52px;
+    justify-content: center;
+  }
+  .jog .a { font-size: 18px; margin-right: 6px; }
+
+  .keypad { display: grid; gap: 6px; grid-template-columns: 92px repeat(10, 1fr) 58px 58px; margin-top: 12px; }
+  .key {
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    display: flex;
+    font-size: 22px;
+    font-weight: 700;
+    height: 66px;
+    justify-content: center;
+  }
+  .key.stop { background: var(--red); border-color: var(--red); font-size: 16px; letter-spacing: 0.5px; }
+  .key.del { background: var(--blue); border-color: var(--blue); font-size: 13px; }
+  .key.ok { background: var(--green); border-color: var(--green); font-size: 16px; }
+
+  /* ---------- CARD MODALITA ---------- */
+  .mode {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 10px 12px;
+    position: relative;
+  }
+  .mode::before {
+    background: var(--acc);
+    bottom: 0;
+    content: "";
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 3px;
+  }
+  .mode .badge {
+    background: #2B2D33;
+    border-radius: 4px;
+    color: var(--muted);
+    display: inline-block;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    padding: 3px 6px;
+  }
+  .mode h3 { font-size: 14px; font-weight: 800; letter-spacing: 0.3px; margin: 14px 0 0; white-space: nowrap; }
+  .mode p { color: var(--muted2); font-size: 8.5px; font-weight: 700; letter-spacing: 1.2px; margin: 5px 0 0; }
+  .mode-left.tight .p-row { flex: 0 0 54px; }
+  .mode-left.tight .p-name { font-size: 14px; }
+  .mode-left.tight .p-sub { margin-top: 3px; }
+  .mode-left.tight .valbox { height: 40px; }
+  .mode-left.tight .step { height: 40px; width: 40px; }
+
+  /* ---------- GCODE ---------- */
+  .split { display: grid; gap: 12px; grid-template-columns: 1fr 288px; }
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 12px;
+  }
+  .panel-label { color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: 1.6px; margin-bottom: 9px; }
+  .file {
+    align-items: center;
+    background: #101114;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    display: flex;
+    justify-content: space-between;
+    height: 58px;
+    margin-bottom: 8px;
+    padding: 0 13px;
+  }
+  .file.sel { background: #16243A; border-color: var(--blue); }
+  .file .name { font-size: 16px; font-weight: 700; }
+  .file .meta { color: var(--muted); font-size: 12px; }
+  .detail-name { font-size: 19px; font-weight: 800; letter-spacing: 0.4px; }
+  .detail-row { color: var(--muted); display: flex; font-size: 13px; justify-content: space-between; margin-top: 9px; }
+  .detail-row b { color: var(--text); font-weight: 700; }
+  .big-btn {
+    align-items: center;
+    border-radius: 8px;
+    display: flex;
+    font-size: 17px;
+    font-weight: 800;
+    height: 52px;
+    justify-content: center;
+    letter-spacing: 0.6px;
+    margin-top: 10px;
+  }
+  .big-btn.play { background: var(--green); }
+  .big-btn.delete { background: var(--red); }
+  .big-btn.refresh { background: #2B2D33; color: var(--text); }
+
+  /* ---------- IMPOSTAZIONI ---------- */
+  .settings-grid { display: grid; gap: 12px; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 158px); }
+  .setting {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 14px;
+    position: relative;
+  }
+  .setting .s-ico {
+    align-items: center;
+    background: #1C1D22;
+    border-radius: 8px;
+    display: flex;
+    height: 38px;
+    justify-content: center;
+    margin-bottom: 12px;
+    width: 38px;
+  }
+  .setting .s-ico svg { height: 21px; width: 21px; }
+  .setting h3 { font-size: 17px; font-weight: 800; letter-spacing: 0.5px; margin: 0; }
+  .setting p { color: var(--muted); font-size: 12.5px; margin: 6px 0 0; }
+  .setting .chev { bottom: 12px; right: 14px; }
+
+  /* ---------- WIFI ---------- */
+  .wifi-grid { display: grid; gap: 12px; grid-template-columns: 1fr 288px; }
+  .field { margin-bottom: 12px; }
+  .field .fl { color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: 1.4px; margin-bottom: 6px; }
+  .field .fv {
+    align-items: center;
+    background: #101114;
+    border: 1px solid #2E3038;
+    border-radius: 7px;
+    display: flex;
+    font-size: 17px;
+    height: 46px;
+    justify-content: space-between;
+    padding: 0 12px;
+  }
+  .field .fv .dots { letter-spacing: 3px; }
+  .field .fv .hint { color: var(--muted2); font-size: 12px; }
+  .wifi-buttons { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin-top: 4px; }
+  .wifi-state {
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    display: flex;
+    flex-direction: column;
+    height: 318px;
+    justify-content: center;
+    padding: 16px;
+  }
+  .wifi-state svg { color: var(--green); height: 54px; width: 54px; }
+  .wifi-state .st { color: var(--green); font-size: 18px; font-weight: 800; letter-spacing: 1.2px; margin-top: 14px; }
+  .wifi-state .ssid { font-size: 17px; font-weight: 700; margin-top: 10px; }
+  .wifi-state .ip { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+  /* ---------- INFO ---------- */
+  .info-grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 112px); }
+  .info {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 13px 15px;
+  }
+  .info .k { color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: 1.6px; }
+  .info .v { font-size: 24px; font-weight: 800; margin-top: 9px; letter-spacing: 0.4px; }
+  .info .v small { color: var(--muted); font-size: 13px; font-weight: 700; margin-left: 8px; }
+  .info .bad { color: #F87171; }
+
+  /* ---------- TASTIERA ---------- */
+  .pad-value {
+    align-items: center;
+    background: #000;
+    border: 1px solid #2E3038;
+    border-radius: 10px;
+    display: flex;
+    height: 104px;
+    justify-content: flex-end;
+    margin-top: 4px;
+    padding: 0 20px;
+  }
+  .pad-value span {
+    color: #F2F2F2;
+    font-size: 58px;
+    font-weight: 800;
+    letter-spacing: 3px;
+  }
+  .pad-grid {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: 196px 196px 196px 170px;
+    grid-template-rows: 60px 60px 60px 60px;
+    margin-top: 14px;
+  }
+  .pad-grid .k {
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    display: flex;
+    font-size: 27px;
+    font-weight: 700;
+    justify-content: center;
+  }
+  .pad-grid .k.ok {
+    background: var(--green);
+    border-color: var(--green);
+    font-size: 20px;
+    font-weight: 800;
+    grid-column: 4;
+    grid-row: 1 / span 2;
+    letter-spacing: 1px;
+  }
+  .pad-grid .k.no {
+    background: #2B2D33;
+    font-size: 18px;
+    font-weight: 800;
+    grid-column: 4;
+    grid-row: 3 / span 2;
+    letter-spacing: 0.8px;
+  }
+  .pad-grid .k.del { font-size: 30px; }
+</style>
+<style>
+  .mode-side h3 { margin: 0; }
+  .mode-side svg { display: block; margin: 8px 0 0; }
+</style>
+</head>
+<body>
+
+<section class="screen" id="home">
+  <header class="home-head">
+    <div class="brand">
+      <span class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="12" r="4.5"/><path d="M3 12h2M17 12h4M11 3v2M11 19v2"/></svg>
+      </span>
+      <div>
+        <div class="brand-name">MENU</div>
+        <div class="brand-sub">MODALIT&Agrave; E SERVIZI</div>
+      </div>
+    </div>
+    <div class="head-right">
+      <div class="status-pill"><span class="lbl">ELS</span><span class="val">OFF</span></div>
+    </div>
+  </header>
+
+  <div class="menu-modes">
+    <div class="mode" style="--acc:#2F80ED;">
+      <span class="badge">F1</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M4.2 7l2.6 1.5M17.2 15.5l2.6 1.5M4.2 17l2.6-1.5M17.2 8.5l2.6-1.5"/></svg></span>
+      <h3>INGRANAGGI</h3><p>GEARBOX</p>
+    </div>
+    <div class="mode" style="--acc:#8B5CF6;">
+      <span class="badge">F2</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/><path d="M12 8a4 4 0 1 1-4 4"/></svg></span>
+      <h3>FILETTATURA</h3><p>THREADING</p>
+    </div>
+    <div class="mode" style="--acc:#2F80ED;">
+      <span class="badge">F3</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="7.5" cy="12" rx="3" ry="5"/><path d="M10.5 7H18a3 3 0 0 1 0 10h-7.5"/></svg></span>
+      <h3>TORNITURA</h3><p>TURNING</p>
+    </div>
+    <div class="mode" style="--acc:#2F80ED;">
+      <span class="badge">F4</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="12" r="5.5"/><path d="M16 12h5M18.5 9l3 3-3 3"/></svg></span>
+      <h3>SPIANATURA</h3><p>FACING</p>
+    </div>
+    <div class="mode" style="--acc:#2F80ED;">
+      <span class="badge">F5</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18L12 5l8 13z"/><path d="M8 18V9M16 18V9"/></svg></span>
+      <h3>CONO</h3><p>CONE</p>
+    </div>
+    <div class="mode" style="--acc:#2F80ED;">
+      <span class="badge">F6</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="11" height="6" rx="1.5"/><path d="M17 4v16M14 12h3"/></svg></span>
+      <h3>TRONCATURA</h3><p>PARTING</p>
+    </div>
+    <div class="mode" style="--acc:#22C55E;">
+      <span class="badge">F7</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="8.5" ry="5.5"/></svg></span>
+      <h3>ELLISSE</h3><p>ELLIPSE</p>
+    </div>
+    <div class="mode" style="--acc:#22C55E;">
+      <span class="badge">F8</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c3-7 6 7 9 0s6 7 9 0"/></svg></span>
+      <h3>ASINCRONO</h3><p>ASYNC</p>
+    </div>
+    <div class="mode" style="--acc:#22C55E;">
+      <span class="badge">F9</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="m10 12-2 2 2 2M14 12l2 2-2 2"/></svg></span>
+      <h3>G-CODE</h3><p>GCODE</p>
+    </div>
+    <div class="mode" style="--acc:#22C55E;">
+      <span class="badge">F10</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/></svg></span>
+      <h3>ASSE Y</h3><p>Y AXIS</p>
+    </div>
+    <div class="mode" style="--acc:#A78BFA;">
+      <span class="badge">F11</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M12 12v7M8.5 19h7"/></svg></span>
+      <h3>JOYSTICK</h3><p>JOY</p>
+    </div>
+    <div class="mode" style="--acc:#A78BFA;">
+      <span class="badge">F12</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="5"/><path d="M14 14l6 6M20 14l-6 6"/></svg></span>
+      <h3>X-INGRANAGGI</h3><p>XGEAR</p>
+    </div>
+    <div class="mode" style="--acc:#F59E0B;">
+      <span class="badge">F13</span>
+      <span class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h5l4 8 4-8h5"/><path d="M6 5v3M18 16v3"/></svg></span>
+      <h3>SCANALATURA</h3><p>GROOVING</p>
+    </div>
+  </div>
+
+  <div class="svc-row">
+    <div class="svc" style="--acc:#2F80ED;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="5"/><path d="M7 10v4M5 12h4M16 11h.01M18.5 13h.01"/></svg>COMANDO
+    </div>
+    <div class="svc" style="--acc:#A78BFA;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="m10 12-2 2 2 2M14 12l2 2-2 2"/></svg>GCODE
+    </div>
+    <div class="svc" style="--acc:#F59E0B;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>SETUP
+    </div>
+    <div class="svc" style="--acc:#38BDF8;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5.5 5.5 0 0 1 7 0"/><path d="M12 19.5h.01"/></svg>WIFI
+    </div>
+    <div class="svc" style="--acc:#94A3B8;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>INFO
+    </div>
+  </div>
+
+  <div class="strip"><span class="home-strip-hint">Tocca una voce per aprire la pagina dedicata</span><span>IT 20261030</span></div>
+</section>
+<!-- ============ COMANDO ============ -->
+<section class="screen" id="comando">
+  <header class="page-head">
+    <div><h1>COMANDO</h1><div class="sub">Controllo manuale assi e lavorazione</div></div>
+    <div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div>
+  </header>
+  <div class="content">
+    <div class="status-row">
+      <div class="stat on"><div class="k">STATO</div><div class="v">OFF</div></div>
+      <div class="stat blue"><div class="k">MODALIT&Agrave;</div><div class="v">INGR.</div></div>
+      <div class="stat"><div class="k">PRINCIPI</div><div class="v">1</div></div>
+      <div class="stat"><div class="k">PASSO</div><div class="v">1.500</div></div>
+      <div class="stat green"><div class="k">MISURA</div><div class="v">MM</div></div>
+    </div>
+
+    <div class="axes-row">
+      <div class="axis">
+        <div class="axis-top"><span>ASSE <b>X</b></span><span>MAX 0.00 &nbsp; MIN 0.00</span></div>
+        <div class="axis-mid"><span class="axis-letter" style="background:#C81E2B;">X</span><span class="axis-pos"><small>POSIZIONE</small>0.000</span></div>
+        <div class="axis-stops"><span>&#9650; MAX</span><span>MIN &#9660;</span></div>
+      </div>
+      <div class="axis">
+        <div class="axis-top"><span>ASSE <b>Y</b></span><span>MAX 0.00 &nbsp; MIN 0.00</span></div>
+        <div class="axis-mid"><span class="axis-letter" style="background:#16A34A;">Y</span><span class="axis-pos"><small>POSIZIONE</small>0.000</span></div>
+        <div class="axis-stops"><span>&#9650; MAX</span><span>MIN &#9660;</span></div>
+      </div>
+      <div class="axis">
+        <div class="axis-top"><span>ASSE <b>Z</b></span><span>MAX 0.00 &nbsp; MIN 0.00</span></div>
+        <div class="axis-mid"><span class="axis-letter" style="background:#1A6DD6;">Z</span><span class="axis-pos"><small>POSIZIONE</small>0.000</span></div>
+        <div class="axis-stops"><span>&#9650; MAX</span><span>MIN &#9660;</span></div>
+      </div>
+    </div>
+
+    <div class="jog-row">
+      <div class="jog"><span class="a">&uarr;</span>X+</div>
+      <div class="jog"><span class="a">&darr;</span>X&minus;</div>
+      <div class="jog"><span class="a">&#8599;</span>Y+</div>
+      <div class="jog"><span class="a">&#8600;</span>Y&minus;</div>
+      <div class="jog"><span class="a">&larr;</span>Z&minus;</div>
+      <div class="jog"><span class="a">&rarr;</span>Z+</div>
+    </div>
+
+    <div class="keypad">
+      <div class="key stop">STOP</div>
+      <div class="key">1</div><div class="key">2</div><div class="key">3</div><div class="key">4</div><div class="key">5</div>
+      <div class="key">6</div><div class="key">7</div><div class="key">8</div><div class="key">9</div><div class="key">0</div>
+      <div class="key del">CANC</div>
+      <div class="key ok">OK</div>
+    </div>
+  </div>
+  <div class="strip"><span>Pronto - NanoEls</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ INGRANAGGI (sottopagina modalita) ============ -->
+<section class="screen" id="ingranaggi">
+  <header class="page-head">
+    <div><h1>INGRANAGGI</h1><div class="sub">Modalit&agrave; F1 &middot; Gearbox</div></div>
+    <div class="head-right"><span class="chip">INGRANAGGI</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left">
+        <div class="p-row">
+          <div><span class="p-name">PASSO</span><span class="p-sub">PITCH &middot; MM PER GIRO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>1.500 <small>mm</small></span></div>
+            <div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">PRINCIPI</span><span class="p-sub">STARTS</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>1</span></div>
+            <div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA MAX</span><span class="p-sub">LIMIT SWITCH MAX</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>200.00 <small>mm</small></span></div>
+            <div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA MIN</span><span class="p-sub">LIMIT SWITCH MIN</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>0.00 <small>mm</small></span></div>
+            <div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#2F80ED; --soft:#17243A;">
+        <div class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M4.2 7l2.6 1.5M17.2 15.5l2.6 1.5M4.2 17l2.6-1.5M17.2 8.5l2.6-1.5"/></svg></div>
+        <h3>INGRANAGGI</h3>
+        <p>Sincronizza l'avanzamento dell'asse Z con la rotazione del mandrino.</p>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F1</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>INGRANAGGI &middot; F1 &middot; passo 1.500 mm</span><span>IT 20261030</span></div>
+</section>
+<!-- ============ FILETTATURA (sottopagina modalita) ============ -->
+<section class="screen" id="filetto">
+  <header class="page-head">
+    <div><h1>FILETTATURA</h1><div class="sub">Modalit&agrave; F2 &middot; Threading</div></div>
+    <div class="head-right"><span class="chip">FILETTATURA</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left">
+        <div class="p-row">
+          <div><span class="p-name">PASSO</span><span class="p-sub">PITCH &middot; MM PER GIRO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>1.750 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">PRINCIPI</span><span class="p-sub">STARTS</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>1</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">CONO FILETTO</span><span class="p-sub">RAPPORTO &middot; 0 = CILINDRICO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>0.00000</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA Z MAX</span><span class="p-sub">LIMIT SWITCH MAX</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>120.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#8B5CF6; --soft:#1E1B2E;">
+        <div class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5"/><path d="M12 8a4 4 0 1 1-4 4"/></svg></div>
+        <h3>FILETTATURA</h3>
+        <p>Sincronizza Z con il mandrino per filettare al passo impostato. I principi gestiscono i filetti multipli.</p>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F2</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>FILETTATURA &middot; F2 &middot; passo 1.750 mm</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ TORNITURA (sottopagina modalita) ============ -->
+<section class="screen" id="tornitura">
+  <header class="page-head">
+    <div><h1>TORNITURA</h1><div class="sub">Modalit&agrave; F3 &middot; Turning</div></div>
+    <div class="head-right"><span class="chip">TORNITURA</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left">
+        <div class="p-row">
+          <div><span class="p-name">PASSO</span><span class="p-sub">PITCH &middot; MM PER GIRO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>0.200 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">PASSATE</span><span class="p-sub">PASSES</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>4</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">LATO</span><span class="p-sub">SIDE</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>ESTERNO</span></div><div class="stepper"><div class="step">&lsaquo;</div><div class="step">&rsaquo;</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA Z MAX</span><span class="p-sub">LIMIT SWITCH MAX</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>150.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#2F80ED; --soft:#17243A;">
+        <div class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="7.5" cy="12" rx="3" ry="5"/><path d="M10.5 7H18a3 3 0 0 1 0 10h-7.5"/></svg></div>
+        <h3>TORNITURA</h3>
+        <p>Avanza Z a ogni giro del mandrino ed esegue le passate automatiche sul diametro.</p>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F3</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>TORNITURA &middot; F3 &middot; 4 passate</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ SPIANATURA (sottopagina modalita) ============ -->
+<section class="screen active" id="spianatura">
+  <header class="page-head">
+    <div><h1>SPIANATURA</h1><div class="sub">Modalit&agrave; F4 &middot; Facing</div></div>
+    <div class="head-right"><span class="chip">SPIANATURA</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left">
+        <div class="p-row">
+          <div><span class="p-name">PASSO</span><span class="p-sub">PITCH &middot; MM PER GIRO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>0.150 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">PASSATE</span><span class="p-sub">PASSES</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>6</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">DIREZIONE</span><span class="p-sub">DIRECTION</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>DX &rarr; SX</span></div><div class="stepper"><div class="step">&lsaquo;</div><div class="step">&rsaquo;</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA X MAX</span><span class="p-sub">LIMIT SWITCH MAX</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>45.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#2F80ED; --soft:#17243A;">
+        <h3>SPIANATURA</h3>
+        <svg width="252" height="188" viewBox="0 0 252 188" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="86" cy="94" r="44" fill="none" stroke="#E9E9EE" stroke-width="2.2"/>
+  <g fill="none" stroke="#5B616B" stroke-width="1" stroke-dasharray="3 3">
+    <circle cx="86" cy="94" r="32"/>
+    <circle cx="86" cy="94" r="20"/>
+    <circle cx="86" cy="94" r="8"/>
+  </g>
+  <polygon points="76,30 96,30 86,46" fill="#9AA0A8"/>
+  <line x1="86" y1="94" x2="86" y2="50" stroke="#9AA0A8" stroke-width="1.1"/>
+  <g fill="#9AA0A8">
+    <polygon points="86,94 82.2,87 89.8,87"/>
+    <polygon points="86,50 82.2,57 89.8,57"/>
+  </g>
+  <rect x="132" y="56" width="100" height="30" rx="4" fill="#101114" stroke="#2E3038" stroke-width="1.2"/>
+  <rect x="16" y="148" width="152" height="28" rx="4" fill="#101114" stroke="#2E3038" stroke-width="1.2"/>
+  </svg>
+
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F4</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>SPIANATURA &middot; F4 &middot; 6 passate</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ CONO (sottopagina modalita) ============ -->
+<section class="screen" id="cono">
+  <header class="page-head">
+    <div><h1>CONO</h1><div class="sub">Modalit&agrave; F5 &middot; Cone</div></div>
+    <div class="head-right"><span class="chip">CONO</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left">
+        <div class="p-row">
+          <div><span class="p-name">RAPPORTO</span><span class="p-sub">CONE RATIO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>1 : 19.08</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">LATO</span><span class="p-sub">SIDE</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>ESTERNO</span></div><div class="stepper"><div class="step">&lsaquo;</div><div class="step">&rsaquo;</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">CORSA Z</span><span class="p-sub">TAPER LENGTH</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>120.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA X MAX</span><span class="p-sub">LIMIT SWITCH MAX</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>45.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#2F80ED; --soft:#17243A;">
+        <div class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18L12 5l8 13z"/><path d="M8 18V9M16 18V9"/></svg></div>
+        <h3>CONO</h3>
+        <p>Sincronizza Z e X per ottenere una conicit&agrave; costante, esterna o interna.</p>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F5</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>CONO &middot; F5 &middot; rapporto 1:19.08</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ TRONCATURA (sottopagina modalita) ============ -->
+<section class="screen" id="troncatura">
+  <header class="page-head">
+    <div><h1>TRONCATURA</h1><div class="sub">Modalit&agrave; F6 &middot; Parting</div></div>
+    <div class="head-right"><span class="chip">TRONCATURA</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left">
+        <div class="p-row">
+          <div><span class="p-name">PASSO</span><span class="p-sub">PITCH &middot; MM PER GIRO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>0.080 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">PASSATE</span><span class="p-sub">PASSES</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>5</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">LATO</span><span class="p-sub">SIDE</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>ESTERNO</span></div><div class="stepper"><div class="step">&lsaquo;</div><div class="step">&rsaquo;</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA X MAX</span><span class="p-sub">LIMIT SWITCH MAX</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>25.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#2F80ED; --soft:#17243A;">
+        <div class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="11" height="6" rx="1.5"/><path d="M17 4v16M14 12h3"/></svg></div>
+        <h3>TRONCATURA</h3>
+        <p>Avanzamento radiale controllato per troncare il pezzo con passate progressive.</p>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F6</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>TRONCATURA &middot; F6 &middot; 5 passate</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ ELLISSE (sottopagina modalita) ============ -->
+<section class="screen" id="ellisse">
+  <header class="page-head">
+    <div><h1>ELLISSE</h1><div class="sub">Modalit&agrave; F7 &middot; Ellipse</div></div>
+    <div class="head-right"><span class="chip">ELLISSE</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left">
+        <div class="p-row">
+          <div><span class="p-name">PASSO</span><span class="p-sub">PITCH &middot; MM PER GIRO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>0.100 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">PASSATE</span><span class="p-sub">PASSES</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>8</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">LATO</span><span class="p-sub">SIDE</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>ESTERNO</span></div><div class="stepper"><div class="step">&lsaquo;</div><div class="step">&rsaquo;</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA Z MAX</span><span class="p-sub">LIMIT SWITCH MAX</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>80.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#22C55E; --soft:#12291B;">
+        <div class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="8.5" ry="5.5"/></svg></div>
+        <h3>ELLISSE</h3>
+        <p>Combina Z e X per descrivere un profilo ellittico sul pezzo.</p>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F7</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>ELLISSE &middot; F7 &middot; 8 passate</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ ASINCRONO (sottopagina modalita) ============ -->
+<section class="screen" id="asincrono">
+  <header class="page-head">
+    <div><h1>ASINCRONO</h1><div class="sub">Modalit&agrave; F8 &middot; Async</div></div>
+    <div class="head-right"><span class="chip">ASINCRONO</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left">
+        <div class="p-row">
+          <div><span class="p-name">PASSO</span><span class="p-sub">PITCH &middot; MM PER GIRO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>0.250 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">PRINCIPI</span><span class="p-sub">STARTS</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>1</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">SENSO</span><span class="p-sub">DIRECTION</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>+</span></div><div class="stepper"><div class="step">&lsaquo;</div><div class="step">&rsaquo;</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA Z MAX</span><span class="p-sub">LIMIT SWITCH MAX</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>200.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#22C55E; --soft:#12291B;">
+        <div class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c3-7 6 7 9 0s6 7 9 0"/></svg></div>
+        <h3>ASINCRONO</h3>
+        <p>Avanzamento temporizzato senza encoder mandrino, per lavorazioni libere.</p>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F8</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>ASINCRONO &middot; F8 &middot; passo 0.250 mm</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ ASSE Y (sottopagina modalita) ============ -->
+<section class="screen" id="assey">
+  <header class="page-head">
+    <div><h1>ASSE Y</h1><div class="sub">Modalit&agrave; F10 &middot; Y axis</div></div>
+    <div class="head-right"><span class="chip">ASSE Y</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left">
+        <div class="p-row">
+          <div><span class="p-name">PASSO Y</span><span class="p-sub">Y PITCH &middot; MM O GRADI/GIRO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>0.500 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">PRINCIPI</span><span class="p-sub">STARTS</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>1</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">SENSO</span><span class="p-sub">DIRECTION</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>+</span></div><div class="stepper"><div class="step">&lsaquo;</div><div class="step">&rsaquo;</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA Y MAX</span><span class="p-sub">LIMIT SWITCH MAX</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>100.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#22C55E; --soft:#12291B;">
+        <div class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4"/></svg></div>
+        <h3>ASSE Y</h3>
+        <p>Sincronizza l&rsquo;asse Y opzionale con il mandrino, lineare o rotativo.</p>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F10</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>ASSE Y &middot; F10 &middot; passo 0.500 mm</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ JOYSTICK (sottopagina modalita) ============ -->
+<section class="screen" id="joystick">
+  <header class="page-head">
+    <div><h1>JOYSTICK</h1><div class="sub">Modalit&agrave; F11 &middot; Joy</div></div>
+    <div class="head-right"><span class="chip">JOYSTICK</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left">
+        <div class="p-row">
+          <div><span class="p-name">VELOCIT&Agrave; NORMALE</span><span class="p-sub">JOG NORMAL &middot; GIRI/S</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>1.00 <small>giri/s</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">VELOCIT&Agrave; RAPIDA</span><span class="p-sub">JOG RAPID &middot; GIRI/S</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>8.00 <small>giri/s</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">ZONA MORTA</span><span class="p-sub">DEADBAND &middot; ADC</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>250</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">INGRESSI ATTIVI</span><span class="p-sub">AXES</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>Z&nbsp; X&nbsp; Y</span></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#A78BFA; --soft:#221B36;">
+        <div class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M12 12v7M8.5 19h7"/></svg></div>
+        <h3>JOYSTICK</h3>
+        <p>Jog proporzionale su Z, X e Y con velocit&agrave; normale e rapida.</p>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F11</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>JOYSTICK &middot; F11 &middot; 1.00 / 8.00 giri/s</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ X-INGRANAGGI (sottopagina modalita) ============ -->
+<section class="screen" id="xgear">
+  <header class="page-head">
+    <div><h1>X-INGRANAGGI</h1><div class="sub">Modalit&agrave; F12 &middot; X gearbox</div></div>
+    <div class="head-right"><span class="chip">X-INGRANAGGI</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left">
+        <div class="p-row">
+          <div><span class="p-name">PASSO X</span><span class="p-sub">X PITCH &middot; MM PER GIRO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>1.000 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">PRINCIPI</span><span class="p-sub">STARTS</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>1</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA X MAX</span><span class="p-sub">LIMIT SWITCH MAX</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>45.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA X MIN</span><span class="p-sub">LIMIT SWITCH MIN</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>0.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#A78BFA; --soft:#221B36;">
+        <div class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="5"/><path d="M14 14l6 6M20 14l-6 6"/></svg></div>
+        <h3>X-INGRANAGGI</h3>
+        <p>Come gli ingranaggi, ma l&rsquo;avanzamento sincronizzato &egrave; sull&rsquo;asse X.</p>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F12</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>X-INGRANAGGI &middot; F12 &middot; passo 1.000 mm</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ SCANALATURA (sottopagina modalita) ============ -->
+<section class="screen" id="scanalatura">
+  <header class="page-head">
+    <div><h1>SCANALATURA</h1><div class="sub">Modalit&agrave; F13 &middot; Grooving</div></div>
+    <div class="head-right"><span class="chip">SCANALATURA</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left tight">
+        <div class="p-row">
+          <div><span class="p-name">PASSATE</span><span class="p-sub">PASSES</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>4</span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">RIDUZIONE SINISTRA</span><span class="p-sub">LEFT REDUCTION &middot; MM/PASSATA</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>0.000 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">AVANZAMENTO</span><span class="p-sub">FEED &middot; MM PER GIRO</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>0.050 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">DIREZIONE</span><span class="p-sub">DIRECTION</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>AVANTI</span></div><div class="stepper"><div class="step">&lsaquo;</div><div class="step">&rsaquo;</div></div>
+          </div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINECORSA Z</span><span class="p-sub">LIMIT SWITCH &middot; MAX / MIN</span></div>
+          <div class="val-ctl">
+            <div class="valbox"><span>200.00 / 0.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+      <div class="mode-side" style="--acc:#F59E0B; --soft:#33260E;">
+        <div class="big-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h5l4 8 4-8h5"/><path d="M6 5v3M18 16v3"/></svg></div>
+        <h3>SCANALATURA</h3>
+        <p>Scanalature multiple con accorciamento progressivo del taglio sinistro.</p>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F13</span></div>
+        <div class="hint">Tocca un valore per digitarlo &#183; &minus;/+ per correggere</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>SCANALATURA &middot; F13 &middot; 4 passate</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ GCODE ============ -->
+<section class="screen" id="gcode">
+  <header class="page-head">
+    <div><h1>GCODE</h1><div class="sub">Programmi salvati nella memoria del controller</div></div>
+    <div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div>
+  </header>
+  <div class="content">
+    <div class="split" style="height: 358px;">
+      <div class="panel">
+        <div class="panel-label">FILE SALVATI &nbsp;&middot;&nbsp; 4</div>
+        <div class="file sel"><span class="name">filetto_m12.gcode</span><span class="meta">12.4 KB</span></div>
+        <div class="file"><span class="name">cono_30.gcode</span><span class="meta">8.1 KB</span></div>
+        <div class="file"><span class="name">spianatura.gcode</span><span class="meta">5.7 KB</span></div>
+        <div class="file"><span class="name">prova_asse_y.gcode</span><span class="meta">3.2 KB</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-label">DETTAGLI</div>
+        <div class="detail-name">filetto_m12.gcode</div>
+        <div class="detail-row"><span>Dimensione</span><b>12.4 KB</b></div>
+        <div class="detail-row"><span>Righe</span><b>348</b></div>
+        <div class="detail-row"><span>Modificato</span><b>28/10 18:20</b></div>
+        <div class="big-btn play">ESEGUI</div>
+        <div class="big-btn delete">ELIMINA</div>
+        <div class="big-btn refresh">RICARICA ELENCO</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>4 programmi &middot; 1.2 MB liberi</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ IMPOSTAZIONI ============ -->
+<section class="screen" id="impostazioni">
+  <header class="page-head">
+    <div><h1>IMPOSTAZIONI</h1><div class="sub">Parametri macchina e configurazione</div></div>
+    <div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div>
+  </header>
+  <div class="content">
+    <div class="settings-grid">
+      <div class="setting">
+        <div class="s-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#9AA0A8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.2" fill="#15161A"/><circle cx="15" cy="12" r="2.2" fill="#15161A"/><circle cx="7" cy="17" r="2.2" fill="#15161A"/></svg></div>
+        <h3>PASSI ASSI</h3><p>Passi per giro, inversione, diametro</p><span class="chev">&rsaquo;</span>
+      </div>
+      <div class="setting">
+        <div class="s-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#9AA0A8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M6 6v12M12 6v12M18 6v12"/></svg></div>
+        <h3>LIMITI E FINECORSA</h3><p>Quote MAX e MIN degli assi</p><span class="chev">&rsaquo;</span>
+      </div>
+      <div class="setting">
+        <div class="s-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#9AA0A8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2"/></svg></div>
+        <h3>VELOCIT&Agrave; E RAMPE</h3><p>Accelerazione e velocit&agrave; massime</p><span class="chev">&rsaquo;</span>
+      </div>
+      <div class="setting">
+        <div class="s-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#9AA0A8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20V8"/></svg></div>
+        <h3>UNIT&Agrave; E FORMATO</h3><p>Millimetri, pollici, decimali</p><span class="chev">&rsaquo;</span>
+      </div>
+      <div class="setting">
+        <div class="s-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#9AA0A8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+        <h3>LINGUA E DISPLAY</h3><p>Italiano, luminosit&agrave;, contrasto</p><span class="chev">&rsaquo;</span>
+      </div>
+      <div class="setting">
+        <div class="s-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#9AA0A8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/></svg></div>
+        <h3>RIPRISTINA</h3><p>Valori di fabbrica del controller</p><span class="chev">&rsaquo;</span>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>Le modifiche si applicano al riavvio</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ WIFI ============ -->
+<section class="screen" id="wifi">
+  <header class="page-head">
+    <div><h1>WIFI</h1><div class="sub">Connessione di rete del controller</div></div>
+    <div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div>
+  </header>
+  <div class="content">
+    <div class="wifi-grid">
+      <div class="panel">
+        <div class="panel-label">RETE</div>
+        <div class="field">
+          <div class="fl">NOME RETE (SSID)</div>
+          <div class="fv"><span>Laboratorio_Tornio</span><span class="hint">tocca per modificare</span></div>
+        </div>
+        <div class="field">
+          <div class="fl">PASSWORD</div>
+          <div class="fv"><span class="dots">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span><span class="hint">tocca per modificare</span></div>
+        </div>
+        <div class="wifi-buttons">
+          <div class="big-btn play" style="margin-top:0;">CONNETTI</div>
+          <div class="big-btn refresh" style="margin-top:0;">DIMENTICA</div>
+        </div>
+        <div class="detail-row" style="margin-top:16px;"><span>Stato</span><b style="color:#22C55E;">CONNESSO</b></div>
+        <div class="detail-row"><span>Indirizzo IP</span><b>192.168.1.50</b></div>
+      </div>
+      <div class="wifi-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5.5 5.5 0 0 1 7 0"/><path d="M12 19.5h.01"/></svg>
+        <div class="st">CONNESSO</div>
+        <div class="ssid">Laboratorio_Tornio</div>
+        <div class="ip">192.168.1.50</div>
+      </div>
+    </div>
+  </div>
+  <div class="strip"><span>Spegni il controller prima di cambiare rete</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ INFO ============ -->
+<section class="screen" id="info">
+  <header class="page-head">
+    <div><h1>INFO / STATO</h1><div class="sub">Diagnostica del controller</div></div>
+    <div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div>
+  </header>
+  <div class="content">
+    <div class="info-grid">
+      <div class="info"><div class="k">FIRMWARE</div><div class="v">H3V2 <small>20261030</small></div></div>
+      <div class="info"><div class="k">DISPLAY TFT</div><div class="v">IT 20261030</div></div>
+      <div class="info"><div class="k">INDIRIZZO IP</div><div class="v">192.168.1.50</div></div>
+      <div class="info"><div class="k">TEMPO ACCESO</div><div class="v">02:14:37</div></div>
+      <div class="info"><div class="k">MEMORIA LIBERA</div><div class="v">1.2 <small>MB</small></div></div>
+      <div class="info"><div class="k">ERRORI</div><div class="v">0 <small style="color:#22C55E;">nessuno</small></div></div>
+    </div>
+  </div>
+  <div class="strip"><span>Pronto - NanoEls</span><span>IT 20261030</span></div>
+</section>
+
+<!-- ============ TASTIERA NUMERICA ============ -->
+<section class="screen" id="tastiera">
+  <header class="page-head">
+    <div><h1>MODIFICA VALORE</h1><div class="sub">Tastierino numerico</div></div>
+    <div class="head-right"><span class="chip">DIGITAZIONE</span></div>
+  </header>
+  <div class="content">
+    <div class="pad-value"><span></span></div>
+    <div class="pad-grid">
+      <div class="k">1</div><div class="k">2</div><div class="k">3</div>
+      <div class="k ok">OK</div>
+      <div class="k">4</div><div class="k">5</div><div class="k">6</div>
+      <div class="k">7</div><div class="k">8</div><div class="k">9</div>
+      <div class="k no">ANNULLA</div>
+      <div class="k">.</div><div class="k">0</div><div class="k del">&larr;</div>
+    </div>
+  </div>
+  <div class="strip"><span>Inserisci il valore e premi OK &#183; &larr; cancella</span><span>IT 20261030</span></div>
+</section>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const id = params.get('p') || 'spianatura';
+  const screens = Array.from(document.querySelectorAll('.screen'));
+  const target = screens.find(s => s.id === id) || screens[0];
+  target.classList.add('active');
+
+  const modePages = {
+    F1: 'ingranaggi', F2: 'filetto', F3: 'tornitura', F4: 'spianatura',
+    F5: 'cono', F6: 'troncatura', F7: 'ellisse', F8: 'asincrono',
+    F9: 'gcode', F10: 'assey', F11: 'joystick', F12: 'xgear', F13: 'scanalatura'
+  };
+  const svcPages = { COMANDO: 'comando', GCODE: 'gcode', SETUP: 'impostazioni', WIFI: 'wifi', INFO: 'info' };
+  const go = page => { location.search = '?p=' + page; };
+
+  document.querySelectorAll('#home .mode').forEach(card => {
+    const page = modePages[card.querySelector('.badge').textContent.trim()];
+    if (page) card.addEventListener('click', () => go(page));
+  });
+  document.querySelectorAll('#home .svc').forEach(item => {
+    const page = svcPages[item.textContent.trim()];
+    if (page) item.addEventListener('click', () => go(page));
+  });
+  document.querySelectorAll('.menu-pill').forEach(pill => pill.addEventListener('click', () => go('home')));
+</script>
+</body>
+</html>

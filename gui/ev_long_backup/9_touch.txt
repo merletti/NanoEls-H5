@@ -1,0 +1,1 @@
+if(touch_y>=374&&touch_y<=432){if(touch_x>=12&&touch_x<=328){printh 68 09 30 5A FF FF FF}else{if(touch_x>=338&&touch_x<=488){printh 68 09 31 5A FF FF FF}}}

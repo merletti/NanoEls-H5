@@ -1,0 +1,4 @@
+if(tch0>=684&&tch0<=788&&tch1>=6&&tch1<=64)
+{
+printh 68 10 31 5A FF FF FF
+}

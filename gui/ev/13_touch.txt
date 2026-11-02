@@ -1,0 +1,108 @@
+if(tch0>=684&&tch0<=788&&tch1>=6&&tch1<=64)
+{
+printh 68 0D 31 5A FF FF FF
+}
+if(tch0>=13&&tch0<=105&&tch1>=72&&tch1<=128)
+{
+printh 68 0D 70 5A FF FF FF
+}
+if(tch0>=335&&tch0<=465&&tch1>=72&&tch1<=128)
+{
+printh 68 0D 72 5A FF FF FF
+}
+if(tch0>=477&&tch0<=643&&tch1>=72&&tch1<=128)
+{
+printh 68 0D 73 5A FF FF FF
+}
+if(tch0>=654&&tch0<=788&&tch1>=72&&tch1<=128)
+{
+printh 68 0D 74 5A FF FF FF
+}
+if(tch0>=24&&tch0<=78&&tch1>=183&&tch1<=241)
+{
+printh 68 0D 75 5A FF FF FF
+}
+if(tch0>=286&&tch0<=340&&tch1>=183&&tch1<=241)
+{
+printh 68 0D 76 5A FF FF FF
+}
+if(tch0>=549&&tch0<=603&&tch1>=183&&tch1<=241)
+{
+printh 68 0D 77 5A FF FF FF
+}
+if(tch0>=12&&tch0<=131&&tch1>=294&&tch1<=358)
+{
+printh 68 0D 60 5A FF FF FF
+}
+if(tch0>=146&&tch0<=265&&tch1>=294&&tch1<=358)
+{
+printh 68 0D 61 5A FF FF FF
+}
+if(tch0>=279&&tch0<=398&&tch1>=294&&tch1<=358)
+{
+printh 68 0D 62 5A FF FF FF
+}
+if(tch0>=401&&tch0<=520&&tch1>=294&&tch1<=358)
+{
+printh 68 0D 63 5A FF FF FF
+}
+if(tch0>=535&&tch0<=654&&tch1>=294&&tch1<=358)
+{
+printh 68 0D 64 5A FF FF FF
+}
+if(tch0>=668&&tch0<=787&&tch1>=294&&tch1<=358)
+{
+printh 68 0D 65 5A FF FF FF
+}
+if(tch0>=12&&tch0<=104&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 78 5A FF FF FF
+}
+if(tch0>=109&&tch0<=163&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 79 5A FF FF FF
+}
+if(tch0>=164&&tch0<=218&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 7A 5A FF FF FF
+}
+if(tch0>=219&&tch0<=273&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 7B 5A FF FF FF
+}
+if(tch0>=274&&tch0<=328&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 7C 5A FF FF FF
+}
+if(tch0>=329&&tch0<=383&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 7D 5A FF FF FF
+}
+if(tch0>=384&&tch0<=438&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 7E 5A FF FF FF
+}
+if(tch0>=439&&tch0<=493&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 7F 5A FF FF FF
+}
+if(tch0>=494&&tch0<=548&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 80 5A FF FF FF
+}
+if(tch0>=549&&tch0<=603&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 81 5A FF FF FF
+}
+if(tch0>=604&&tch0<=658&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 82 5A FF FF FF
+}
+if(tch0>=662&&tch0<=727&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 83 5A FF FF FF
+}
+if(tch0>=729&&tch0<=790&&tch1>=360&&tch1<=430)
+{
+printh 68 0D 84 5A FF FF FF
+}

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>NanoEls H5 — Schema di cablaggio</title>
+<style>
+  @page { size: A4; margin: 10mm 11mm 9mm 11mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    color: #111;
+    font-size: 8.8pt;
+    line-height: 1.27;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1 {
+    font-size: 15pt;
+    margin: 0 0 1mm 0;
+    letter-spacing: 0.2pt;
+  }
+  .sub {
+    font-size: 9.5pt;
+    color: #444;
+    margin: 0 0 1.6mm 0;
+  }
+  h2 {
+    font-size: 10.1pt;
+    margin: 2.05mm 0 0.9mm 0;
+    padding-bottom: 0.7mm;
+    border-bottom: 0.6pt solid #111;
+    text-transform: uppercase;
+    letter-spacing: 0.4pt;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 0.9mm 0;
+  }
+  th, td {
+    border: 0.4pt solid #999;
+    padding: 0.55mm 1.4mm;
+    text-align: left;
+    vertical-align: middle;
+  }
+  th {
+    background: #ebebeb;
+    font-weight: 600;
+    font-size: 8.4pt;
+  }
+  td.c, th.c { text-align: center; }
+  td.pin { font-weight: 700; text-align: center; width: 9mm; }
+  .sig {
+    font-family: Consolas, "Courier New", monospace;
+    font-weight: 700;
+    font-size: 9pt;
+  }
+  .gpio {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 8.6pt;
+  }
+  .muted { color: #555; }
+  .two { display: flex; gap: 4mm; }
+  .two > div { flex: 1; }
+  .note {
+    margin-top: 1.5mm;
+    font-size: 8.2pt;
+  }
+  .note ul { margin: 0; padding-left: 4.2mm; columns: 2; column-gap: 6mm; }
+  .note li { margin-bottom: 0.4mm; }
+  .warn {
+    border: 0.7pt solid #111;
+    padding: 1.1mm 2mm;
+    margin-top: 1.5mm;
+    font-size: 8.3pt;
+    background: #f6f6f6;
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1.6pt solid #111;
+    padding-bottom: 1mm;
+    margin-bottom: 0.7mm;
+  }
+  .head .right { text-align: right; font-size: 8.2pt; color: #444; max-width: 58mm; flex: 0 0 auto; }
+  .connwrap { margin: 0.6mm 0 0 0; font-size: 8.4pt; color: #444; }
+  .foot {
+    margin-top: 1.1mm;
+    border-top: 0.5pt solid #999;
+    padding-top: 1.2mm;
+    font-size: 7.1pt;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+  }
+  .kbd th:first-child { width: 11mm; }
+  .kbd td:first-child { width: 11mm; }
+  .foot span:last-child { white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1>NanoEls H5 — Schema di cablaggio</h1>
+    <div class="sub">Connettori, piedinatura e segnali con i nomi italiani (controller ELS, firmware v47)</div>
+  </div>
+  <div class="right">
+    Targhetta posteriore italiana<br>
+    Piede 1…4 = connettore DB2EVC-3.5-4P<br>
+    Foglio A4 — stampa al 100%
+  </div>
+</div>
+
+<div class="connwrap">
+  Il <b>piede 1</b> è quello vicino al pallino o alla freccia serigrafata sul PCB; i numeri qui sotto sono quelli dello schema elettrico.
+</div>
+
+<h2>Uscite assi — Z, X, Y (driver passo-passo)</h2>
+<table>
+  <tr>
+    <th class="c">Piede</th>
+    <th>Segnale</th>
+    <th class="c">Z — GPIO</th>
+    <th class="c">X — GPIO</th>
+    <th class="c">Y — GPIO</th>
+    <th>Note</th>
+  </tr>
+  <tr><td class="pin">1</td><td class="sig">PASSO</td><td class="c gpio">35</td><td class="c gpio">7</td><td class="c gpio">17</td><td>Impulsi di passo</td></tr>
+  <tr><td class="pin">2</td><td class="sig">SENSO</td><td class="c gpio">42</td><td class="c gpio">15</td><td class="c gpio">2</td><td>Senso di rotazione</td></tr>
+  <tr><td class="pin">3</td><td class="sig">ABIL.</td><td class="c gpio">41</td><td class="c gpio">16</td><td class="c gpio">1</td><td>Abilitazione driver</td></tr>
+  <tr><td class="pin">4</td><td class="sig">+5V</td><td class="c">—</td><td class="c">—</td><td class="c">—</td><td>Alimenta le opto del driver</td></tr>
+</table>
+<div class="muted" style="font-size:8.4pt">Verso il driver i segnali escono a <b>5 V</b> (convertitore SN74HCT245). La potenza del motore (VMOT) non passa da qui: va ai morsetti del driver.</div>
+
+<h2>Ingressi encoder e righe — impulsi manuali, scale, mandrino</h2>
+<table>
+  <tr>
+    <th>Connettore</th>
+    <th>Uso</th>
+    <th class="c">Piede 1 · A</th>
+    <th class="c">Piede 2 · B</th>
+    <th class="c">Piede 3</th>
+    <th class="c">Piede 4</th>
+  </tr>
+  <tr><td class="sig">IMPULSI Z</td><td>Volantino manuale asse Z</td><td class="c gpio">18</td><td class="c gpio">8</td><td class="c">MASSA</td><td class="c">+5V</td></tr>
+  <tr><td class="sig">IMPULSI X</td><td>Volantino manuale asse X</td><td class="c gpio">47</td><td class="c gpio">21</td><td class="c">MASSA</td><td class="c">+5V</td></tr>
+  <tr><td class="sig">IMPULSI Y</td><td>Volantino manuale asse Y</td><td class="c gpio">46</td><td class="c gpio">3</td><td class="c">MASSA</td><td class="c">+5V</td></tr>
+  <tr><td class="sig">SCALA Z</td><td>Riga ottica asse Z <span class="muted">(non letta dal firmware)</span></td><td class="c gpio">9</td><td class="c gpio">12</td><td class="c">MASSA</td><td class="c">+5V</td></tr>
+  <tr><td class="sig">SCALA X</td><td>Riga ottica asse X <span class="muted">(non letta dal firmware)</span></td><td class="c gpio">40</td><td class="c gpio">39</td><td class="c">MASSA</td><td class="c">+5V</td></tr>
+  <tr><td class="sig">SCALA Y</td><td>Riga ottica asse Y <span class="muted">(non letta dal firmware)</span></td><td class="c gpio">45</td><td class="c gpio">48</td><td class="c">MASSA</td><td class="c">+5V</td></tr>
+  <tr><td class="sig">ENCODER</td><td>Encoder ottico del mandrino</td><td class="c gpio">13</td><td class="c gpio">14</td><td class="c">MASSA</td><td class="c">+5V</td></tr>
+</table>
+
+<h2>Joystick — SEGN. JOY e ALIM. JOY</h2>
+<div class="two">
+  <div>
+    <table>
+      <tr><th class="c">Piede</th><th>Segnale</th><th class="c">GPIO</th></tr>
+      <tr><td class="pin">1</td><td class="sig">JZ</td><td class="c gpio">4</td></tr>
+      <tr><td class="pin">2</td><td class="sig">JX</td><td class="c gpio">5</td></tr>
+      <tr><td class="pin">3</td><td class="sig">JY</td><td class="c gpio">6</td></tr>
+      <tr><td class="pin">4</td><td class="sig">JB</td><td class="c gpio">38</td></tr>
+    </table>
+    <div class="muted" style="font-size:8.3pt">SEGN. JOY: tre assi analogici + pulsante.</div>
+  </div>
+  <div>
+    <table>
+      <tr><th class="c">Piede</th><th>Segnale</th></tr>
+      <tr><td class="pin">1</td><td class="sig">MASSA</td></tr>
+      <tr><td class="pin">2</td><td class="sig">MASSA</td></tr>
+      <tr><td class="pin">3</td><td class="sig">+5V</td></tr>
+      <tr><td class="pin">4</td><td class="sig">+5V</td></tr>
+    </table>
+    <div class="muted" style="font-size:8.3pt">ALIM. JOY: alimentazione del joystick (doppio contatto).</div>
+  </div>
+</div>
+
+<h2>Tastiera, alimentazione, I/O liberi e display</h2>
+<div class="two">
+  <div>
+    <table class="kbd">
+      <tr><th class="c">Piede</th><th>TASTIERA (PS/2)</th><th class="c">GPIO</th></tr>
+      <tr><td class="pin">1</td><td class="sig">DATI</td><td class="c gpio">37</td></tr>
+      <tr><td class="pin">2</td><td class="sig">CLK</td><td class="c gpio">36</td></tr>
+      <tr><td class="pin">3</td><td class="sig">MASSA</td><td class="c">—</td></tr>
+      <tr><td class="pin">4</td><td class="sig">+5V</td><td class="c">—</td></tr>
+    </table>
+    <div class="muted" style="font-size:8.3pt">TASTIERA: tastiera PS/2 (clock/dati).</div>
+  </div>
+  <div>
+    <table class="kbd">
+      <tr><th class="c">Piede</th><th>ALIM. 5V</th><th class="c">GPIO</th></tr>
+      <tr><td class="pin">1</td><td class="sig">MASSA</td><td class="c">—</td></tr>
+      <tr><td class="pin">2</td><td class="sig">MASSA</td><td class="c">—</td></tr>
+      <tr><td class="pin">3</td><td class="sig">+5V</td><td class="c">—</td></tr>
+      <tr><td class="pin">4</td><td class="sig">+5V</td><td class="c">—</td></tr>
+    </table>
+    <div class="muted" style="font-size:8.3pt">ALIM. 5V: ingresso di alimentazione della scheda.</div>
+  </div>
+</div>
+
+<div class="two">
+  <div>
+    <table class="kbd">
+      <tr><th class="c">Piede</th><th>VARIE</th><th class="c">GPIO</th></tr>
+      <tr><td class="pin">1</td><td class="sig">IO11</td><td class="c gpio">11</td></tr>
+      <tr><td class="pin">2</td><td class="sig">IO10</td><td class="c gpio">10</td></tr>
+      <tr><td class="pin">3</td><td class="sig">MASSA</td><td class="c">—</td></tr>
+      <tr><td class="pin">4</td><td class="sig">+5V</td><td class="c">—</td></tr>
+    </table>
+    <div class="muted" style="font-size:8.3pt">VARIE: due I/O liberi (relè, sonda, segnali ausiliari).</div>
+  </div>
+  <div>
+    <table class="kbd">
+      <tr><th class="c">Piede</th><th>UART (display Nextion)</th><th class="c">GPIO</th></tr>
+      <tr><td class="pin">1</td><td class="sig">TX</td><td class="c gpio">43</td></tr>
+      <tr><td class="pin">2</td><td class="sig">RX</td><td class="c gpio">44</td></tr>
+      <tr><td class="pin">3</td><td class="sig">+5V</td><td class="c">—</td></tr>
+      <tr><td class="pin">4</td><td class="sig">MASSA</td><td class="c">—</td></tr>
+    </table>
+    <div class="muted" style="font-size:8.3pt">UART: connettore separato in basso a sinistra, non presente sulla targhetta (UART0, condiviso con il monitor USB).</div>
+  </div>
+</div>
+
+<div class="note">
+  <ul>
+    <li><b>Serigrafia scheda</b>: <span class="sig">ZPULSE / XPULSE / YPULSE</span> = IMPULSI Z/X/Y · <span class="sig">ZSCALE / XSCALE / YSCALE</span> = SCALA Z/X/Y · <span class="sig">JSIGNAL</span> = SEGN. JOY · <span class="sig">JPOWER</span> = ALIM. JOY · <span class="sig">POWER</span> = ALIM. 5V · <span class="sig">MISC</span> = VARIE · <span class="sig">KEYBOARD</span> = TASTIERA · <span class="sig">STEP / DIR / ENA</span> = PASSO / SENSO / ABIL. · <span class="sig">GND</span> = MASSA · <span class="sig">DATA</span> = DATI · <span class="sig">JBUTTON</span> = JB.</li>
+    <li>Tutti gli ingressi sono <b>5 V tolleranti</b>; le uscite degli assi escono già a 5 V. Il display Nextion è collegato sul connettore UART a 4 piedi.</li>
+    <li>Valori predefiniti: volantini <b>600 impulsi/giro</b>, encoder mandrino <b>1200 impulsi/giro</b>. Si modificano dalla UI web.</li>
+    <li>Il joystick è <b>disattivato di default</b>: abilitarlo nel SETUP se lo si usa.</li>
+    <li>Le righe ottiche <b>SCALA Z / SCALA X / SCALA Y</b> sono cablate sulla scheda ma il firmware v47 non le legge.</li>
+    <li>La targhetta posteriore elenca i segnali nell'ordine <span class="sig">5V · ABIL. · SENSO · PASSO</span> (cioè dal piede 4 al piede 1) e <span class="sig">5V · MASSA · B · A</span> per gli ingressi.</li>
+  </ul>
+</div>
+
+<div class="warn">
+  <b>Prima di collegare</b>: ELS spento, controllare il piede 1 sulle serigrafie e che PASSO/SENSO/ABIL. dei driver siano optoisolati. Non portare la tensione del motore ai connettori della scheda.
+</div>
+
+<div class="foot">
+  <span>NanoEls H5 — schema di cablaggio · ricavato dallo schema elettrico del progetto</span>
+  <span>v47 · 01/11/2026</span>
+</div>
+
+</body>
+</html>

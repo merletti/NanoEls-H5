@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>NanoEls H5 - LAVORAZIONE 800x480</title>
+<style>
+  :root {
+    --bg: #101114;
+    --card: #15161A;
+    --line: #24252C;
+    --text: #F2F2F2;
+    --muted: #9AA0A8;
+    --muted2: #5B616B;
+    --blue: #1A6DD6;
+    --green: #16A34A;
+    --red: #C81E2B;
+    --amber: #F5A524;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+    height: 480px;
+    margin: 0;
+    overflow: hidden;
+    width: 800px;
+  }
+  .screen { height: 480px; position: relative; width: 800px; }
+
+  .head {
+    align-items: flex-start;
+    display: flex;
+    height: 60px;
+    justify-content: space-between;
+    left: 12px;
+    position: absolute;
+    right: 12px;
+    top: 10px;
+  }
+  .title { font-size: 24px; font-weight: 800; letter-spacing: 0.5px; line-height: 1; }
+  .sub { color: var(--muted); font-size: 11px; letter-spacing: 0.3px; margin-top: 5px; }
+  .head-right { align-items: center; display: flex; gap: 8px; margin-top: 2px; }
+  .chip {
+    align-items: center;
+    background: var(--blue);
+    border-radius: 6px;
+    color: #fff;
+    display: flex;
+    font-size: 12px;
+    font-weight: 700;
+    height: 34px;
+    letter-spacing: 0.7px;
+    padding: 0 16px;
+  }
+  .pill {
+    align-items: center;
+    background: #292C31;
+    border-radius: 6px;
+    color: var(--muted);
+    display: flex;
+    font-size: 12px;
+    font-weight: 700;
+    height: 34px;
+    letter-spacing: 0.5px;
+    padding: 0 14px;
+  }
+
+  .axes { display: flex; gap: 8px; height: 200px; left: 12px; position: absolute; right: 12px; top: 78px; }
+  .axis { background: var(--card); border-radius: 8px; flex: 1; padding: 12px; position: relative; }
+  .axis-top { align-items: center; display: flex; gap: 10px; }
+  .badge {
+    align-items: center;
+    border-radius: 8px;
+    color: #fff;
+    display: flex;
+    font-size: 20px;
+    font-weight: 800;
+    height: 38px;
+    justify-content: center;
+    width: 38px;
+  }
+  .badge.x { background: var(--red); }
+  .badge.y { background: var(--green); }
+  .badge.z { background: var(--blue); }
+  .axis-name { font-size: 12px; font-weight: 700; letter-spacing: 0.9px; }
+  .axis-state { color: var(--green); display: block; font-size: 9px; letter-spacing: 0.7px; margin-top: 2px; }
+  .pos { align-items: baseline; display: flex; gap: 6px; margin-top: 10px; }
+  .num { font-size: 31px; font-weight: 800; letter-spacing: 0.5px; }
+  .unit { color: var(--muted); font-size: 11px; }
+  .limits {
+    color: var(--muted);
+    display: flex;
+    font-size: 10px;
+    justify-content: space-between;
+    letter-spacing: 0.5px;
+    margin-top: 7px;
+  }
+  .limits b { color: #D6D8DC; font-weight: 700; }
+  .btns { bottom: 12px; display: flex; gap: 5px; left: 12px; position: absolute; right: 12px; }
+  .btn {
+    align-items: center;
+    background: #24272E;
+    border: 1px solid #2E3138;
+    border-radius: 6px;
+    color: var(--text);
+    display: flex;
+    flex: 1;
+    font-size: 10px;
+    font-weight: 700;
+    height: 42px;
+    justify-content: center;
+    letter-spacing: 0.4px;
+  }
+  .btn.max { background: #15241B; border-color: #1F5B39; color: #7EE2A8; }
+  .btn.min { background: #131E2B; border-color: #1E3E66; color: #8AB8FF; }
+
+  .bottom { display: flex; gap: 8px; height: 142px; left: 12px; position: absolute; right: 12px; top: 288px; }
+  .stats {
+    background: var(--card);
+    border-radius: 8px;
+    column-gap: 10px;
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 1fr 1fr;
+    padding: 12px 14px;
+    row-gap: 8px;
+  }
+  .stat .k { color: var(--muted); font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase; }
+  .stat .v { font-size: 21px; font-weight: 800; margin-top: 3px; }
+  .stat .u { color: var(--muted2); font-size: 9px; margin-left: 3px; }
+  .run { background: var(--card); border-radius: 8px; padding: 12px 14px; position: relative; width: 250px; }
+  .run .k { color: var(--muted); font-size: 10px; letter-spacing: 0.8px; }
+  .run .state { color: var(--amber); font-size: 24px; font-weight: 800; margin-top: 2px; }
+  .run .hint { color: var(--muted2); font-size: 9px; letter-spacing: 0.4px; margin-top: 4px; }
+  .start {
+    align-items: center;
+    background: var(--green);
+    border-radius: 8px;
+    bottom: 12px;
+    color: #fff;
+    display: flex;
+    font-size: 18px;
+    font-weight: 800;
+    height: 52px;
+    justify-content: center;
+    left: 14px;
+    letter-spacing: 1px;
+    position: absolute;
+    right: 14px;
+  }
+
+  .foot {
+    align-items: center;
+    background: #0C0D10;
+    bottom: 0;
+    color: #A8ADB4;
+    display: flex;
+    font-size: 10px;
+    height: 26px;
+    justify-content: space-between;
+    left: 0;
+    padding: 0 12px;
+    position: absolute;
+    right: 0;
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="head">
+    <div>
+      <div class="title">LAVORAZIONE</div>
+      <div class="sub">Dati di lavorazione e posizionamento assi</div>
+    </div>
+    <div class="head-right">
+      <span class="chip">FILETTATURA</span>
+      <span class="pill">&#8249; MENU</span>
+    </div>
+  </div>
+
+  <div class="axes">
+    <div class="axis">
+      <div class="axis-top">
+        <span class="badge x">X</span>
+        <div>
+          <span class="axis-name">ASSE X</span>
+          <span class="axis-state">ON</span>
+        </div>
+      </div>
+      <div class="pos"><span class="num">12.500</span><span class="unit">mm</span></div>
+      <div class="limits"><span>MAX <b>40.00</b></span><span>MIN <b>0.00</b></span></div>
+      <div class="btns">
+        <div class="btn">ZERO</div>
+        <div class="btn max">MAX QUI</div>
+        <div class="btn min">MIN QUI</div>
+      </div>
+    </div>
+
+    <div class="axis">
+      <div class="axis-top">
+        <span class="badge y">Y</span>
+        <div>
+          <span class="axis-name">ASSE Y</span>
+          <span class="axis-state">ON</span>
+        </div>
+      </div>
+      <div class="pos"><span class="num">0.000</span><span class="unit">mm</span></div>
+      <div class="limits"><span>MAX <b>50.00</b></span><span>MIN <b>0.00</b></span></div>
+      <div class="btns">
+        <div class="btn">ZERO</div>
+        <div class="btn max">MAX QUI</div>
+        <div class="btn min">MIN QUI</div>
+      </div>
+    </div>
+
+    <div class="axis">
+      <div class="axis-top">
+        <span class="badge z">Z</span>
+        <div>
+          <span class="axis-name">ASSE Z</span>
+          <span class="axis-state">ON</span>
+        </div>
+      </div>
+      <div class="pos"><span class="num">35.200</span><span class="unit">mm</span></div>
+      <div class="limits"><span>MAX <b>200.00</b></span><span>MIN <b>0.00</b></span></div>
+      <div class="btns">
+        <div class="btn">ZERO</div>
+        <div class="btn max">MAX QUI</div>
+        <div class="btn min">MIN QUI</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="stats">
+      <div class="stat"><div class="k">Passo</div><div class="v">1.500<span class="u">mm/giro</span></div></div>
+      <div class="stat"><div class="k">Avanzamento</div><div class="v">3.000<span class="u">mm/giro</span></div></div>
+      <div class="stat"><div class="k">Principi</div><div class="v">2</div></div>
+      <div class="stat"><div class="k">Giri</div><div class="v">12.40</div></div>
+      <div class="stat"><div class="k">Giri/min</div><div class="v">850</div></div>
+      <div class="stat"><div class="k">Angolo</div><div class="v">123.4<span class="u">&deg;</span></div></div>
+    </div>
+
+    <div class="run">
+      <div class="k">STATO</div>
+      <div class="state">OFF</div>
+      <div class="hint">F2 &middot; filettatura a 2 principi</div>
+      <div class="start">AVVIA</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>ZERO = azzera la quota &middot; MAX QUI / MIN QUI = finecorsa nella posizione attuale</span>
+    <span>IT 20261102</span>
+  </div>
+</div>
+</body>
+</html>

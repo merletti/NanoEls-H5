@@ -1,0 +1,4 @@
+if(touch_x>100)
+{
+printh 68 01 20 5A FF FF FF
+}

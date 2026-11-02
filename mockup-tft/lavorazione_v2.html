@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>NanoEls H5 - LAVORAZIONE 800x480</title>
+<style>
+  :root {
+    --bg: #101114;
+    --card: #15161A;
+    --line: #24252C;
+    --text: #F2F2F2;
+    --muted: #9AA0A8;
+    --muted2: #5B616B;
+    --blue: #1A6DD6;
+    --green: #16A34A;
+    --red: #C81E2B;
+    --amber: #F5A524;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+    height: 480px;
+    margin: 0;
+    overflow: hidden;
+    width: 800px;
+  }
+  .screen { height: 480px; position: relative; width: 800px; }
+
+  .head {
+    align-items: flex-start;
+    display: flex;
+    height: 60px;
+    justify-content: space-between;
+    left: 12px;
+    position: absolute;
+    right: 12px;
+    top: 8px;
+  }
+  .title { font-size: 23px; font-weight: 800; letter-spacing: 0.5px; line-height: 1; }
+  .sub { color: var(--muted); font-size: 10px; letter-spacing: 0.3px; margin-top: 5px; }
+  .head-right { align-items: center; display: flex; gap: 8px; margin-top: 2px; }
+  .chip {
+    align-items: center;
+    background: var(--blue);
+    border-radius: 6px;
+    color: #fff;
+    display: flex;
+    font-size: 12px;
+    font-weight: 700;
+    height: 32px;
+    letter-spacing: 0.7px;
+    padding: 0 15px;
+  }
+  .pill {
+    align-items: center;
+    background: #292C31;
+    border-radius: 6px;
+    color: var(--muted);
+    display: flex;
+    font-size: 12px;
+    font-weight: 700;
+    height: 32px;
+    letter-spacing: 0.5px;
+    padding: 0 13px;
+  }
+
+  .params { display: flex; gap: 8px; height: 52px; left: 12px; position: absolute; right: 12px; top: 74px; }
+  .param {
+    background: var(--card);
+    border: 1px solid #2A2D34;
+    border-radius: 8px;
+    flex: 1;
+    padding: 6px 11px;
+  }
+  .param .k { color: var(--muted); font-size: 8px; letter-spacing: 0.8px; text-transform: uppercase; }
+  .param .v { font-size: 18px; font-weight: 800; line-height: 1.25; margin-top: 1px; }
+  .param .u { color: var(--muted2); font-size: 8px; font-weight: 400; margin-left: 3px; }
+  .param.sense { background: #201A0F; border-color: #6B4A12; }
+  .param.sense .v { color: var(--amber); }
+
+  .axes { display: flex; gap: 8px; height: 156px; left: 12px; position: absolute; right: 12px; top: 134px; }
+  .axis { background: var(--card); border-radius: 8px; flex: 1; padding: 10px 12px; position: relative; }
+  .axis.off { opacity: 0.4; }
+  .axis-top { align-items: center; display: flex; gap: 9px; }
+  .badge {
+    align-items: center;
+    border-radius: 7px;
+    color: #fff;
+    display: flex;
+    font-size: 18px;
+    font-weight: 800;
+    height: 34px;
+    justify-content: center;
+    width: 34px;
+  }
+  .badge.x { background: var(--red); }
+  .badge.y { background: var(--green); }
+  .badge.z { background: var(--blue); }
+  .axis-name { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; }
+  .axis-state { color: var(--green); display: block; font-size: 8px; letter-spacing: 0.6px; margin-top: 1px; }
+  .axis.off .axis-state { color: var(--muted); }
+  .pos { align-items: baseline; display: flex; gap: 5px; margin-top: 5px; }
+  .num { font-size: 27px; font-weight: 800; letter-spacing: 0.4px; }
+  .unit { color: var(--muted); font-size: 10px; }
+  .limits {
+    color: var(--muted);
+    display: flex;
+    font-size: 9px;
+    justify-content: space-between;
+    letter-spacing: 0.4px;
+    margin-top: 3px;
+  }
+  .limits b { color: #D6D8DC; font-weight: 700; }
+  .btns { bottom: 10px; display: flex; gap: 5px; left: 12px; position: absolute; right: 12px; }
+  .btn {
+    align-items: center;
+    background: #24272E;
+    border: 1px solid #2E3138;
+    border-radius: 6px;
+    color: var(--text);
+    display: flex;
+    flex: 1;
+    font-size: 9.5px;
+    font-weight: 700;
+    height: 38px;
+    justify-content: center;
+    letter-spacing: 0.3px;
+  }
+  .btn.max { background: #15241B; border-color: #1F5B39; color: #7EE2A8; }
+  .btn.min { background: #131E2B; border-color: #1E3E66; color: #8AB8FF; }
+
+  .bottom { display: flex; gap: 8px; height: 102px; left: 12px; position: absolute; right: 12px; top: 298px; }
+  .stats {
+    background: var(--card);
+    border-radius: 8px;
+    column-gap: 10px;
+    display: grid;
+    flex: 1;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: 1fr 1fr;
+    padding: 8px 14px;
+    row-gap: 0;
+  }
+  .stat .k { color: var(--muted); font-size: 8px; letter-spacing: 0.8px; text-transform: uppercase; }
+  .stat .v { font-size: 19px; font-weight: 800; margin-top: 1px; }
+  .stat .u { color: var(--muted2); font-size: 8px; margin-left: 3px; }
+  .run { background: var(--card); border-radius: 8px; padding: 9px 14px; position: relative; width: 250px; }
+  .run .k { color: var(--muted); font-size: 9px; letter-spacing: 0.8px; }
+  .run .state { color: var(--amber); font-size: 20px; font-weight: 800; margin-top: 1px; }
+  .start {
+    align-items: center;
+    background: var(--green);
+    border-radius: 8px;
+    bottom: 9px;
+    color: #fff;
+    display: flex;
+    font-size: 17px;
+    font-weight: 800;
+    height: 40px;
+    justify-content: center;
+    left: 14px;
+    letter-spacing: 1px;
+    position: absolute;
+    right: 14px;
+  }
+
+  .jog { display: flex; gap: 8px; height: 40px; left: 12px; position: absolute; right: 12px; top: 408px; }
+  .jog .btn { flex: 1; font-size: 12px; height: 40px; letter-spacing: 0.6px; }
+  .jog .z { border-color: #1E3E66; color: #8AB8FF; }
+  .jog .x { border-color: #5B1E26; color: #FF9AA5; }
+
+  .foot {
+    align-items: center;
+    background: #0C0D10;
+    bottom: 0;
+    color: #A8ADB4;
+    display: flex;
+    font-size: 9.5px;
+    height: 26px;
+    justify-content: space-between;
+    left: 0;
+    padding: 0 12px;
+    position: absolute;
+    right: 0;
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="head">
+    <div>
+      <div class="title">LAVORAZIONE</div>
+      <div class="sub">Filetto sinistro M10&times;1 &middot; esterno &middot; lungo 180 mm</div>
+    </div>
+    <div class="head-right">
+      <span class="chip">FILETTATURA</span>
+      <span class="pill">&#8249; MENU</span>
+    </div>
+  </div>
+
+  <div class="params">
+    <div class="param"><div class="k">Passo</div><div class="v">1.000<span class="u">mm/giro</span></div></div>
+    <div class="param"><div class="k">Principi</div><div class="v">1</div></div>
+    <div class="param"><div class="k">Passate</div><div class="v">6</div></div>
+    <div class="param sense"><div class="k">Senso</div><div class="v">SX</div></div>
+    <div class="param"><div class="k">Tipo</div><div class="v">ESTERNO</div></div>
+  </div>
+
+  <div class="axes">
+    <div class="axis">
+      <div class="axis-top">
+        <span class="badge x">X</span>
+        <div>
+          <span class="axis-name">ASSE X</span>
+          <span class="axis-state">ON</span>
+        </div>
+      </div>
+      <div class="pos"><span class="num">-5.000</span><span class="unit">mm</span></div>
+      <div class="limits"><span>MAX <b>-4.39</b></span><span>MIN <b>-5.00</b></span></div>
+      <div class="btns">
+        <div class="btn">ZERO</div>
+        <div class="btn max">MAX QUI</div>
+        <div class="btn min">MIN QUI</div>
+      </div>
+    </div>
+
+    <div class="axis off">
+      <div class="axis-top">
+        <span class="badge y">Y</span>
+        <div>
+          <span class="axis-name">ASSE Y</span>
+          <span class="axis-state">NON USATO</span>
+        </div>
+      </div>
+      <div class="pos"><span class="num">--</span></div>
+      <div class="limits"><span>MAX <b>--</b></span><span>MIN <b>--</b></span></div>
+      <div class="btns">
+        <div class="btn">ZERO</div>
+        <div class="btn max">MAX QUI</div>
+        <div class="btn min">MIN QUI</div>
+      </div>
+    </div>
+
+    <div class="axis">
+      <div class="axis-top">
+        <span class="badge z">Z</span>
+        <div>
+          <span class="axis-name">ASSE Z</span>
+          <span class="axis-state">ON</span>
+        </div>
+      </div>
+      <div class="pos"><span class="num">0.000</span><span class="unit">mm</span></div>
+      <div class="limits"><span>MAX <b>0.00</b></span><span>MIN <b>-180.00</b></span></div>
+      <div class="btns">
+        <div class="btn">ZERO</div>
+        <div class="btn max">MAX QUI</div>
+        <div class="btn min">MIN QUI</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="stats">
+      <div class="stat"><div class="k">Giri</div><div class="v">0.00</div></div>
+      <div class="stat"><div class="k">Giri/min</div><div class="v">0</div></div>
+      <div class="stat"><div class="k">Angolo</div><div class="v">0.0<span class="u">&deg;</span></div></div>
+      <div class="stat"><div class="k">Passata</div><div class="v">0 / 6</div></div>
+    </div>
+
+    <div class="run">
+      <div class="k">STATO</div>
+      <div class="state">OFF</div>
+      <div class="start">AVVIA</div>
+    </div>
+  </div>
+
+  <div class="jog">
+    <div class="btn z">&#8592; Z&minus;</div>
+    <div class="btn z">Z+ &#8594;</div>
+    <div class="btn x">&#8593; X+</div>
+    <div class="btn x">&#8595; X&minus;</div>
+  </div>
+
+  <div class="foot">
+    <span>SX: passata da MAX a MIN &middot; ZERO azzera &middot; MAX/MIN QUI memorizza il finecorsa dove sei</span>
+    <span>IT 20261102</span>
+  </div>
+</div>
+</body>
+</html>

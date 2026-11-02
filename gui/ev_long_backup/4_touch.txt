@@ -1,0 +1,5 @@
+if(touch_y>=374&&touch_y<=432){if(touch_x>=12&&touch_x<=328){printh 68 04 30 5A FF FF FF}else{if(touch_x>=338&&touch_x<=488){printh 68 04 31 5A FF FF FF}}}
+if(touch_x>=389&&touch_x<=484&&touch_y>=85&&touch_y<=129){if(touch_x<=433){printh 68 04 20 5A FF FF FF}else{printh 68 04 21 5A FF FF FF}}
+if(touch_x>=389&&touch_x<=484&&touch_y>=151&&touch_y<=195){if(touch_x<=433){printh 68 04 22 5A FF FF FF}else{printh 68 04 23 5A FF FF FF}}
+if(touch_x>=389&&touch_x<=484&&touch_y>=217&&touch_y<=261){if(touch_x<=433){printh 68 04 24 5A FF FF FF}else{printh 68 04 25 5A FF FF FF}}
+if(touch_x>=389&&touch_x<=484&&touch_y>=283&&touch_y<=327){if(touch_x<=433){printh 68 04 26 5A FF FF FF}else{printh 68 04 27 5A FF FF FF}}

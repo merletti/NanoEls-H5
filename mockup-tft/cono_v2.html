@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>NanoEls H5 — CONO, misure in riga</title>
+<style>
+  :root {
+    --bg: #0A0A0C;
+    --card: #15161A;
+    --line: #24252C;
+    --text: #F2F2F2;
+    --muted: #9AA0A8;
+    --muted2: #5B616B;
+    --acc: #2F80ED;
+  }
+  * { box-sizing: border-box; }
+  html, body { background:#000; margin:0; width:800px; height:480px; overflow:hidden; font-family: Arial, Helvetica, sans-serif; }
+  .screen { background: var(--bg); color: var(--text); width:800px; height:480px; position:relative; overflow:hidden; }
+
+  .page-head { align-items:center; display:flex; height:70px; justify-content:space-between; padding:12px 12px 0; }
+  .page-head h1 { font-size:26px; font-weight:800; letter-spacing:0.8px; margin:0; }
+  .page-head .sub { color: var(--muted); font-size:12.5px; margin-top:4px; }
+  .head-right { align-items:center; display:flex; gap:10px; }
+  .chip-top { background:#1C1D22; border:1px solid var(--line); border-radius:8px; color:var(--muted); font-size:11px; font-weight:700; letter-spacing:1.2px; padding:8px 12px; }
+  .menu-pill { align-items:center; background:#2B2D33; border-radius:8px; display:flex; font-size:15px; font-weight:700; height:34px; padding:0 14px; }
+  .menu-pill .arrow { font-size:19px; line-height:1; margin-right:7px; margin-top:-1px; }
+
+  .content { padding:4px 12px 0; }
+  .mode-layout { display:grid; gap:12px; grid-template-columns:1fr 288px; height:358px; }
+  .mode-left { display:flex; flex-direction:column; }
+  .p-row { align-items:center; border-bottom:1px solid #1C1D22; display:flex; flex:0 0 66px; justify-content:space-between; padding:0 4px; }
+  .p-row:last-of-type { border-bottom:none; }
+  .p-name { font-size:15px; font-weight:700; letter-spacing:0.4px; }
+  .p-sub { color: var(--muted2); display:block; font-size:10px; font-weight:700; letter-spacing:1.1px; margin-top:4px; }
+  .val-ctl { align-items:center; display:flex; gap:8px; }
+  .valbox { align-items:center; background:#101114; border:1px solid #2E3038; border-radius:7px; display:flex; height:44px; justify-content:center; min-width:120px; padding:0 12px; }
+  .valbox span { font-size:21px; font-weight:800; letter-spacing:0.3px; }
+  .valbox small { color: var(--muted); font-size:11px; font-weight:700; margin-left:4px; }
+  .stepper { display:flex; gap:7px; }
+  .step { align-items:center; background:#2B2D33; border-radius:7px; display:flex; font-size:22px; font-weight:700; height:44px; justify-content:center; width:44px; }
+  .actions-row { display:grid; gap:10px; grid-template-columns:1fr 150px; margin-top:auto; }
+  .btn { align-items:center; border-radius:8px; display:flex; font-size:17px; font-weight:800; height:58px; justify-content:center; letter-spacing:0.6px; }
+  .btn.go { background:#16A34A; }
+  .btn.no { background:#2B2D33; }
+
+  /* cinque righe: stessa larghezza, passo piu' stretto */
+  .mode-left.five .p-row { flex:0 0 58px; }
+  .mode-left.five .p-name { font-size:14px; }
+  .mode-left.five .p-sub { font-size:9px; margin-top:3px; }
+  .mode-left.five .valbox, .mode-left.five .step { height:40px; }
+  .mode-left.five .step { width:40px; font-size:20px; }
+
+  .mode-side {
+    align-items:center; background:var(--card); border:1px solid var(--line); border-radius:9px;
+    display:flex; flex-direction:column; height:358px; justify-content:center; padding:14px 18px 16px; text-align:center;
+  }
+  .mode-side h3 { font-size:18px; font-weight:800; letter-spacing:0.7px; margin:0 0 2px; }
+  .state-row { border-top:1px solid #1C1D22; display:flex; font-size:12.5px; justify-content:space-between; margin-top:12px; padding-top:10px; width:100%; }
+  .state-row .k { color: var(--muted); }
+  .state-row .v { font-weight:800; }
+  .hint { color: var(--muted2); font-size:10.5px; margin-top:8px; }
+
+  .strip { align-items:center; background:#101114; bottom:0; display:flex; font-size:12px; justify-content:space-between; left:0; padding:0 12px; position:absolute; right:0; height:26px; color:#A8ADB4; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <header class="page-head">
+    <div><h1>CONO</h1><div class="sub">Modalità F5 &middot; Cone</div></div>
+    <div class="head-right"><span class="chip-top">CONO</span><div class="menu-pill"><span class="arrow">&lsaquo;</span>MENU</div></div>
+  </header>
+
+  <div class="content">
+    <div class="mode-layout">
+      <div class="mode-left five">
+        <div class="p-row">
+          <div><span class="p-name">&Oslash; GRANDE</span><span class="p-sub">BIG DIAMETER</span></div>
+          <div class="val-ctl"><div class="valbox"><span>50.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div></div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">&Oslash; PICCOLO</span><span class="p-sub">SMALL DIAMETER</span></div>
+          <div class="val-ctl"><div class="valbox"><span>25.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div></div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">CORSA Z</span><span class="p-sub">TAPER LENGTH</span></div>
+          <div class="val-ctl"><div class="valbox"><span>120.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div></div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">LATO</span><span class="p-sub">SIDE</span></div>
+          <div class="val-ctl"><div class="valbox"><span>ESTERNO</span></div><div class="stepper"><div class="step">&lsaquo;</div><div class="step">&rsaquo;</div></div></div>
+        </div>
+        <div class="p-row">
+          <div><span class="p-name">FINE CORSA X MAX</span><span class="p-sub">LIMIT SWITCH MAX</span></div>
+          <div class="val-ctl"><div class="valbox"><span>23.00 <small>mm</small></span></div><div class="stepper"><div class="step">&minus;</div><div class="step">+</div></div></div>
+        </div>
+        <div class="actions-row">
+          <div class="btn go">ATTIVA MODALIT&Agrave;</div>
+          <div class="btn no">ANNULLA</div>
+        </div>
+      </div>
+
+      <div class="mode-side">
+        <h3>CONO ESTERNO</h3>
+
+        <svg width="252" height="188" viewBox="0 0 252 188" xmlns="http://www.w3.org/2000/svg">
+          <!-- pezzo -->
+          <polygon points="80,26 186,52 186,100 80,126" fill="none" stroke="#E9E9EE" stroke-width="2.2" stroke-linejoin="round"/>
+
+          <!-- linee di riferimento -->
+          <g stroke="#5B616B" stroke-width="1">
+            <line x1="80" y1="26" x2="60" y2="26"/>
+            <line x1="80" y1="126" x2="60" y2="126"/>
+            <line x1="186" y1="52" x2="204" y2="52"/>
+            <line x1="186" y1="100" x2="204" y2="100"/>
+            <line x1="80" y1="126" x2="80" y2="152"/>
+            <line x1="186" y1="100" x2="186" y2="152"/>
+          </g>
+
+          <!-- linee di quota -->
+          <g stroke="#9AA0A8" stroke-width="1.1">
+            <line x1="66" y1="26" x2="66" y2="126"/>
+            <line x1="198" y1="52" x2="198" y2="100"/>
+            <line x1="80" y1="146" x2="186" y2="146"/>
+          </g>
+
+          <!-- frecce -->
+          <g fill="#9AA0A8">
+            <polygon points="66,26 62.2,33 69.8,33"/>
+            <polygon points="66,126 62.2,119 69.8,119"/>
+            <polygon points="198,52 194.2,59 201.8,59"/>
+            <polygon points="198,100 194.2,93 201.8,93"/>
+            <polygon points="80,146 87,142.2 87,149.8"/>
+            <polygon points="186,146 179,142.2 179,149.8"/>
+          </g>
+
+          <!-- riquadri valori: solo riferimento, si modificano nelle righe -->
+          <g fill="#101114" stroke="#2E3038" stroke-width="1.2">
+            <rect x="4" y="64" width="48" height="24" rx="4"/>
+            <rect x="204" y="64" width="44" height="24" rx="4"/>
+            <rect x="86" y="154" width="94" height="26" rx="4"/>
+          </g>
+          <g font-family="Arial" font-size="12.5" font-weight="800" fill="#F2F2F2" text-anchor="middle">
+            <text x="28" y="80.5">&#216; 50.0</text>
+            <text x="226" y="80.5">&#216; 25.0</text>
+            <text x="126" y="171.5" font-size="13">120.0</text>
+          </g>
+          <text x="160" y="171" font-family="Arial" font-size="9.5" font-weight="700" fill="#9AA0A8">mm</text>
+        </svg>
+
+        <div class="state-row"><span class="k">RAPPORTO</span><span class="v" style="color:#2F80ED;">1 : 9.60</span></div>
+        <div class="state-row"><span class="k">STATO</span><span class="v" style="color:#F59E0B;">OFF</span></div>
+        <div class="state-row" style="border-top:none;margin-top:8px;padding-top:0;"><span class="k">MODALIT&Agrave;</span><span class="v">F5</span></div>
+        <div class="hint">Rapporto calcolato dalle misure</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="strip"><span>CONO &middot; F5 &middot; da 50.0 a 25.0 in 120 mm</span><span>IT 20261030</span></div>
+</div>
+</body>
+</html>

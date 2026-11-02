@@ -1,0 +1,21 @@
+# Build e output compilati
+firmware-it/build/
+firmware-it/h5/build/
+firmware-it/h5/out/
+firmware-it/*.merged.bin
+
+# Backup HMI/TFT: in repo restano solo i file correnti
+screen-it/*.HMI
+!screen-it/h5_it.HMI
+screen-it/*.tft
+!screen-it/h5_it.tft
+screen-it/backup-*/
+screen-it/_*.png
+
+# Screenshot ed evidenze di prova
+gui/*.png
+mockup-tft${id}.png
+
+# Sistema
+Thumbs.db
+desktop.ini

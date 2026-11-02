@@ -1,0 +1,72 @@
+if(tch0>=255&&tch0<=387&&tch1>=132&&tch1<=180)
+{
+printh 68 11 41 5A FF FF FF
+}
+if(tch0>=181&&tch0<=284&&tch1>=293&&tch1<=339)
+{
+printh 68 11 44 5A FF FF FF
+}
+if(tch0>=285&&tch0<=387&&tch1>=293&&tch1<=339)
+{
+printh 68 11 45 5A FF FF FF
+}
+if(tch0>=259&&tch0<=387&&tch1>=77&&tch1<=123)
+{
+printh 68 11 40 5A FF FF FF
+}
+if(tch0>=255&&tch0<=387&&tch1>=185&&tch1<=231)
+{
+printh 68 11 42 5A FF FF FF
+}
+if(tch0>=259&&tch0<=387&&tch1>=239&&tch1<=285)
+{
+printh 68 11 43 5A FF FF FF
+}
+if(tch1>=374&&tch1<=432&&tch0>=12&&tch0<=328)
+{
+printh 68 11 30 5A FF FF FF
+}
+if(tch1>=374&&tch1<=432&&tch0>=338&&tch0<=488)
+{
+printh 68 11 31 5A FF FF FF
+}
+if(tch0>=397&&tch0<=484&&tch1>=81&&tch1<=121&&tch0<=437)
+{
+printh 68 11 20 5A FF FF FF
+}
+if(tch0>=397&&tch0<=484&&tch1>=81&&tch1<=121&&tch0>437)
+{
+printh 68 11 21 5A FF FF FF
+}
+if(tch0>=397&&tch0<=484&&tch1>=135&&tch1<=175&&tch0<=437)
+{
+printh 68 11 22 5A FF FF FF
+}
+if(tch0>=397&&tch0<=484&&tch1>=135&&tch1<=175&&tch0>437)
+{
+printh 68 11 23 5A FF FF FF
+}
+if(tch0>=397&&tch0<=484&&tch1>=189&&tch1<=229&&tch0<=437)
+{
+printh 68 11 24 5A FF FF FF
+}
+if(tch0>=397&&tch0<=484&&tch1>=189&&tch1<=229&&tch0>437)
+{
+printh 68 11 25 5A FF FF FF
+}
+if(tch0>=397&&tch0<=484&&tch1>=243&&tch1<=283&&tch0<=437)
+{
+printh 68 11 26 5A FF FF FF
+}
+if(tch0>=397&&tch0<=484&&tch1>=243&&tch1<=283&&tch0>437)
+{
+printh 68 11 27 5A FF FF FF
+}
+if(tch0>=397&&tch0<=484&&tch1>=297&&tch1<=337&&tch0<=437)
+{
+printh 68 11 28 5A FF FF FF
+}
+if(tch0>=397&&tch0<=484&&tch1>=297&&tch1<=337&&tch0>437)
+{
+printh 68 11 29 5A FF FF FF
+}

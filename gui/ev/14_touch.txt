@@ -1,0 +1,28 @@
+if(tch0>=684&&tch0<=788&&tch1>=6&&tch1<=64)
+{
+printh 68 0E 31 5A FF FF FF
+}
+if(tch0>=9&&tch0<=261&&tch1>=73&&tch1<=233)
+{
+printh 68 0E A0 5A FF FF FF
+}
+if(tch0>=275&&tch0<=527&&tch1>=73&&tch1<=233)
+{
+printh 68 0E A1 5A FF FF FF
+}
+if(tch0>=541&&tch0<=793&&tch1>=73&&tch1<=233)
+{
+printh 68 0E A2 5A FF FF FF
+}
+if(tch0>=9&&tch0<=261&&tch1>=247&&tch1<=407)
+{
+printh 68 0E A3 5A FF FF FF
+}
+if(tch0>=275&&tch0<=527&&tch1>=247&&tch1<=407)
+{
+printh 68 0E A4 5A FF FF FF
+}
+if(tch0>=541&&tch0<=793&&tch1>=247&&tch1<=407)
+{
+printh 68 0E A5 5A FF FF FF
+}

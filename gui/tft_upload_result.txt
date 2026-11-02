@@ -1,0 +1,7 @@
+Upload TFT completato — 2026-11-02 12:08
+file: screen-it/h5_it.tft
+size: 4.797.668 byte (TFT.uploaded = 4.797.668)
+md5:  185e1d53279db272f1c499509ab301be
+baud: 115200
+controller: 192.168.0.103 — HTTP 200, 454,9 s
+risposta: Upload TFT completato

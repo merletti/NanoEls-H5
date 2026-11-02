@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>NanoEls H5 - LAVORAZIONE TFT 800x480</title>
+<style>
+  :root {
+    --bg: #101114;
+    --card: #15161A;
+    --line: #24252C;
+    --text: #F2F2F2;
+    --muted: #9AA0A8;
+    --muted2: #5B616B;
+    --blue: #1A6DD6;
+    --green: #16A34A;
+    --red: #C81E2B;
+    --amber: #F5A524;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+    height: 480px;
+    margin: 0;
+    overflow: hidden;
+    width: 800px;
+  }
+  .screen { height: 480px; position: relative; width: 800px; }
+
+  .title { font-size: 23px; font-weight: 800; left: 12px; letter-spacing: 0.5px; line-height: 1; position: absolute; top: 8px; }
+  .sub { color: var(--muted); font-size: 10px; left: 12px; letter-spacing: 0.3px; position: absolute; top: 38px; }
+
+  .mode-chip {
+    background: var(--card);
+    border: 1.5px solid var(--blue);
+    border-radius: 8px;
+    height: 40px;
+    left: 452px;
+    position: absolute;
+    top: 10px;
+    width: 208px;
+  }
+  .pill {
+    align-items: center;
+    background: #292C31;
+    border-radius: 7px;
+    color: var(--muted);
+    display: flex;
+    font-size: 12px;
+    font-weight: 700;
+    height: 44px;
+    justify-content: center;
+    left: 684px;
+    letter-spacing: 0.5px;
+    position: absolute;
+    top: 10px;
+    width: 104px;
+  }
+
+  .param {
+    background: var(--card);
+    border: 1px solid #2A2D34;
+    border-radius: 8px;
+    height: 52px;
+    position: absolute;
+    top: 74px;
+  }
+  .param .k {
+    color: var(--muted);
+    font-size: 9px;
+    left: 11px;
+    letter-spacing: 0.8px;
+    position: absolute;
+    text-transform: uppercase;
+    top: 7px;
+  }
+  .param .u { color: var(--muted2); font-size: 8px; position: absolute; right: 8px; top: 8px; }
+  .param.sense { border-color: #6B4A12; }
+  .param.sense .k { color: var(--amber); }
+
+  .axis {
+    background: var(--card);
+    border: 1px solid #20232A;
+    border-radius: 8px;
+    height: 164px;
+    position: absolute;
+    top: 134px;
+    width: 253px;
+  }
+  .badge {
+    align-items: center;
+    border-radius: 6px;
+    color: #fff;
+    display: flex;
+    font-size: 16px;
+    font-weight: 800;
+    height: 28px;
+    justify-content: center;
+    left: 10px;
+    position: absolute;
+    top: 10px;
+    width: 28px;
+  }
+  .badge.x { background: var(--red); }
+  .badge.y { background: var(--green); }
+  .badge.z { background: var(--blue); }
+  .axis-name { font-size: 11px; font-weight: 800; left: 46px; letter-spacing: 0.8px; position: absolute; top: 16px; }
+  .axis-unit { color: var(--muted); font-size: 10px; position: absolute; right: 12px; top: 58px; }
+  .lim-label { color: var(--muted); font-size: 9px; left: 12px; letter-spacing: 0.4px; position: absolute; }
+
+  .btn {
+    align-items: center;
+    background: #24272E;
+    border: 1px solid #2E3138;
+    border-radius: 6px;
+    display: flex;
+    font-size: 9.5px;
+    font-weight: 800;
+    height: 28px;
+    justify-content: center;
+    letter-spacing: 0.2px;
+    position: absolute;
+    top: 268px;
+  }
+  .btn.max { background: #15241B; border-color: #1F5B39; color: #7EE2A8; }
+  .btn.min { background: #131E2B; border-color: #1E3E66; color: #8AB8FF; }
+
+  .stats { background: var(--card); border-radius: 8px; height: 94px; left: 12px; position: absolute; top: 304px; width: 520px; }
+  .divider { background: var(--line); height: 78px; left: 270px; position: absolute; top: 312px; width: 1px; }
+  .stat-k { color: var(--muted); font-size: 9px; letter-spacing: 0.8px; position: absolute; text-transform: uppercase; }
+
+  .run { background: var(--card); border-radius: 8px; height: 94px; left: 540px; position: absolute; top: 304px; width: 248px; }
+  .run .label { color: var(--muted); font-size: 9px; left: 12px; letter-spacing: 0.8px; position: absolute; top: 8px; }
+  .run .button {
+    background: var(--card);
+    border: 1.5px solid var(--green);
+    border-radius: 7px;
+    height: 34px;
+    left: 12px;
+    position: absolute;
+    top: 52px;
+    width: 224px;
+  }
+
+  .jog {
+    align-items: center;
+    background: #24272E;
+    border: 1px solid #2E3138;
+    border-radius: 7px;
+    display: flex;
+    font-size: 12px;
+    font-weight: 800;
+    height: 40px;
+    justify-content: center;
+    letter-spacing: 0.5px;
+    position: absolute;
+    top: 404px;
+    width: 188px;
+  }
+  .jog.z { border-color: #1E3E66; color: #8AB8FF; }
+  .jog.x { border-color: #5B1E26; color: #FF9AA5; }
+
+  .foot {
+    background: #0A0A0C;
+    border-top: 1px solid #1C1D23;
+    bottom: 0;
+    height: 30px;
+    left: 0;
+    position: absolute;
+    width: 800px;
+  }
+
+  .val {
+    font-size: 26px;
+    font-family: "DejaVu Sans Mono", monospace;
+    font-weight: 700;
+    height: 26px;
+    line-height: 26px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+  }
+  .center { text-align: center; }
+  .right { text-align: right; }
+  .dyn { visibility: hidden; }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="title">LAVORAZIONE</div>
+  <div class="sub">quote assi e dati della passata</div>
+  <div class="mode-chip"></div>
+  <div class="val dyn center" style="left:456px;top:17px;width:200px">FILETTATURA</div>
+  <div class="pill">&#8249; MENU</div>
+
+  <!-- parametri -->
+  <div class="param" style="left:12px;width:148px">
+    <div class="k">Passo</div><div class="u">mm/giro</div>
+  </div>
+  <div class="param" style="left:168px;width:148px">
+    <div class="k">Principi</div>
+  </div>
+  <div class="param" style="left:324px;width:148px">
+    <div class="k">Passate</div>
+  </div>
+  <div class="param sense" style="left:480px;width:148px">
+    <div class="k">Senso</div>
+  </div>
+  <div class="param" style="left:636px;width:148px">
+    <div class="k">Tipo</div>
+  </div>
+
+  <!-- asse X -->
+  <div class="axis" style="left:12px">
+    <div class="badge x">X</div><div class="axis-name">ASSE X</div>
+    <div class="axis-unit">mm</div>
+    <div class="lim-label" style="top:84px">MAX</div>
+    <div class="lim-label" style="top:112px">MIN</div>
+  </div>
+
+  <!-- pulsanti assi (coordinate schermo) -->
+  <div class="btn" style="left:24px;width:58px">ZERO</div>
+  <div class="btn max" style="left:87px;width:82px">MAX QUI</div>
+  <div class="btn min" style="left:174px;width:82px">MIN QUI</div>
+
+  <!-- asse Y -->
+  <div class="axis" style="left:272px">
+    <div class="badge y">Y</div><div class="axis-name">ASSE Y</div>
+    <div class="axis-unit">mm</div>
+    <div class="lim-label" style="top:84px">MAX</div>
+    <div class="lim-label" style="top:112px">MIN</div>
+  </div>
+  <div class="btn" style="left:284px;width:58px">ZERO</div>
+  <div class="btn max" style="left:347px;width:82px">MAX QUI</div>
+  <div class="btn min" style="left:434px;width:82px">MIN QUI</div>
+
+  <!-- asse Z -->
+  <div class="axis" style="left:532px">
+    <div class="badge z">Z</div><div class="axis-name">ASSE Z</div>
+    <div class="axis-unit">mm</div>
+    <div class="lim-label" style="top:84px">MAX</div>
+    <div class="lim-label" style="top:112px">MIN</div>
+  </div>
+  <div class="btn" style="left:544px;width:58px">ZERO</div>
+  <div class="btn max" style="left:607px;width:82px">MAX QUI</div>
+  <div class="btn min" style="left:694px;width:82px">MIN QUI</div>
+
+  <!-- statistiche -->
+  <div class="stats">
+    <div class="divider"></div>
+    <div class="stat-k" style="left:14px;top:2px">Giri</div>
+    <div class="stat-k" style="left:274px;top:2px">Giri/min</div>
+    <div class="stat-k" style="left:14px;top:44px">Angolo &deg;</div>
+    <div class="stat-k" style="left:274px;top:44px">Passata</div>
+  </div>
+
+  <!-- stato e avvio -->
+  <div class="run">
+    <div class="label">STATO</div>
+    <div class="button"></div>
+  </div>
+
+  <!-- valori dinamici (coordinate schermo) -->
+  <div class="val dyn" style="left:23px;top:94px;width:128px">1.000</div>
+  <div class="val dyn" style="left:179px;top:94px;width:128px">1</div>
+  <div class="val dyn" style="left:335px;top:94px;width:128px">6</div>
+  <div class="val dyn" style="left:491px;top:94px;width:128px">SX</div>
+  <div class="val dyn" style="left:647px;top:94px;width:132px">ESTERNO</div>
+  <div class="val dyn" style="left:24px;top:184px;width:193px">-5.000</div>
+  <div class="val dyn right" style="left:64px;top:210px;width:189px">-4.39</div>
+  <div class="val dyn right" style="left:64px;top:238px;width:189px">-5.00</div>
+  <div class="val dyn" style="left:284px;top:184px;width:193px">--</div>
+  <div class="val dyn right" style="left:324px;top:210px;width:189px">--</div>
+  <div class="val dyn right" style="left:324px;top:238px;width:189px">--</div>
+  <div class="val dyn" style="left:544px;top:184px;width:193px">0.000</div>
+  <div class="val dyn right" style="left:584px;top:210px;width:189px">0.00</div>
+  <div class="val dyn right" style="left:584px;top:238px;width:189px">-180.00</div>
+  <div class="val dyn" style="left:26px;top:322px;width:224px">12.40</div>
+  <div class="val dyn" style="left:286px;top:322px;width:224px">850</div>
+  <div class="val dyn" style="left:26px;top:364px;width:224px">123.4</div>
+  <div class="val dyn" style="left:286px;top:364px;width:224px">3 / 6</div>
+  <div class="val dyn" style="left:552px;top:322px;width:224px">OFF</div>
+  <div class="val dyn center" style="left:556px;top:360px;width:216px">AVVIA</div>
+
+  <!-- jog -->
+  <div class="jog z" style="left:12px">&#8592; Z&minus;</div>
+  <div class="jog z" style="left:208px">Z+ &#8594;</div>
+  <div class="jog x" style="left:404px">&#8593; X+</div>
+  <div class="jog x" style="left:600px">&#8595; X&minus;</div>
+
+  <div class="foot"></div>
+</div>
+</body>
+</html>
