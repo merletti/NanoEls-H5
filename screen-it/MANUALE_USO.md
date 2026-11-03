@@ -404,10 +404,13 @@ della faccia. La riga DIREZIONE mostra la scelta come `DX>SX` o `SX>DX`.
 
 ### I. G-code (G-CODE)
 
-1. `G-CODE`, `OK` → scelta del programma con `▲`/`▼` (`−` cancella il file selezionato).
-2. `OK` → `Accendi il mandrino!`: avviare il mandrino a mano.
-3. `OK` → il programma parte; la striscia mostra il comando in esecuzione.
-4. Durante l'esecuzione sono attivi solo `STOP` e il tasto di emergenza.
+1. I programmi si caricano dalla sezione **GCode** della UI web: si incolla il
+   testo oppure si usa **Sfoglia file .gcode**, poi `Salva` (i commenti vengono
+   scartati se l'opzione è attiva).
+2. `G-CODE`, `OK` → scelta del programma con `▲`/`▼` (`−` cancella il file selezionato).
+3. `OK` → `Accendi il mandrino!`: avviare il mandrino a mano.
+4. `OK` → il programma parte; la striscia mostra il comando in esecuzione.
+5. Durante l'esecuzione sono attivi solo `STOP` e il tasto di emergenza.
 
 ### J. Joystick e asse Y
 
@@ -505,7 +508,7 @@ corretta nel TFT: annotare quale zona e segnalarlo.
 |---|---|
 | `h5_it.tft` | interfaccia per il pannello: copiarlo sulla SD come `h5.tft` (FAT32, radice) oppure caricarlo dalla Web UI (*Aggiorna display Nextion*) |
 | `h5_it.HMI` | progetto Nextion modificabile, contiene gli sfondi |
-| `h5-IT-20261103-v63.bin` | firmware italiano per ESP32-S3 (H5V63) |
+| `h5-IT-20261103-v64.bin` | firmware italiano per ESP32-S3 (H5V64) |
 | `lavorazione_tft_bg.png` | sfondo della pagina LAVORAZIONE (picture 59) |
 
 Ordine di caricamento in caso di aggiornamento: prima il firmware, poi il TFT.

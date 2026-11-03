@@ -468,14 +468,14 @@
     button.secondary:hover {
       background-color: var(--secondary-dark);
     }
-    #tft-upload-controls, #firmware-upload-controls {
+    #gcode-upload-controls, #tft-upload-controls, #firmware-upload-controls {
       align-items: center;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-bottom: 10px;
     }
-    #tft-file, #firmware-file {
+    #gcode-file, #tft-file, #firmware-file {
       display: none;
     }
     #tft-upload-controls input, #firmware-upload-controls input {
@@ -1186,6 +1186,10 @@
           <section class="panel">
             <h3>Aggiungi GCode</h3>
             <p class="section-note">Genera file compatibili con <a href="https://kachurovskiy.com/lathecode/" target="_blank">lathecode</a>.</p>
+            <div id="gcode-upload-controls">
+              <label for="gcode-file" id="gcode-browse" class="button-like">Sfoglia file .gcode</label>
+              <input type="file" id="gcode-file" accept=".gcode,.nc,.txt,text/plain">
+            </div>
             <input type="text" id="gcode-name" placeholder="Nome GCode" required minlength="2">
             <textarea id="gcode-content" placeholder="Contenuto GCode" required minlength="2"></textarea>
             <div class="checkbox-container">
@@ -1350,7 +1354,7 @@
     </main>
 
     <footer class="app-footer">
-      <p>NanoEls H5V63. Solo rete locale fidata. Spegni il controller prima di aggiornamenti o modifiche alle impostazioni.</p>
+      <p>NanoEls H5V64. Solo rete locale fidata. Spegni il controller prima di aggiornamenti o modifiche alle impostazioni.</p>
     </footer>
   </div>
 
@@ -1405,6 +1409,8 @@
     const gcodeNameInput = document.getElementById('gcode-name');
     const gcodeContentInput = document.getElementById('gcode-content');
     const addGcodeButton = document.getElementById('add-gcode');
+    const gcodeBrowseButton = document.getElementById('gcode-browse');
+    const gcodeFileInput = document.getElementById('gcode-file');
     const removeCommentsCheckbox = document.getElementById('remove-comments');
     const configForm = document.getElementById('config-form');
     const configFields = document.getElementById('config-fields');
@@ -2326,6 +2332,7 @@
       tftFirstUploadCheckbox.disabled = uploadInProgress;
       tftFileInput.disabled = uploadInProgress;
       firmwareFileInput.disabled = uploadInProgress;
+      gcodeFileInput.disabled = uploadInProgress;
       const controlDisabled = uploadInProgress || ws.readyState !== WebSocket.OPEN;
       controlButtons.forEach(button => {
         button.disabled = controlDisabled;
@@ -2350,6 +2357,7 @@
       });
       tftBrowseButton.classList.toggle('disabled', uploadInProgress);
       firmwareBrowseButton.classList.toggle('disabled', uploadInProgress);
+      gcodeBrowseButton.classList.toggle('disabled', uploadInProgress);
     }
 
     function websocketReady() {
@@ -3088,6 +3096,7 @@
     tftFirstUploadCheckbox.addEventListener('change', saveTftFirstUploadPreference);
     tftFileInput.addEventListener('change', uploadTftFile);
     firmwareFileInput.addEventListener('change', uploadFirmwareFile);
+    gcodeFileInput.addEventListener('change', loadGcodeFile);
 
     document.addEventListener('DOMContentLoaded', () => {
       setupControlButtons();
@@ -3139,6 +3148,25 @@
 
     function removeComments(content) {
       return content.split('\n').map(line => line.split(';')[0].trim()).filter(line => !!line).join('\n');
+    }
+
+    function loadGcodeFile() {
+      const file = gcodeFileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = String(reader.result || '');
+        gcodeContentInput.value = text;
+        gcodeNameInput.value = file.name.replace(/\.(gcode|nc|txt)$/i, '');
+        gcodeFileInput.value = '';
+        updateButtonStates();
+        logMessage(`File ${file.name} caricato (${(text.length / 1024).toFixed(1)} KB): premi Salva per memorizzarlo.`);
+      };
+      reader.onerror = () => {
+        gcodeFileInput.value = '';
+        logMessage(`Impossibile leggere il file ${file.name}`);
+      };
+      reader.readAsText(file);
     }
 
     addGcodeButton.addEventListener('click', () => {

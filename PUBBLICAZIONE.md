@@ -83,5 +83,5 @@ Meccanica:
 
 - [ ] Aggiungere il badge della release al README, se utile.
 - [ ] Tenere aggiornato lo stato dei test nella sezione *Stato del progetto*.
-- [ ] Rispondere alle issue citando la versione (`H5V63`) mostrata dalla UI web.
+- [ ] Rispondere alle issue citando la versione (`H5V64`) mostrata dalla UI web.
 - [ ] Le donazioni restano facoltative: nessuna funzione va messa a pagamento.

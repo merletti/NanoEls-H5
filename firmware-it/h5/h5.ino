@@ -201,7 +201,7 @@ const bool SPINDLE_PAUSES_GCODE = true; // pause GCode execution when spindle st
 const int GCODE_MIN_RPM = 30; // pause GCode execution if RPM is below this
 
 // To be incremented whenever a measurable improvement is made.
-#define SOFTWARE_VERSION 63
+#define SOFTWARE_VERSION 64
 
 // To be changed whenever a different PCB / encoder / stepper / ... design is used.
 #define HARDWARE_VERSION 5
@@ -1016,14 +1016,14 @@ const char indexhtml[] PROGMEM = R"rawliteral(
     button.secondary:hover {
       background-color: var(--secondary-dark);
     }
-    #tft-upload-controls, #firmware-upload-controls {
+    #gcode-upload-controls, #tft-upload-controls, #firmware-upload-controls {
       align-items: center;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-bottom: 10px;
     }
-    #tft-file, #firmware-file {
+    #gcode-file, #tft-file, #firmware-file {
       display: none;
     }
     #tft-upload-controls input, #firmware-upload-controls input {
@@ -1734,6 +1734,10 @@ const char indexhtml[] PROGMEM = R"rawliteral(
           <section class="panel">
             <h3>Aggiungi GCode</h3>
             <p class="section-note">Genera file compatibili con <a href="https://kachurovskiy.com/lathecode/" target="_blank">lathecode</a>.</p>
+            <div id="gcode-upload-controls">
+              <label for="gcode-file" id="gcode-browse" class="button-like">Sfoglia file .gcode</label>
+              <input type="file" id="gcode-file" accept=".gcode,.nc,.txt,text/plain">
+            </div>
             <input type="text" id="gcode-name" placeholder="Nome GCode" required minlength="2">
             <textarea id="gcode-content" placeholder="Contenuto GCode" required minlength="2"></textarea>
             <div class="checkbox-container">
@@ -1953,6 +1957,8 @@ const char indexhtml[] PROGMEM = R"rawliteral(
     const gcodeNameInput = document.getElementById('gcode-name');
     const gcodeContentInput = document.getElementById('gcode-content');
     const addGcodeButton = document.getElementById('add-gcode');
+    const gcodeBrowseButton = document.getElementById('gcode-browse');
+    const gcodeFileInput = document.getElementById('gcode-file');
     const removeCommentsCheckbox = document.getElementById('remove-comments');
     const configForm = document.getElementById('config-form');
     const configFields = document.getElementById('config-fields');
@@ -2874,6 +2880,7 @@ const char indexhtml[] PROGMEM = R"rawliteral(
       tftFirstUploadCheckbox.disabled = uploadInProgress;
       tftFileInput.disabled = uploadInProgress;
       firmwareFileInput.disabled = uploadInProgress;
+      gcodeFileInput.disabled = uploadInProgress;
       const controlDisabled = uploadInProgress || ws.readyState !== WebSocket.OPEN;
       controlButtons.forEach(button => {
         button.disabled = controlDisabled;
@@ -2898,6 +2905,7 @@ const char indexhtml[] PROGMEM = R"rawliteral(
       });
       tftBrowseButton.classList.toggle('disabled', uploadInProgress);
       firmwareBrowseButton.classList.toggle('disabled', uploadInProgress);
+      gcodeBrowseButton.classList.toggle('disabled', uploadInProgress);
     }
 
     function websocketReady() {
@@ -3636,6 +3644,7 @@ const char indexhtml[] PROGMEM = R"rawliteral(
     tftFirstUploadCheckbox.addEventListener('change', saveTftFirstUploadPreference);
     tftFileInput.addEventListener('change', uploadTftFile);
     firmwareFileInput.addEventListener('change', uploadFirmwareFile);
+    gcodeFileInput.addEventListener('change', loadGcodeFile);
 
     document.addEventListener('DOMContentLoaded', () => {
       setupControlButtons();
@@ -3687,6 +3696,25 @@ const char indexhtml[] PROGMEM = R"rawliteral(
 
     function removeComments(content) {
       return content.split('\n').map(line => line.split(';')[0].trim()).filter(line => !!line).join('\n');
+    }
+
+    function loadGcodeFile() {
+      const file = gcodeFileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const text = String(reader.result || '');
+        gcodeContentInput.value = text;
+        gcodeNameInput.value = file.name.replace(/\.(gcode|nc|txt)$/i, '');
+        gcodeFileInput.value = '';
+        updateButtonStates();
+        logMessage(`File ${file.name} caricato (${(text.length / 1024).toFixed(1)} KB): premi Salva per memorizzarlo.`);
+      };
+      reader.onerror = () => {
+        gcodeFileInput.value = '';
+        logMessage(`Impossibile leggere il file ${file.name}`);
+      };
+      reader.readAsText(file);
     }
 
     addGcodeButton.addEventListener('click', () => {
@@ -5873,8 +5901,10 @@ void handleTftUpload() {
   if (server.hasRaw()) {
     HTTPRaw& raw = server.raw();
     if (raw.status == RAW_START) {
-      long fileSize = server.hasArg("size") ? server.arg("size").toInt() : 0;
-      long currentBaud = server.hasArg("baud") ? server.arg("baud").toInt() : NEXTION_FIRST_UPLOAD_BAUD;
+      // Query arguments are parsed only after the body, so raw uploads take the
+      // size from Content-Length and the baud from the X-Baud header.
+      long fileSize = server.clientContentLength();
+      long currentBaud = server.hasHeader("X-Baud") ? server.header("X-Baud").toInt() : NEXTION_FIRST_UPLOAD_BAUD;
       tftUploadLog(String("selezionato upload diretto, baud=") + String(currentBaud));
       startNextionTftUpload(fileSize, currentBaud);
     } else if (raw.status == RAW_WRITE) {
@@ -5999,7 +6029,7 @@ void handleFirmwareUpload() {
   if (server.hasRaw()) {
     HTTPRaw& raw = server.raw();
     if (raw.status == RAW_START) {
-      size_t fileSize = server.hasArg("size") ? server.arg("size").toInt() : 0;
+      size_t fileSize = server.clientContentLength();
       firmwareUploadLog("selezionato upload diretto");
       startFirmwareUpload(fileSize);
     } else if (raw.status == RAW_WRITE) {
@@ -6079,6 +6109,8 @@ void setWiFiStatus(const String& status) {
 }
 
 void registerWebRoutes() {
+  static const char* extraHeaders[] = {"X-Baud"};
+  server.collectHeaders(extraHeaders, 1);
   server.on("/", handleClientRequests);
   server.on("/gcode/add", HTTP_POST, handleGcodeAdd);
   server.on("/gcode/list", HTTP_GET, handleGcodeList);

@@ -23,7 +23,8 @@ display.
 - **Pagina LAVORAZIONE**: apre da sola la lavorazione in corso; `STATO/AVVIA`
   conferma il setup già impostato e parte in un tocco.
 - **UI web** (`http://<ip-del-controller>/`): quote, finecorsa, parametri motori,
-  WiFi, file G-code, aggiornamento firmware e TFT via OTA.
+  WiFi, programmi G-code anche da file `.gcode`, aggiornamento firmware e TFT via
+  OTA.
 - **Sicurezza di lavoro**: STOP immediato, emergenze con messaggio a schermo,
   finecorsa obbligatori nelle modalità che li richiedono.
 - **Impostazioni persistenti** in NVS: assi, finecorsa, passo, rapporto cono,
@@ -117,10 +118,11 @@ sotto. In alternativa si apre `firmware-it/h5/h5.ino` con l'Arduino IDE (scheda
 
 Verificato:
 
-- compilazione e avvio su ESP32-S3 (firmware H5V63);
+- compilazione e avvio su ESP32-S3 (firmware H5V64);
 - 21 pagine TFT: sfondi, colori, zone touch, valori dipinti dal firmware;
 - logica di setup e avvio in un tocco per tutte le modalità;
 - aggiornamento OTA di firmware e display;
+- caricamento di programmi G-code da file nella UI web;
 - UI web (configurazione, G-code, WiFi) e persistenza in NVS;
 - STOP normali verificati a banco (controller senza assi montati).
 
