@@ -505,7 +505,7 @@ corretta nel TFT: annotare quale zona e segnalarlo.
 |---|---|
 | `h5_it.tft` | interfaccia per il pannello: copiarlo sulla SD come `h5.tft` (FAT32, radice) oppure caricarlo dalla Web UI (*Aggiorna display Nextion*) |
 | `h5_it.HMI` | progetto Nextion modificabile, contiene gli sfondi |
-| `h5-IT-20261102-v50.bin` | firmware italiano per ESP32-S3 (H5V50) |
+| `h5-IT-20261103-v63.bin` | firmware italiano per ESP32-S3 (H5V63) |
 | `lavorazione_tft_bg.png` | sfondo della pagina LAVORAZIONE (picture 59) |
 
 Ordine di caricamento in caso di aggiornamento: prima il firmware, poi il TFT.
