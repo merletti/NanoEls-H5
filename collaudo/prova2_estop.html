@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>NanoEls H5 — Collaudo prova 2: STOP durante jog (ESTOP)</title>
+<style>
+  @page { size: A4; margin: 11mm 12mm 10mm 12mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    color: #111;
+    font-size: 8.7pt;
+    line-height: 1.2;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1 { font-size: 14pt; margin: 0 0 0.6mm 0; letter-spacing: 0.2pt; }
+  .sub { font-size: 9pt; color: #444; margin: 0 0 1.5mm 0; }
+  h2 {
+    font-size: 9.6pt;
+    margin: 2.3mm 0 0.8mm 0;
+    padding-bottom: 0.6mm;
+    border-bottom: 0.7pt solid #111;
+    text-transform: uppercase;
+    letter-spacing: 0.4pt;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 0.9mm 0; }
+  th, td {
+    border: 0.4pt solid #999;
+    padding: 0.9mm 1.4mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #ebebeb; font-weight: 600; font-size: 8.4pt; }
+  td.c, th.c { text-align: center; }
+  td.n { font-weight: 700; text-align: center; width: 7mm; }
+  .cb {
+    display: inline-block;
+    width: 3.6mm;
+    height: 3.6mm;
+    border: 0.6pt solid #333;
+    vertical-align: -0.6mm;
+  }
+  .sig { font-family: Consolas, "Courier New", monospace; font-weight: 700; }
+  .muted { color: #555; }
+  .warn {
+    border: 0.8pt solid #111;
+    padding: 1.2mm 2.2mm;
+    margin: 0 0 0.9mm 0;
+    font-size: 8.4pt;
+    background: #f4f4f4;
+  }
+  .warn b { text-transform: uppercase; letter-spacing: 0.3pt; }
+  .stop {
+    border: 0.8pt solid #111;
+    border-left-width: 2.4mm;
+    padding: 1.2mm 2.2mm;
+    margin: 1mm 0 0 0;
+    font-size: 8.4pt;
+  }
+  .stop ul, .warn ul { margin: 0.4mm 0 0 0; padding-left: 4.4mm; }
+  .stop li, .warn li { margin-bottom: 0.3mm; }
+  .meta td { padding: 1.3mm 1.8mm; }
+  .meta .fill { border-bottom: 0.5pt solid #666; min-width: 34mm; display: inline-block; height: 4mm; }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1.6pt solid #111;
+    padding-bottom: 1.2mm;
+    margin-bottom: 1mm;
+  }
+  .head .right { text-align: right; font-size: 8.2pt; color: #444; }
+  .foot {
+    margin-top: 1.6mm;
+    border-top: 0.5pt solid #999;
+    padding-top: 0.9mm;
+    font-size: 7.4pt;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+  }
+  .foot span:last-child { white-space: nowrap; }
+  .esito td { padding: 1.6mm 2mm; }
+  .esito .big { font-size: 9.6pt; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1>NanoEls H5 — Collaudo sicurezza, prova 2</h1>
+    <div class="sub">STOP durante un jog: deve scattare l'emergenza <b>ESTOP</b> (firmware H5V53)</div>
+  </div>
+  <div class="right">
+    Foglio A4 — stampa al 100%<br>
+    Spuntare ogni riga solo se il<br>risultato è quello scritto
+  </div>
+</div>
+
+<table class="meta">
+  <tr>
+    <td>Data <span class="fill"></span></td>
+    <td>Operatore <span class="fill"></span></td>
+    <td>Firmware in esecuzione <span class="fill"></span></td>
+    <td>Banco / macchina <span class="fill"></span></td>
+  </tr>
+</table>
+
+<div class="warn">
+  <b>Prima di iniziare.</b> Assi liberi e senza carico, mandrino fermo, nessun pezzo in lavorazione, mani libere e tasto OFF a portata.
+  La prova <b>blocca il controller</b>: si esce solo togliendo e ridando alimentazione.
+</div>
+
+<h2>0. Condizioni di partenza</h2>
+<table>
+  <tr>
+    <th class="c" style="width:9mm">&#10003;</th>
+    <th>Controllo</th>
+    <th class="c" style="width:9mm">&#10003;</th>
+    <th>Controllo</th>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>TFT sulla pagina <b>LAVORAZIONE</b> (page 21)</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>UI web aperta, controller online</td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Riga in basso: <span class="sig">&lt;MODALIT&Agrave;&gt; OFF</span></td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Versione in testa alla UI web: <b>H5V53</b></td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Card STATO: <span class="sig">OFF</span></td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Finecorsa <b>Z</b> e <b>X</b> configurati</td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Tasto grande: <span class="sig">AVVIA</span> (non STOP)</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Nessun programma G-CODE in esecuzione</td>
+  </tr>
+</table>
+
+<h2>1. Esecuzione</h2>
+<table>
+  <tr>
+    <th class="c" style="width:7mm">#</th>
+    <th style="width:33%">Azione</th>
+    <th>Risultato atteso</th>
+    <th class="c" style="width:9mm">&#10003;</th>
+  </tr>
+  <tr>
+    <td class="n">1</td>
+    <td>Tieni premuto il <b>jog Z</b>: freccia Z nella UI web, oppure <span class="sig">&larr; Z&minus;</span> / <span class="sig">Z+ &rarr;</span> sul TFT</td>
+    <td>Il carro si muove e la posizione si aggiorna</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">2</td>
+    <td><b>Senza rilasciare il jog</b>, premi il tasto fisico <b>OFF</b> (oppure il pulsante OFF della UI web)</td>
+    <td>Fermata immediata, il jog non riparte da solo</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">3</td>
+    <td>Guarda la <b>riga in basso</b> del TFT</td>
+    <td><span class="sig">ESTOP - Spento in manuale</span></td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">4</td>
+    <td>Guarda la <b>card STATO</b> del TFT</td>
+    <td><span class="sig">ESTOP</span></td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">5</td>
+    <td>Guarda i valori (GIRI, ANGOLO, PASSATA) e il tasto grande</td>
+    <td>Valori <b>congelati</b>; il tasto resta sull'ultima etichetta &mdash; &egrave; normale</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">6</td>
+    <td>Guarda la <b>casella di stato</b> della UI web</td>
+    <td><span class="sig">ESTOP</span> con la causa <span class="sig">Spento in manuale</span></td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">7</td>
+    <td>Prova a comandare un altro movimento (jog o tasto)</td>
+    <td>Nessun movimento: i comandi sono ignorati</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">8</td>
+    <td>Togli e ridai alimentazione al controller</td>
+    <td>Online in ~2 s con <b>H5V53</b>, ELS spento, finecorsa conservati, TFT sul MENU</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+</table>
+
+<h2>2. Variante facoltativa (solo con ELS acceso)</h2>
+<table>
+  <tr>
+    <th class="c" style="width:9mm">&#10003;</th>
+    <th>Azione</th>
+    <th>Risultato atteso</th>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>In <b>INGRANAGGI</b>, <b>ASINCRONO</b>, <b>CONO</b>, <b>ASSE Y</b> o <b>JOYSTICK</b>, con ELS acceso: esegui il jog e premi il tasto <b>STOP</b> della pagina LAVORAZIONE invece del tasto fisico</td>
+    <td>Stesso esito dei punti 3&ndash;8</td>
+  </tr>
+</table>
+
+<div class="stop">
+  <b>Da non fare / errori comuni</b>
+  <ul>
+    <li>Rilasciare il jog <b>prima</b> di premere OFF: &egrave; una fermata normale, non un'emergenza &mdash; ripetere la prova.</li>
+    <li>A ELS spento il tasto della LAVORAZIONE mostra <span class="sig">AVVIA</span> e comanda l'avvio: <b>non usarlo come STOP</b> durante il jog.</li>
+    <li>Dopo l'ESTOP la macchina &egrave; bloccata per progetto: non insistere con i comandi, spegnere e riaccendere.</li>
+  </ul>
+</div>
+
+<h2>3. Esito</h2>
+<table class="esito">
+  <tr>
+    <td style="width:52%">
+      <span class="big">Esito prova:</span><br><br>
+      <span class="cb"></span> <b>SUPERATA</b> &nbsp;&nbsp;&nbsp;&nbsp;
+      <span class="cb"></span> <b>NON SUPERATA</b>
+    </td>
+    <td>
+      <b>Se l'ESTOP non compare</b>, annota qui cosa mostrano TFT e UI web e la versione del firmware:<br>
+      <span class="muted">note: ______________________________________________________________</span><br>
+      <span class="muted">____________________________________________________________________</span>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <b>Annotazioni</b><br>
+      <span class="muted">__________________________________________________________________________________________</span><br>
+      <span class="muted">__________________________________________________________________________________________</span><br>
+      <span class="muted">__________________________________________________________________________________________</span>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      Firma operatore _______________________________ &nbsp;&nbsp;&nbsp;&nbsp; Data ____________________
+    </td>
+  </tr>
+</table>
+
+<div class="foot">
+  <span>NanoEls H5 &mdash; collaudo sicurezza, procedura prova 2 &middot; STOP durante jog &rarr; ESTOP</span>
+  <span>rev. 1 &middot; 02/11/2026</span>
+</div>
+
+</body>
+</html>

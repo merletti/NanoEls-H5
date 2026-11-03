@@ -2,12 +2,13 @@
 
 Cartella: `C:\Users\Admin\Desktop\NanoEls-H5-pubblicazione`
 
-Contiene una copia completa del progetto al **2 novembre 2026** (firmware
-**H5V50**), già pronta come repository git con la sua cronologia: niente cartelle
+Contiene una copia completa del progetto al **3 novembre 2026** (firmware
+**H5V63**), già pronta come repository git con la sua cronologia: niente cartelle
 di build, backup o screenshot di prova. **Non è stato pubblicato nulla online.**
 
 File principali: [README.md](README.md) (presentazione), [LICENSE](LICENSE)
-(MIT), [PUBBLICAZIONE.md](PUBBLICAZIONE.md) (checklist dettagliata).
+(MIT), [PUBBLICAZIONE.md](PUBBLICAZIONE.md) (checklist dettagliata),
+[collaudo/](collaudo/) (procedure di collaudo sicurezza).
 
 ## A. Prima di pubblicare
 
@@ -75,7 +76,7 @@ Dal sito GitHub: repository → **Releases** → **Draft a new release**.
 
 - Tag: `v0.1.0` — titolo: `NanoEls H5 v0.1.0`.
 - Allegare i file già presenti nella cartella:
-  - `firmware-it/h5-IT-20261102-v50.bin`
+  - `firmware-it/h5-IT-20261103-v63.bin`
   - `screen-it/h5_it.tft`
   - `screen-it/MANUALE_USO.md`
 - Descrivere le novità e l'ordine di aggiornamento (**prima firmware, poi TFT**),

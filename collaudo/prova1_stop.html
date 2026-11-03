@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>NanoEls H5 — Collaudo prova 1: STOP normali</title>
+<style>
+  @page { size: A4; margin: 11mm 12mm 10mm 12mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    color: #111;
+    font-size: 8.7pt;
+    line-height: 1.2;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1 { font-size: 14pt; margin: 0 0 0.6mm 0; letter-spacing: 0.2pt; }
+  .sub { font-size: 9pt; color: #444; margin: 0 0 1.5mm 0; }
+  h2 {
+    font-size: 9.6pt;
+    margin: 2.3mm 0 0.8mm 0;
+    padding-bottom: 0.6mm;
+    border-bottom: 0.7pt solid #111;
+    text-transform: uppercase;
+    letter-spacing: 0.4pt;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 0.9mm 0; }
+  th, td {
+    border: 0.4pt solid #999;
+    padding: 0.9mm 1.4mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #ebebeb; font-weight: 600; font-size: 8.4pt; }
+  td.c, th.c { text-align: center; }
+  td.n { font-weight: 700; text-align: center; width: 7mm; }
+  .cb {
+    display: inline-block;
+    width: 3.6mm;
+    height: 3.6mm;
+    border: 0.6pt solid #333;
+    vertical-align: -0.6mm;
+  }
+  .sig { font-family: Consolas, "Courier New", monospace; font-weight: 700; }
+  .muted { color: #555; }
+  .warn {
+    border: 0.8pt solid #111;
+    padding: 1.2mm 2.2mm;
+    margin: 0 0 0.9mm 0;
+    font-size: 8.4pt;
+    background: #f4f4f4;
+  }
+  .warn b { text-transform: uppercase; letter-spacing: 0.3pt; }
+  .stop {
+    border: 0.8pt solid #111;
+    border-left-width: 2.4mm;
+    padding: 1.2mm 2.2mm;
+    margin: 1mm 0 0 0;
+    font-size: 8.4pt;
+  }
+  .stop ul, .warn ul { margin: 0.4mm 0 0 0; padding-left: 4.4mm; }
+  .stop li, .warn li { margin-bottom: 0.3mm; }
+  .meta td { padding: 1.3mm 1.8mm; }
+  .meta .fill { border-bottom: 0.5pt solid #666; min-width: 34mm; display: inline-block; height: 4mm; }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1.6pt solid #111;
+    padding-bottom: 1.2mm;
+    margin-bottom: 1mm;
+  }
+  .head .right { text-align: right; font-size: 8.2pt; color: #444; }
+  .foot {
+    margin-top: 1.6mm;
+    border-top: 0.5pt solid #999;
+    padding-top: 0.9mm;
+    font-size: 7.4pt;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+  }
+  .foot span:last-child { white-space: nowrap; }
+  .esito td { padding: 1.6mm 2mm; }
+  .esito .big { font-size: 9.6pt; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1>NanoEls H5 — Collaudo sicurezza, prova 1</h1>
+    <div class="sub">STOP normali: devono fermare subito, <b>senza bloccare</b> la macchina (firmware H5V53)</div>
+  </div>
+  <div class="right">
+    Foglio A4 — stampa al 100%<br>
+    Spuntare ogni riga solo se il<br>risultato è quello scritto
+  </div>
+</div>
+
+<table class="meta">
+  <tr>
+    <td>Data <span class="fill"></span></td>
+    <td>Operatore <span class="fill"></span></td>
+    <td>Firmware in esecuzione <span class="fill"></span></td>
+    <td>Banco / macchina <span class="fill"></span></td>
+  </tr>
+</table>
+
+<div class="warn">
+  <b>Prima di iniziare.</b> Assi liberi e senza carico, carro in zona centrale, mani libere.
+  Questa prova <b>non deve mai</b> produrre <span class="sig">ESTOP</span>: se compare, annotarlo nella sezione esito e fermarsi.
+  Il tasto fisico va premuto e <b>rilasciato subito</b>: tenerlo premuto oltre 3 secondi fa scattare il reset generale (prova 3).
+</div>
+
+<h2>0. Condizioni di partenza</h2>
+<table>
+  <tr>
+    <th class="c" style="width:9mm">&#10003;</th>
+    <th>Controllo</th>
+    <th class="c" style="width:9mm">&#10003;</th>
+    <th>Controllo</th>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>TFT sulla pagina <b>LAVORAZIONE</b> (page 21)</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>UI web aperta, controller online, versione <b>H5V53</b></td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Finecorsa <b>Z</b> e <b>X</b> configurati</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>ELS spento: STATO <span class="sig">OFF</span>, tasto <span class="sig">AVVIA</span></td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Modalità <b>ASINCRONO</b>, PASSO <b>100</b> (= 0,1 mm/s)</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Carro in zona centrale, corsa libera ai due lati</td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Almeno un programma <b>G-CODE</b> salvato (per il punto 7)</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Tasto fisico OFF/ON a portata di mano</td>
+  </tr>
+</table>
+
+<h2>1. Esecuzione</h2>
+<table>
+  <tr>
+    <th class="c" style="width:7mm">#</th>
+    <th style="width:35%">Azione</th>
+    <th>Risultato atteso</th>
+    <th class="c" style="width:9mm">&#10003;</th>
+  </tr>
+  <tr>
+    <td class="n">1</td>
+    <td>Avvia l'ELS e attendi che il carro si muova</td>
+    <td>ELS acceso: STATO <span class="sig">ON</span> (o <span class="sig">SIN</span>), carro in movimento</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">2</td>
+    <td>Premi il <b>pulsante OFF rosso</b> nella UI web</td>
+    <td>Fermata immediata senza completare la rampa; STATO <span class="sig">OFF</span>, tasto <span class="sig">AVVIA</span></td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">3</td>
+    <td>Riavvia e, durante il movimento, tocca il valore <b>GIRI</b> (o <b>ANGOLO</b>) nella UI web</td>
+    <td>Identico al punto 2</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">4</td>
+    <td>Riavvia e, durante il movimento, tocca <b>STATO/STOP</b> sul TFT pagina 21</td>
+    <td>Identico al punto 2; il tasto torna <span class="sig">AVVIA</span></td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">5</td>
+    <td>Riavvia e premi il <b>tasto fisico OFF/ON</b>, rilascio breve</td>
+    <td>Identico al punto 2</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">6</td>
+    <td>Riavvia, apri una pagina modalità, tocca un valore per aprire il <b>tastierino</b>, digita 2&ndash;3 cifre senza confermare, poi premi OFF</td>
+    <td>STOP accettato subito, la digitazione non lo blocca; nessun blocco, la macchina resta comandabile</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">7</td>
+    <td>Avvia un <b>programma G-CODE</b> breve e premi OFF durante l'esecuzione</td>
+    <td>Programma fermato subito; stato fermo; nessun blocco</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">8</td>
+    <td>Dopo ogni STOP, riavvia <b>senza spegnere</b> il controller</td>
+    <td>Riparte subito: al massimo serve un nuovo ON</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+</table>
+
+<div class="stop">
+  <b>Da non fare / errori comuni</b>
+  <ul>
+    <li>Tenere premuto OFF per pi&ugrave; di 3 secondi: al rilascio parte il <b>reset generale</b> (prova 3), non &egrave; una fermata normale.</li>
+    <li>Premere OFF <b>mentre si sta jogando</b>: &egrave; un'emergenza (prova 2), non questa prova.</li>
+    <li>A ELS spento il tasto della LAVORAZIONE mostra <span class="sig">AVVIA</span> e comanda l'avvio: non &egrave; uno STOP.</li>
+  </ul>
+</div>
+
+<h2>2. Esito</h2>
+<table class="esito">
+  <tr>
+    <td style="width:52%">
+      <span class="big">Esito prova:</span><br><br>
+      <span class="cb"></span> <b>SUPERATA</b> &nbsp;&nbsp;&nbsp;&nbsp;
+      <span class="cb"></span> <b>NON SUPERATA</b>
+    </td>
+    <td>
+      <b>Se compare ESTOP</b> o lo STOP non &egrave; immediato, annota qui il punto e cosa vedi:<br>
+      <span class="muted">note: ______________________________________________________________</span><br>
+      <span class="muted">____________________________________________________________________</span>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <b>Annotazioni</b><br>
+      <span class="muted">__________________________________________________________________________________________</span><br>
+      <span class="muted">__________________________________________________________________________________________</span><br>
+      <span class="muted">__________________________________________________________________________________________</span>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      Firma operatore _______________________________ &nbsp;&nbsp;&nbsp;&nbsp; Data ____________________
+    </td>
+  </tr>
+</table>
+
+<div class="foot">
+  <span>NanoEls H5 &mdash; collaudo sicurezza, procedura prova 1 &middot; STOP normali</span>
+  <span>rev. 1 &middot; 02/11/2026</span>
+</div>
+
+</body>
+</html>

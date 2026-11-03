@@ -201,7 +201,7 @@ const bool SPINDLE_PAUSES_GCODE = true; // pause GCode execution when spindle st
 const int GCODE_MIN_RPM = 30; // pause GCode execution if RPM is below this
 
 // To be incremented whenever a measurable improvement is made.
-#define SOFTWARE_VERSION 50
+#define SOFTWARE_VERSION 63
 
 // To be changed whenever a different PCB / encoder / stepper / ... design is used.
 #define HARDWARE_VERSION 5
@@ -3962,6 +3962,7 @@ String joystickStartupWarning = "";
 void adjustPitch(bool plus);
 void buttonPlusMinusPress(bool plus);
 void buttonOnOffPress(bool on);
+void tftSetStatus(const String &message, unsigned long ms);
 void resetJoystickLatheFeedPosition();
 void cancelJoystickLatheSync();
 void resetJoystickLatheFeed();
@@ -4340,6 +4341,11 @@ const int NEXTION_BUFFER_LENGTH = 256;
 byte nextionBuffer[NEXTION_BUFFER_LENGTH];
 int nextionBufferIndex = 0;
 byte lastNextionPageId = 255;
+// Diagnostics for the display link, exposed by /status.
+byte tftDiagPage = 255;
+byte tftDiagCode = 0;
+uint32_t tftDiagEvents = 0;
+uint32_t tftDiagReboots = 0;
 volatile bool firmwareUploadActive = false;
 bool firmwareUploadFailed = false;
 int firmwareUploadHttpStatus = 200;
@@ -4850,8 +4856,6 @@ void appendConfigLine(String* response, const char* name, float value) {
   appendConfigLine(response, name, String(value, 4));
 }
 
-void setText(const String &id, const String &text);
-
 void setKeyboardConfigDefaults() {
   SHOW_KEY_PRESSES = DEFAULT_SHOW_KEY_PRESSES;
   for (int i = 0; i < KEYBOARD_BINDING_COUNT; i++) {
@@ -5152,7 +5156,8 @@ void publishKeyboardEvent(byte physicalCode, byte actionCode, bool isPress) {
   line += "\n";
   queueWebSocketText(line);
   if (SHOW_KEY_PRESSES) {
-    setText("t3", (isPress ? "Premi " : "Rilascia ") + String(physicalCode));
+    // Same place as the old bottom strip, now painted by the display task.
+    tftSetStatus((isPress ? "Premi " : "Rilascia ") + String(physicalCode), 3000);
   }
 }
 
@@ -5667,11 +5672,23 @@ void handleWifiReset() {
   server.send(200, "text/plain", "Configurazione WiFi ripristinata. Riavvio del controller...");
 }
 
+// The main loop (page loads) and taskDisplay (live values) both write command
+// frames; without a lock their bytes interleave and the display parses a
+// corrupted command, drawing stray rectangles (the "veil").
+static SemaphoreHandle_t nextionWriteMutex = NULL;
+// While a page repaint runs the commands are spaced out a few ms each: a whole
+// burst sent back to back overflows the display parser and the first fields
+// come out as solid white blocks.
+static volatile bool tftPaceCommands = false;
+
 void writeNextionCommandRaw(const String& command) {
+  if (nextionWriteMutex != NULL) xSemaphoreTake(nextionWriteMutex, portMAX_DELAY);
   Serial1.print(command);
   Serial1.write(0xFF);
   Serial1.write(0xFF);
   Serial1.write(0xFF);
+  if (tftPaceCommands) delay(4);
+  if (nextionWriteMutex != NULL) xSemaphoreGive(nextionWriteMutex);
 }
 
 void beginNextionSerial(long baud) {
@@ -5851,6 +5868,29 @@ void finishTftUpload() {
 }
 
 void handleTftUpload() {
+  // Raw (non-multipart) bodies carry no filename, so the .tft check
+  // only applies to the multipart path below.
+  if (server.hasRaw()) {
+    HTTPRaw& raw = server.raw();
+    if (raw.status == RAW_START) {
+      long fileSize = server.hasArg("size") ? server.arg("size").toInt() : 0;
+      long currentBaud = server.hasArg("baud") ? server.arg("baud").toInt() : NEXTION_FIRST_UPLOAD_BAUD;
+      tftUploadLog(String("selezionato upload diretto, baud=") + String(currentBaud));
+      startNextionTftUpload(fileSize, currentBaud);
+    } else if (raw.status == RAW_WRITE) {
+      if (!tftUploadFailed) {
+        writeTftUploadData(raw.buf, raw.currentSize);
+      }
+    } else if (raw.status == RAW_END) {
+      finishTftUpload();
+    } else {
+      setTftUploadError("errore: upload TFT interrotto", 400);
+      beginNextionSerial(NEXTION_NORMAL_BAUD);
+      tftUploadActive = false;
+    }
+    return;
+  }
+
   HTTPUpload& upload = server.upload();
   if (upload.status == UPLOAD_FILE_START) {
     String filename = upload.filename;
@@ -5954,6 +5994,30 @@ void finishFirmwareUpload() {
 }
 
 void handleFirmwareUpload() {
+  // Raw (non-multipart) bodies carry no filename, so the .bin check
+  // only applies to the multipart path below.
+  if (server.hasRaw()) {
+    HTTPRaw& raw = server.raw();
+    if (raw.status == RAW_START) {
+      size_t fileSize = server.hasArg("size") ? server.arg("size").toInt() : 0;
+      firmwareUploadLog("selezionato upload diretto");
+      startFirmwareUpload(fileSize);
+    } else if (raw.status == RAW_WRITE) {
+      if (!firmwareUploadFailed) {
+        writeFirmwareUploadData(raw.buf, raw.currentSize);
+      }
+    } else if (raw.status == RAW_END) {
+      finishFirmwareUpload();
+    } else {
+      if (firmwareUploadActive) {
+        Update.abort();
+      }
+      setFirmwareUploadError("errore: upload firmware interrotto", 400);
+      firmwareUploadActive = false;
+    }
+    return;
+  }
+
   HTTPUpload& upload = server.upload();
   if (upload.status == UPLOAD_FILE_START) {
     String filename = upload.filename;
@@ -5993,6 +6057,12 @@ void handleStatus() {
     "TFT.uploaded=" + String(tftUploadSentSize) + "\n" +
     "TFT.size=" + String(tftUploadExpectedSize) + "\n" +
     "TFT.message=" + tftUploadMessage + "\n" +
+    "TFT.page=" + String(tftDiagPage) + "\n" +
+    "TFT.code=" + String(tftDiagCode, HEX) + "\n" +
+    "TFT.events=" + String(tftDiagEvents) + "\n" +
+    "TFT.reboots=" + String(tftDiagReboots) + "\n" +
+    "TFT.mode=" + String(mode) + "\n" +
+    "TFT.on=" + String(isOn ? 1 : 0) + "\n" +
     "FW.uploadActive=" + String(firmwareUploadActive ? 1 : 0) + "\n" +
     "FW.uploaded=" + String((unsigned long)firmwareUploadReceivedSize) + "\n" +
     "FW.size=" + String((unsigned long)firmwareUploadExpectedSize) + "\n" +
@@ -6226,6 +6296,7 @@ void markAxis0(Axis* a) {
 }
 
 void tftAutoOpenWorkPage();
+bool tftIsWorkMode();
 
 void setIsOnFromTask(bool on) {
   nextIsOn = on;
@@ -6261,7 +6332,7 @@ void setIsOnFromLoop(bool on) {
     opIndexAdvanceFlag = false;
     opSubIndex = 0;
     setupIndex = 0;
-    tftAutoOpenWorkPage();
+    if (tftIsWorkMode()) tftAutoOpenWorkPage();
   }
 }
 
@@ -6292,10 +6363,6 @@ bool stepperIsRunning(Axis* a) {
 void toScreen(const String &command) {
   if (tftUploadActive) return;
   writeNextionCommandRaw(command);
-}
-
-void setText(const String &id, const String &text) {
-  toScreen(id + ".txt=\"" + text + "\"");
 }
 
 // Returns number of letters printed.
@@ -6768,7 +6835,10 @@ void publishMachineStatus(const String& status, const String& modeText, const St
 
 void tftServiceTick();
 void tftDrawWorkUpdate();
+void tftDrawWorkAll();
+void tftDrawEmergency(const String &reason);
 void tftKeypadOpenValue(uint8_t page, uint8_t kind, const String &text);
+void tftPageLoaded(uint8_t page);
 
 void updateDisplay() {
   if (tftUploadActive) return;
@@ -6945,16 +7015,22 @@ void taskDisplay(void *param) {
     }
     taskYIELD();
   }
-  setText("bMode", "ESTOP");
+  String reason;
   if (emergencyStop == ESTOP_POS) {
-    setText("t3", "Posizione fuori macchina");
+    reason = "Posizione fuori macchina";
   } else if (emergencyStop == ESTOP_MARK_ORIGIN) {
-    setText("t3", "Impossibile segnare origine");
+    reason = "Impossibile segnare origine";
   } else if (emergencyStop == ESTOP_ON_OFF) {
-    setText("t3", "Impossibile ON/OFF");
+    reason = "Impossibile ON/OFF";
   } else if (emergencyStop == ESTOP_OFF_MANUAL_MOVE) {
-    setText("t3", "Spento in manuale");
+    reason = "Spento in manuale";
+  } else {
+    reason = "Arresto di emergenza";
   }
+  tftDrawEmergency(reason);
+  // The display task dies here: push the state once, otherwise the web UI
+  // keeps showing the last live values as if the machine were still running.
+  queueWebSocketText(String("UI.status=ESTOP\nUI.message=") + webSafeText(reason) + "\n");
   vTaskDelete(NULL);
 }
 
@@ -9050,12 +9126,15 @@ const byte HEX_TO_KEYCODE[256] = {
 // sys0 is a global display variable: 0 = base page, 1 = setup panel,
 // 2 = text keyboard. Page touch scripts branch on it.
 static uint8_t tftLayer = 0;
+// Last half of the shared "MAX / MIN" chip tapped on SCANALATURA: 0 = MAX,
+// 1 = MIN. The -/+ steppers of that row act on the half the user picked.
+static uint8_t tftStopAdjustSide = 0;
 
 enum TftFieldKind : uint8_t {
   TK_NONE, TK_PITCH, TK_STARTS, TK_PASSES, TK_SIDE, TK_RATIO,
   TK_ZMAX, TK_ZMIN, TK_XMAX, TK_XMIN, TK_YMAX, TK_JOYN, TK_JOYR, TK_JOYD,
   TK_SIGN, TK_FWD, TK_SLOTRED, TK_ZSTOPS, TK_ZSTOPS_MIN, TK_HAND,
-  TK_DIABIG, TK_DIASMALL, TK_CONERATIO,
+  TK_DIABIG, TK_DIASMALL, TK_CONERATIO, TK_AXES,
   TK_FEED, TK_ASYNCSPEED, TK_JOYSPEED, TK_SLOTSHIFT,
   // Values printed inside the drawing of the side card.
   TK_CARD_PITCH, TK_CARD_PITCH_Y, TK_CARD_PITCH_X, TK_CARD_AV,
@@ -9096,7 +9175,7 @@ static const TftPage TFT_PAGES[TFT_PAGE_COUNT] = {
   { MODE_GCODE, 0, {} },                                                                                             // 9 G-CODE
   { MODE_Y, 5, {{TK_PITCH, 342, 92, 259}, {TK_STARTS, 328, 158, 263}, {TK_SIGN, 328, 224, 263}, {TK_YMAX, 342, 290, 244}, {TK_FEED, 768, 393, 610}},
     {{TK_CARD_PITCH_Y, 765, 149, 620}, {TK_CARD_YMAX, 763, 206, 668}} },                                             // 10 ASSE Y
-  { MODE_JOYSTICK, 4, {{TK_JOYN, 334, 92, 263}, {TK_JOYR, 334, 158, 263}, {TK_JOYD, 343, 224, 263}, {TK_JOYSPEED, 768, 393, 610}} },  // 11 JOYSTICK
+  { MODE_JOYSTICK, 5, {{TK_JOYN, 334, 92, 263}, {TK_JOYR, 334, 158, 263}, {TK_JOYD, 343, 224, 263}, {TK_AXES, 474, 290, 374}, {TK_JOYSPEED, 768, 393, 610}} },  // 11 JOYSTICK
   { MODE_XGEAR, 5, {{TK_PITCH, 342, 92, 259}, {TK_STARTS, 328, 158, 263}, {TK_XMAX, 342, 224, 259}, {TK_XMIN, 337, 290, 263}, {TK_FEED, 768, 393, 610}},
     {{TK_CARD_PITCH_X, 691, 155, 546}, {TK_CARD_XMAX, 753, 278, 659}} },                                             // 12 X-INGRANAGGI
   { MODE_NORMAL, 0, {} },                                                                                            // 13 COMANDO
@@ -9140,12 +9219,30 @@ String tftZStopsText() {
   return text;
 }
 
+// Physical direction on SPIANATURA, side of the material elsewhere. On
+// TRONCATURA the side is not a setting: it follows the sign of the pitch.
+String tftSideText() {
+  if (mode == MODE_FACE) return auxForward ? "DX>SX" : "SX>DX";
+  if (mode == MODE_CUT) return (nextDuprFlag ? nextDupr : dupr) >= 0 ? "EST" : "INT";
+  return auxForward ? "EST" : "INT";
+}
+
+String tftAxesText() {
+  String text;
+  if (JOYSTICK_Z_ENABLED) text += "Z ";
+  if (JOYSTICK_X_ENABLED) text += "X ";
+  if (JOYSTICK_Y_ENABLED) text += "Y ";
+  text.trim();
+  return text.length() > 0 ? text : "---";
+}
+
 String tftFieldText(const TftField &f, bool adaptive = false) {
   switch (f.kind) {
     case TK_PITCH: return printDupr(nextDuprFlag ? nextDupr : dupr);
     case TK_STARTS: return String(starts);
     case TK_PASSES: return String(turnPasses);
-    case TK_SIDE: return auxForward ? "EST" : "INT";
+    case TK_SIDE: return tftSideText();
+    case TK_AXES: return tftAxesText();
     case TK_RATIO: return String(coneRatio, 3);
     case TK_DIABIG: return String(CONE_DIA_BIG_DU / 10000.0, 2);
     case TK_DIASMALL: return String(CONE_DIA_SMALL_DU / 10000.0, 2);
@@ -9198,32 +9295,35 @@ void tftFill(int x, int y, int w, int h, uint16_t color) {
   toScreen("fill " + String(x) + "," + String(y) + "," + String(w) + "," + String(h) + "," + String(color));
 }
 
-void tftClearLine(int left, int y, int right, uint16_t bg) {
-  tftFill(left, y, right - left, TFT_GLYPH_H, bg);
-}
-
 String tftClip(const String &text, int maxGlyphs) {
   if ((int)text.length() <= maxGlyphs) return text;
   if (maxGlyphs <= 0) return "";
   return text.substring(0, maxGlyphs);
 }
 
+// Glyphs first, residual strip last: xpic cells are opaque and carry the box
+// colour as background, so the new text replaces the old one in place and the
+// line never flashes dark (the "ombra" seen over PASSO after the keypad OK).
 void tftLineLeft(int left, int y, int right, const String &text, uint16_t bg) {
-  tftClearLine(left, y, right, bg);
   String t = tftClip(text, (right - left + 2) / TFT_GLYPH_W);
   tftGlyphs(left, y, t);
+  tftFill(left + (int)t.length() * TFT_GLYPH_W, y, right - left - (int)t.length() * TFT_GLYPH_W, TFT_GLYPH_H, bg);
 }
 
 void tftLineRight(int left, int y, int right, const String &text, uint16_t bg) {
-  tftClearLine(left, y, right, bg);
   String t = tftClip(text, (right - left + 2) / TFT_GLYPH_W);
-  tftGlyphs(right - (int)t.length() * TFT_GLYPH_W, y, t);
+  int gw = (int)t.length() * TFT_GLYPH_W;
+  tftGlyphs(right - gw, y, t);
+  tftFill(left, y, right - gw - left, TFT_GLYPH_H, bg);
 }
 
 void tftLineCenter(int cx, int y, int left, int right, const String &text, uint16_t bg) {
-  tftClearLine(left, y, right, bg);
   String t = tftClip(text, (right - left + 2) / TFT_GLYPH_W);
-  tftGlyphs(cx - (int)t.length() * TFT_GLYPH_W / 2, y, t);
+  int gw = (int)t.length() * TFT_GLYPH_W;
+  int gx = cx - gw / 2;
+  tftGlyphs(gx, y, t);
+  tftFill(left, y, gx - left, TFT_GLYPH_H, bg);
+  tftFill(gx + gw, y, right - (gx + gw), TFT_GLYPH_H, bg);
 }
 
 void tftSetLayer(uint8_t value) {
@@ -9239,6 +9339,18 @@ bool tftIsCalcKind(uint8_t kind) {
 
 void tftDrawField(const TftField &f, uint8_t page) {
   if (f.kind == TK_NONE) return;
+  if (f.kind == TK_AXES) {
+    // Chip without a touch zone: centre the list of the inputs actually
+    // enabled, then clear the sample letters left and right of it.
+    int w = f.right - f.clearLeft;
+    String text = tftFieldText(f);
+    int gw = (int)text.length() * TFT_GLYPH_W;
+    int gx = f.clearLeft + (w - gw) / 2;
+    tftGlyphs(gx, f.y, text);
+    tftFill(f.clearLeft, f.y, gx - f.clearLeft, TFT_GLYPH_H, TFT_BG_COLOR);
+    tftFill(gx + gw, f.y, f.right + 2 - (gx + gw), TFT_GLYPH_H, TFT_BG_COLOR);
+    return;
+  }
   if (f.kind == TK_HAND) {
     // Thread hand chip in the FILETTO header: square steps approximate the
     // rounded boxes of the background picture.
@@ -9268,7 +9380,6 @@ void tftDrawField(const TftField &f, uint8_t page) {
   // The ratio and the computed rows sit on the side card, not in a value box.
   uint16_t bg = onCard ? TFT_CARD_COLOR : TFT_BG_COLOR;
   uint8_t pic = onCard ? TFT_SPRITE_CARD_PIC : TFT_SPRITE_PIC;
-  toScreen("fill " + String(clearFrom) + "," + String(f.y) + "," + String(f.right - clearFrom + 2) + "," + String(TFT_GLYPH_H) + "," + String(bg));
   for (int i = 0; i < n; i++) {
     int code = (int)text[i] - 32;
     if (code < 0 || code > 94) continue;
@@ -9276,6 +9387,8 @@ void tftDrawField(const TftField &f, uint8_t page) {
     int sy = (code / TFT_SPRITE_COLS) * TFT_GLYPH_H;
     toScreen("xpic " + String(left + i * TFT_GLYPH_W) + "," + String(f.y) + "," + String(TFT_GLYPH_W) + "," + String(TFT_GLYPH_H) + "," + String(sx) + "," + String(sy) + "," + String(pic));
   }
+  tftFill(clearFrom, f.y, left - clearFrom, TFT_GLYPH_H, bg);
+  tftFill(f.right, f.y, 2, TFT_GLYPH_H, bg);
 }
 
 void tftDrawCardField(const TftField &f);
@@ -9309,7 +9422,6 @@ void tftDrawCardField(const TftField &f) {
   int n = text.length();
   int cx = (f.clearLeft + f.right + 1) / 2;
   int left = cx - n * TFT_GLYPH_W / 2;
-  tftFill(f.clearLeft, f.y, f.right - f.clearLeft + 2, TFT_GLYPH_H, TFT_BG_COLOR);
   for (int i = 0; i < n; i++) {
     int code = (int)text[i] - 32;
     if (code < 0 || code > 94) continue;
@@ -9317,7 +9429,11 @@ void tftDrawCardField(const TftField &f) {
     int sy = (code / TFT_SPRITE_COLS) * TFT_GLYPH_H;
     toScreen("xpic " + String(left + i * TFT_GLYPH_W) + "," + String(f.y) + "," + String(TFT_GLYPH_W) + "," + String(TFT_GLYPH_H) + "," + String(sx) + "," + String(sy) + "," + String(TFT_SPRITE_PIC));
   }
+  tftFill(f.clearLeft, f.y, left - f.clearLeft, TFT_GLYPH_H, TFT_BG_COLOR);
+  tftFill(left + n * TFT_GLYPH_W, f.y, f.right + 2 - (left + n * TFT_GLYPH_W), TFT_GLYPH_H, TFT_BG_COLOR);
 }
+
+String tftStateText();
 
 // The mode pages 1..12 and 17 share the same side card with STATO. The text in
 // the background image is always "OFF", so the real state must be drawn on top.
@@ -9325,17 +9441,18 @@ void tftDrawStatus(uint8_t page) {
   if (page < 1 || page > 12) {
     if (page != 17) return;
   }
-  String text = spindlePosSync ? "SIN" : isOn ? "ON" : "OFF";
+  String text = tftStateText();
   int y = page == 5 ? TFT_STATUS_Y_CONE : TFT_STATUS_Y;
   int n = text.length();
   int left = TFT_STATUS_RIGHT - n * TFT_GLYPH_W;
   int clearFrom = min((int)TFT_STATUS_LEFT, left);
-  toScreen("fill " + String(clearFrom) + "," + String(y) + "," + String(TFT_STATUS_RIGHT - clearFrom + 2) + "," + String(TFT_GLYPH_H) + "," + String(TFT_CARD_COLOR));
   for (int i = 0; i < n; i++) {
     int sx = ((int)text[i] - 32) % TFT_SPRITE_COLS * TFT_GLYPH_W;
     int sy = ((int)text[i] - 32) / TFT_SPRITE_COLS * TFT_GLYPH_H;
     toScreen("xpic " + String(left + i * TFT_GLYPH_W) + "," + String(y) + "," + String(TFT_GLYPH_W) + "," + String(TFT_GLYPH_H) + "," + String(sx) + "," + String(sy) + "," + String(TFT_SPRITE_CARD_PIC));
   }
+  tftFill(clearFrom, y, left - clearFrom, TFT_GLYPH_H, TFT_CARD_COLOR);
+  tftFill(TFT_STATUS_RIGHT, y, 2, TFT_GLYPH_H, TFT_CARD_COLOR);
 }
 
 // ---------- Service pages (MENU, COMANDO, SETUP, WIFI, INFO, G-CODE) ----------
@@ -9384,6 +9501,7 @@ String tftActiveStatus() {
 }
 
 String tftStateText() {
+  if (emergencyStop != ESTOP_NONE) return "ESTOP";
   return spindlePosSync ? "SIN" : isOn ? "ON" : "OFF";
 }
 
@@ -10207,6 +10325,61 @@ void tftDrawSetupPanel() {
 static uint8_t tftPageHashId = 255;
 static uint32_t tftPageHashValue = 0;
 
+// The PostInit (0x10) event arrives while the display is still decoding the
+// 800x480 page background: commands sent in that window are misparsed and the
+// first value box comes out as solid white blocks (the "veil" over PASSO
+// after the keypad returns). The repaint is deferred until the render is
+// over, then repeated once as a safety net.
+static uint8_t tftModeRepaintPage = 255;
+static unsigned long tftModeRepaintAtMs = 0;
+static uint8_t tftModeRepaintPass = 0;
+// LAVORAZIONE (page 21) needs the same treatment: painting it straight from
+// the PostInit event garbles the values over the decoding background and the
+// cache then keeps them from ever being redrawn.
+static uint8_t tftWorkRepaintPass = 0;
+static unsigned long tftWorkRepaintAtMs = 0;
+
+uint32_t tftPageHash(uint8_t page);
+
+void tftRunDeferredModeRepaint() {
+  if (tftWorkRepaintPass != 0) {
+    if ((long)(millis() - tftWorkRepaintAtMs) < 0) return;
+    tftPaceCommands = true;
+    tftDrawWorkAll();
+    tftPaceCommands = false;
+    if (tftWorkRepaintPass == 1) {
+      tftWorkRepaintPass = 2;
+      tftWorkRepaintAtMs = millis() + 500;
+    } else {
+      tftWorkRepaintPass = 0;
+    }
+    return;
+  }
+  if (tftModeRepaintPage == 255) return;
+  if ((long)(millis() - tftModeRepaintAtMs) < 0) return;
+  uint8_t page = tftModeRepaintPage;
+  if (page >= TFT_PAGE_COUNT) {
+    tftModeRepaintPage = 255;
+    return;
+  }
+  tftPaceCommands = true;
+  const TftPage &pg = TFT_PAGES[page];
+  for (uint8_t i = 0; i < pg.count; i++) tftDrawField(pg.f[i], page);
+  tftDrawCardBackdrop(page);
+  for (uint8_t i = 0; i < 2; i++) tftDrawCardField(pg.c[i]);
+  tftDrawStatus(page);
+  tftDrawFooter(true);
+  tftPaceCommands = false;
+  tftPageHashId = page;
+  tftPageHashValue = tftPageHash(page);
+  if (tftModeRepaintPass == 0) {
+    tftModeRepaintPass = 1;
+    tftModeRepaintAtMs = millis() + 500;
+  } else {
+    tftModeRepaintPage = 255;
+  }
+}
+
 uint32_t tftPageHash(uint8_t page) {
   const TftPage &pg = TFT_PAGES[page];
   uint32_t h = 2166136261u;
@@ -10254,6 +10427,10 @@ void tftServiceTick() {
     }
   }
   if (tftCurrentPage == 255) return;
+  // While a deferred page repaint is pending the display is still settling:
+  // the service tick must not join in mid-sequence.
+  if (tftModeRepaintPage != 255) return;
+  if (tftWorkRepaintPass != 0) return;
   if (now - tftLastDynamicMs < 250) return;
   tftLastDynamicMs = now;
   if (tftCurrentPage == TFT_MENU_PAGE) {
@@ -10464,6 +10641,10 @@ void tftKeypadReturn() {
 
 bool tftKeypadEvent(uint8_t code) {
   if (code == 0x10) {
+    // Without this the page stays e.g. 21 while the keypad shows: the periodic
+    // refresh then repaints LAVORAZIONE values during the page transition and
+    // the display draws them garbled (dark veil) until the next full repaint.
+    tftPageLoaded(TFT_KEYPAD_PAGE);
     tftKeypadDraw();
     return true;
   }
@@ -10516,7 +10697,21 @@ void tftAdjustField(const TftField &f, bool plus) {
       if (plus && turnPasses < PASSES_MAX) setTurnPasses(turnPasses + 1);
       else if (!plus && turnPasses > 1) setTurnPasses(turnPasses - 1);
       break;
-    case TK_SIDE: auxForward = !auxForward; break;
+    case TK_SIDE:
+      if (mode == MODE_CUT) {
+        // The side follows the pitch sign: flipping it is the only way to
+        // change side, and it must not happen while the cut is running.
+        if (isOn) {
+          tftSetStatus("SPEGNI PRIMA", 3000);
+          beep();
+          break;
+        }
+        long cur = nextDuprFlag ? nextDupr : dupr;
+        if (cur != 0) setDupr(-cur);
+      } else {
+        auxForward = !auxForward;
+      }
+      break;
     case TK_RATIO: setConeRatio(constrain(coneRatio + (plus ? 0.01 : -0.01), 0.0, 10.0)); break;
     case TK_DIABIG:
       CONE_DIA_BIG_DU = clampLongValue(CONE_DIA_BIG_DU + (plus ? 1000 : -1000), 1000, 9999900);
@@ -10547,15 +10742,17 @@ void tftAdjustField(const TftField &f, bool plus) {
     }
     case TK_FWD: auxForward = !auxForward; break;
     case TK_SLOTRED: SLOT_LEFT_REDUCTION_DU = constrain(SLOT_LEFT_REDUCTION_DU + (plus ? 100 : -100), 0L, 10000000L); break;
-    case TK_ZSTOPS:
-    case TK_ZSTOPS_MIN: tftAdjustStop(&z, true, plus); break;
+    case TK_ZSTOPS: tftAdjustStop(&z, tftStopAdjustSide == 0, plus); break;
+    case TK_ZSTOPS_MIN: tftAdjustStop(&z, false, plus); break;
   }
 }
 
 // ---------- Page event routing ----------
 void tftPageLoaded(uint8_t page) {
   tftCurrentPage = page;
-  tftLastDynamicMs = 0;
+  // Defer the periodic repaint by one tick: the page-load draw takes a few
+  // hundred ms and the service tick must not join in mid-draw.
+  tftLastDynamicMs = millis();
 }
 
 void tftMenuEvent(uint8_t code) {
@@ -10608,20 +10805,38 @@ void tftGlyphsCard(int x, int y, const String &text) {
 }
 
 void tftWorkLineLeft(int left, int y, int right, const String &text) {
-  tftFill(left, y, right - left, TFT_GLYPH_H, TFT_CARD_COLOR);
-  tftGlyphsCard(left, y, tftClip(text, (right - left + 2) / TFT_GLYPH_W));
+  String t = tftClip(text, (right - left + 2) / TFT_GLYPH_W);
+  tftGlyphsCard(left, y, t);
+  tftFill(left + (int)t.length() * TFT_GLYPH_W, y, right - left - (int)t.length() * TFT_GLYPH_W, TFT_GLYPH_H, TFT_CARD_COLOR);
 }
 
 void tftWorkLineRight(int left, int y, int right, const String &text) {
-  tftFill(left, y, right - left, TFT_GLYPH_H, TFT_CARD_COLOR);
   String t = tftClip(text, (right - left + 2) / TFT_GLYPH_W);
-  tftGlyphsCard(right - (int)t.length() * TFT_GLYPH_W, y, t);
+  int gw = (int)t.length() * TFT_GLYPH_W;
+  tftGlyphsCard(right - gw, y, t);
+  tftFill(left, y, right - gw - left, TFT_GLYPH_H, TFT_CARD_COLOR);
 }
 
 void tftWorkLineCenter(int cx, int y, int left, int right, const String &text) {
-  tftFill(left, y, right - left, TFT_GLYPH_H, TFT_CARD_COLOR);
   String t = tftClip(text, (right - left + 2) / TFT_GLYPH_W);
-  tftGlyphsCard(cx - (int)t.length() * TFT_GLYPH_W / 2, y, t);
+  int gw = (int)t.length() * TFT_GLYPH_W;
+  int gx = cx - gw / 2;
+  tftGlyphsCard(gx, y, t);
+  tftFill(left, y, gx - left, TFT_GLYPH_H, TFT_CARD_COLOR);
+  tftFill(gx + gw, y, right - (gx + gw), TFT_GLYPH_H, TFT_CARD_COLOR);
+}
+
+// Last paint of the display task: the footer carries the reason and the page's
+// STATO card switches to ESTOP. Everything goes through the glyph sprites, the
+// Nextion components of the old HMI (bMode, t3) no longer exist.
+void tftDrawEmergency(const String &reason) {
+  tftSetStatus("ESTOP - " + reason, 600000);
+  tftDrawFooter(true);
+  if (tftCurrentPage == TFT_WORK_PAGE) {
+    tftWorkLineLeft(552, 322, 776, "ESTOP");
+  } else if ((tftCurrentPage >= 1 && tftCurrentPage <= 12) || tftCurrentPage == 17) {
+    tftDrawStatus(tftCurrentPage);
+  }
 }
 
 void tftDrawWorkUpdate() {
@@ -10696,7 +10911,7 @@ bool tftIsWorkMode() {
 // ON key) lands on the live LAVORAZIONE page. COMANDO and the service pages
 // keep what the user is looking at.
 void tftAutoOpenWorkPage() {
-  if (!tftIsWorkMode() || tftCurrentPage == TFT_WORK_PAGE) return;
+  if (tftCurrentPage == TFT_WORK_PAGE) return;
   bool fromMenuOrModePage = tftCurrentPage == TFT_MENU_PAGE || (tftCurrentPage >= 1 && tftCurrentPage <= 12) || tftCurrentPage == 17;
   if (!fromMenuOrModePage) return;
   toScreen("page " + String(TFT_WORK_PAGE));
@@ -10754,7 +10969,9 @@ void tftWorkOpenNumbers(uint8_t kind, const String &text) {
 void tftWorkEvent(uint8_t code) {
   if (code == 0x10) {
     tftPageLoaded(TFT_WORK_PAGE);
-    tftDrawWorkAll();
+    // Deferred like the mode pages (see tftRunDeferredModeRepaint).
+    tftWorkRepaintPass = 1;
+    tftWorkRepaintAtMs = millis() + 300;
     return;
   }
   if (code >= 0x60 && code <= 0x65) {
@@ -11003,10 +11220,15 @@ void handleTftEvent(uint8_t page, uint8_t code) {
   const TftPage &pg = TFT_PAGES[page];
   if (code == 0x10) {
     tftPageLoaded(page);
-    tftDrawCardBackdrop(page);
-    tftDrawPage(page);
-    tftDrawStatus(page);
-    tftDrawFooter(true);
+    // Value boxes first, card backdrop last: the 288x358 card blit is the
+    // slowest command and while it runs the boxes would stay empty (the
+    // "veil" the user sees over PASSO right after the keypad returns).
+    // The whole repaint is deferred (see tftRunDeferredModeRepaint): drawn
+    // here it would collide with the background decode and the first box
+    // would come out as white blocks.
+    tftModeRepaintPage = page;
+    tftModeRepaintAtMs = millis() + 300;
+    tftModeRepaintPass = 0;
   } else if (code == 0x30) {
     setModeFromTask(pg.mode);
     tftOpenWorkPagePending = true;
@@ -11018,6 +11240,7 @@ void handleTftEvent(uint8_t page, uint8_t code) {
     // (field 4). It must win over the field lookup because the page also has
     // a read-only computed field in slot 5.
     if (code == 0x45 && pg.count >= 5 && pg.f[4].kind == TK_ZSTOPS) {
+      tftStopAdjustSide = 1;
       tftKeypadOpenValue(page, TK_ZMIN, tftStopText(&z, false, false));
       return;
     }
@@ -11025,7 +11248,13 @@ void handleTftEvent(uint8_t page, uint8_t code) {
     const TftField &f = pg.f[index];
     if (f.kind == TK_NONE) return;
     if (f.kind == TK_CONERATIO || tftIsCalcKind(f.kind)) return; // Derived from the measurements: read-only.
-    if (f.kind == TK_SIDE || f.kind == TK_FWD) {
+    if (f.kind == TK_SIDE) {
+      // On TRONCATURA the side is the sign of the pitch, so PASSO changes too.
+      tftAdjustField(f, true);
+      tftDrawPage(page);
+      return;
+    }
+    if (f.kind == TK_FWD) {
       auxForward = !auxForward;
       tftDrawField(f, page);
       return;
@@ -11044,6 +11273,7 @@ void handleTftEvent(uint8_t page, uint8_t code) {
     if (f.kind == TK_ZSTOPS || f.kind == TK_ZSTOPS_MIN) {
       // Two zones share the "MAX / MIN" text: left half edits MAX, right MIN.
       bool editMax = code == 0x44;
+      tftStopAdjustSide = editMax ? 0 : 1;
       tftKeypadOpenValue(page, editMax ? TK_ZMAX : TK_ZMIN, tftStopText(&z, editMax, false));
       return;
     }
@@ -11062,6 +11292,9 @@ int processNextionMessage() {
   lastNextionPageId = 255;
   if (nextionBufferIndex < 6) return 0;
   if (nextionBuffer[0] == 0x68) {
+    tftDiagPage = nextionBuffer[1];
+    tftDiagCode = nextionBuffer[2];
+    tftDiagEvents++;
     handleTftEvent(nextionBuffer[1], nextionBuffer[2]);
     return 0;
   }
@@ -11104,6 +11337,7 @@ void setModeFromUi(int modeToSet, bool eventFromNextion) {
 
 void processKeypadEvent() {
   processWebUiMoveFailsafe();
+  tftRunDeferredModeRepaint();
   int event = 0;
   bool eventFromNextion = false;
   bool eventUsesKeyboardMap = false;
@@ -11123,6 +11357,7 @@ void processKeypadEvent() {
     eventUsesKeyboardMap = true;
   } else if (!tftUploadActive && Serial1.available() > 0) {
     byte incomingByte = Serial1.read();
+    if (incomingByte == 0x88) tftDiagReboots++;
     if (nextionBufferIndex < NEXTION_BUFFER_LENGTH) {
       nextionBuffer[nextionBufferIndex] = incomingByte;
       nextionBufferIndex++;
@@ -12000,7 +12235,8 @@ void applySettings() {
   }
   if (tftOpenWorkPagePending) {
     tftOpenWorkPagePending = false;
-    if (tftIsWorkMode()) tftAutoOpenWorkPage();
+    // INGRANAGGI runs as MODE_NORMAL, so this path cannot use tftIsWorkMode().
+    if (mode != MODE_GCODE) tftAutoOpenWorkPage();
   }
 }
 
@@ -12008,6 +12244,7 @@ void setup() {
   loadMachineConfig();
   loadWifiConfig();
   loadKeyboardConfig();
+  nextionWriteMutex = xSemaphoreCreateMutex();
 
   pinMode(ENC_A, INPUT_PULLUP);
   pinMode(ENC_B, INPUT_PULLUP);

@@ -63,6 +63,7 @@ screen-it/TABELLA_COMPONENTI.md   componenti e zone touch
 screen-it/GUIDA_NEXTION_EDITOR.md guida alla modifica dell'interfaccia
 mockup-tft/              mockup e sorgenti grafiche delle schermate
 gui/                     script di supporto (generazione asset, prove)
+collaudo/                procedure di collaudo sicurezza (STOP, ESTOP, reset)
 targhetta/, cablaggio/   targhetta e schema dei connettori
 ```
 
@@ -116,17 +117,20 @@ sotto. In alternativa si apre `firmware-it/h5/h5.ino` con l'Arduino IDE (scheda
 
 Verificato:
 
-- compilazione e avvio su ESP32-S3 (firmware H5V50);
+- compilazione e avvio su ESP32-S3 (firmware H5V63);
 - 21 pagine TFT: sfondi, colori, zone touch, valori dipinti dal firmware;
 - logica di setup e avvio in un tocco per tutte le modalità;
 - aggiornamento OTA di firmware e display;
-- UI web (configurazione, G-code, WiFi) e persistenza in NVS.
+- UI web (configurazione, G-code, WiFi) e persistenza in NVS;
+- STOP normali verificati a banco (controller senza assi montati).
 
 Da completare prima della pubblicazione:
 
 - prove fisiche sul tornio: sincronizzazione Z/X, finecorsa, mandrino, passate,
   filettatura anche conica;
 - verifica dei valori live durante una lavorazione reale;
+- collaudo sicurezza a macchina montata: emergenza durante il jog, reset
+  generale, STOP di un programma G-code;
 - prova su una seconda macchina/configurazione.
 
 ## Sicurezza

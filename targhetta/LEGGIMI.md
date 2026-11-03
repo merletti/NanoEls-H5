@@ -55,6 +55,12 @@ Sulla targhetta italiana:
 Griglia: `Z X Y SEGN. JOY TASTIERA`, `IMPULSI Z IMPULSI X IMPULSI Y ALIM. JOY ENCODER`,
 `SCALA Z SCALA X SCALA Y ALIM. 5V VARIE`.
 
+Questi ordini sono quelli che si leggono **dal retro del case**, da sinistra a destra:
+corrispondono ai piedi **1 → 4**, perché il **piede 1 è il +5V** (il lato della scritta `5V`).
+Quindi per l'ENCODER guardando il retro il +5V (piede 1) è all'estremità **sinistra** e
+A (piede 4) all'estremità **destra**. Le tabelle del foglio di cablaggio usano la stessa
+convenzione: piede 1 = +5V, piede 4 = segnale più lontano (PASSO per gli assi, A per gli ingressi).
+
 Sulla serigrafia della scheda gli stessi segnali si chiamano `ZPULSE`, `ZSCALE`, `JSIGNAL`,
 `JPOWER`, `KEYBOARD`, `POWER`, `MISC`, `ENA/DIR/STEP`, `GND`: per un confronto diretto usa
 l'edizione in `precedenti/` o il foglio di cablaggio.

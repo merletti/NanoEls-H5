@@ -47,7 +47,7 @@ arriva la fase 2 (componenti testo + mappa firmware).
 | 44 | `card_strip_a.png` | card quotate 1–5 (288×1790): INGRANAGGI, FILETTATURA, TORNITURA, SPIANATURA, TRONCATURA |
 | 45 | `card_strip_b.png` | card quotate 6–10 (288×1790): ELLISSE, ASINCRONO, ASSE Y, JOYSTICK, X-INGRANAGGI |
 | 46 | `card_strip_c.png` | card quotata 11 (288×358): SCANALATURA |
-| 47 | `lavorazione_tft_bg.png` | **LAVORAZIONE** (pagina 21): solo disegno statico, valori e tasti li scrive il firmware |
+| 47 | `lavorazione_tft_bg.png` (rev. 1) | LAVORAZIONE: sfondo **non più usato**, ancora presente con i vecchi tasti `MAX QUI`/`MIN QUI` |
 | 48 | `import_card49/01_ingranaggi_bg.png` | INGRANAGGI con **card quotata v49 già dentro lo sfondo** |
 | 49 | `import_card49/02_filetto_bg.png` | FILETTATURA con card v49 |
 | 50 | `import_card49/03_tornitura_bg.png` | TORNITURA con card v49 |
@@ -59,6 +59,7 @@ arriva la fase 2 (componenti testo + mappa firmware).
 | 56 | `import_card49/09_joystick_bg.png` | JOYSTICK con card v49 |
 | 57 | `import_card49/10_xgear_bg.png` | X-INGRANAGGI con card v49 |
 | 58 | `import_card49/11_scanalatura_bg.png` | SCANALATURA con card v49 |
+| 59 | `lavorazione_tft_bg.png` (rev. 2) | **LAVORAZIONE** (pagina 21): tasti `MAX`/`MIN`, solo disegno statico, valori e tasti li scrive il firmware |
 
 > **Non rimuovere picture**: gli indici successivi scalano.
 > Gli sfondi 26–36 sono stati importati in coda (l'editor non ha "Replace");
@@ -178,7 +179,7 @@ con l'indice: negli eventi si usa l'indice.
 | 15 | page17 | 22 | WIFI |
 | 16 | page18 | 23 | INFO / STATO |
 | 17 | page19 | 58 | **SCANALATURA (F13)** |
-| 21 | page21 | 47 | **LAVORAZIONE** — pagina live aperta dal firmware all'avvio di una modalità |
+| 21 | page21 | 59 | **LAVORAZIONE** — pagina live aperta dal firmware all'avvio di una modalità |
 
 Attributi pagina: `sta` = image, `pic` = numero della tabella, `bco` = `0841`.
 In `Program.s` l'avvio è `page 0`.
@@ -268,7 +269,7 @@ controllo e `setText("t3", …)` sulla vecchia page0 (che non esiste più).
 ## 6. Pagina 21 — LAVORAZIONE
 
 Pagina live della lavorazione in corso (indice **21**, nome interno `page21`,
-`sta` = image, `pic` = **47**). Non ha componenti: tutto il dinamico lo scrive il
+`sta` = image, `pic` = **59**). Non ha componenti: tutto il dinamico lo scrive il
 firmware con la sprite 38 (fondo `#101114`) e la sprite 43 (fondo card
 `#15161A`) dentro i rettangoli già presenti nello sfondo.
 
@@ -296,6 +297,27 @@ Dal firmware v50: la card CONO mostra la conicità da catalogo,
 doppio "per lato" (era `1 : 38`). Il movimento X/Z non cambia: la X si sposta
 ancora di `coneRatio / 2` per unità di Z.
 
+Dal firmware v51 (correzioni dal collaudo nel simulatore):
+
+- **SPIANATURA**: la riga DIREZIONE mostra `DX>SX` / `SX>DX` (prima `EST`/`INT`,
+  testo valido solo per le altre modalità).
+- **TRONCATURA**: il lato segue il segno del passo (`EST` con passo > 0,
+  `INT` con passo < 0); toccare LATO o `‹ ›` inverte il segno del PASSO e
+  riallinea il campo. Con ELS acceso il tocco è rifiutato (`SPEGNI PRIMA`).
+- **JOYSTICK**: `INGRESSI ATTIVI` non è più un testo fisso dello sfondo: il
+  firmware scrive `Z X Y` (o il sottoinsieme) secondo `joystickZEnabled`,
+  `joystickXEnabled`, `joystickYEnabled`. La riga non ha zona touch.
+- **SCANALATURA**: `−/+` sul finecorsa Z agisce sulla metà toccata per ultima,
+  MAX (sinistra) o MIN (destra), non più sempre su MAX. Il tastierino resta
+  separato sulle due metà.
+
+Dal firmware v52: il messaggio di emergenza non usa più i componenti della
+vecchia HMI (`bMode`, `t3`, assenti nella HMI attuale). All'arresto di
+emergenza il display dipinge `ESTOP` nella card STATO (pagina 21 e pagine
+modalità) e `ESTOP - <causa>` nella riga in basso con la sprite; la UI web
+riceve `UI.status=ESTOP` e `UI.message=<causa>`. Vale per `Spento in manuale`,
+`Posizione fuori macchina`, `Impossibile segnare origine`, `Impossibile ON/OFF`.
+
 Script a livello pagina (non ci sono Hotspot):
 
 | evento | contenuto |
@@ -315,14 +337,14 @@ Codici (dispatch in `tftWorkEvent`, `firmware-it/h5/h5.ino`):
 | 0x8D | chip PASSATE | 324 | 74 | 148 | 52 | tastierino passate |
 | 0x70 | STATO / AVVIA-STOP | 552 | 356 | 224 | 34 | avvia (conferma i passi) / ferma |
 | 0x75 | X ZERO | 24 | 268 | 58 | 28 | zero asse X |
-| 0x85 | X MAX QUI | 87 | 268 | 82 | 28 | finecorsa MAX X alla posizione |
-| 0x86 | X MIN QUI | 174 | 268 | 82 | 28 | finecorsa MIN X alla posizione |
+| 0x85 | X MAX | 87 | 268 | 82 | 28 | finecorsa MAX X alla posizione |
+| 0x86 | X MIN | 174 | 268 | 82 | 28 | finecorsa MIN X alla posizione |
 | 0x76 | Y ZERO | 284 | 268 | 58 | 28 | zero asse Y |
-| 0x87 | Y MAX QUI | 347 | 268 | 82 | 28 | finecorsa MAX Y |
-| 0x88 | Y MIN QUI | 434 | 268 | 82 | 28 | finecorsa MIN Y |
+| 0x87 | Y MAX | 347 | 268 | 82 | 28 | finecorsa MAX Y |
+| 0x88 | Y MIN | 434 | 268 | 82 | 28 | finecorsa MIN Y |
 | 0x77 | Z ZERO | 544 | 268 | 58 | 28 | zero asse Z |
-| 0x89 | Z MAX QUI | 607 | 268 | 82 | 28 | finecorsa MAX Z |
-| 0x8A | Z MIN QUI | 694 | 268 | 82 | 28 | finecorsa MIN Z |
+| 0x89 | Z MAX | 607 | 268 | 82 | 28 | finecorsa MAX Z |
+| 0x8A | Z MIN | 694 | 268 | 82 | 28 | finecorsa MIN Z |
 | 0x65 | `← Z−` | 12 | 404 | 188 | 40 | jog Z negativo |
 | 0x64 | `Z+ →` | 208 | 404 | 188 | 40 | jog Z positivo |
 | 0x60 | `↑ X+` | 404 | 404 | 188 | 40 | jog X positivo |
@@ -330,5 +352,6 @@ Codici (dispatch in `tftWorkEvent`, `firmware-it/h5/h5.ino`):
 | 0x62/0x63 | (riservati Y±) | — | — | — | — | jog Y, solo con asse Y attivo |
 | 0x6F | rilascio ovunque | — | — | — | — | ferma i jog tenuti premuti |
 
-Nota: MAX QUI / MIN QUI richiedono il controller **spento**; il firmware lo
-verifica e risponde con il messaggio `SPEGNI PRIMA`.
+Nota: MAX / MIN memorizzano la posizione **attuale** come finecorsa, quindi
+richiedono il controller **spento**; il firmware lo verifica e risponde con il
+messaggio `SPEGNI PRIMA`.

@@ -360,11 +360,13 @@ Dettagli utili:
 
 Come la tornitura, ma il PASSO è l'avanzamento **radiale** per giro e la fase 2 chiede
 `Da destra a sinistra?` / `Da sinistra a destra?`; i finecorsa Z definiscono la larghezza
-della faccia.
+della faccia. La riga DIREZIONE mostra la scelta come `DX>SX` o `SX>DX`.
 
 ### D. Troncare (TRONCATURA)
 
 1. `TRONCATURA`, passo con il segno giusto (positivo = esterno, negativo = interno).
+   La riga LATO mostra il lato ricavato dal segno; toccarla (o `‹ ›`) inverte il
+   segno del PASSO, con ELS spento.
 2. Finecorsa X obbligatori: partenza e fondo taglio.
 3. `OK` → `N passate?` → `OK` → fase 2 `Passo > 0, esterno` / `Passo < 0, interno` → `OK`.
 4. `OK` su `Vai…` per partire.
@@ -382,7 +384,8 @@ della faccia.
 ### F. Scanalatura (SCANALATURA, chip in alto in pagina 1)
 
 1. `SCANALATURA`, passo = velocità di avanzamento Z (mm/s).
-2. Fissare i quattro finecorsa (corsa Z e posizioni X).
+2. Fissare i quattro finecorsa (corsa Z e posizioni X). Sulla riga del finecorsa
+   Z, `−/+` corregge la metà toccata per ultima: `MAX` a sinistra, `MIN` a destra.
 3. `OK` → `N passate?` → `OK` → esterno/interno → `OK` → `Vai…` → `OK`.
 
 ### G. Ingranaggi (INGRANAGGI / X-INGRANAGGI)
@@ -409,7 +412,9 @@ della faccia.
 ### J. Joystick e asse Y
 
 Richiedono l'hardware configurato. In `JOYSTICK` la leva muove Z e X, il potenziometro
-regola il passo; in `ASSE Y` l'asse Y ruota alla velocità del PASSO.
+regola il passo; la riga `INGRESSI ATTIVI` elenca gli assi abilitati nella
+configurazione (`Z X Y` o solo quelli cablati). In `ASSE Y` l'asse Y ruota alla
+velocità del PASSO.
 
 ## 12. STOP, emergenze, reset
 
@@ -434,6 +439,10 @@ unità MM, PRINCIPI 1, rapporto cono 0 (cilindrico). Usarlo solo quando si vuole
 | `Impossibile segnare origine` | errore interno di sincronizzazione |
 
 In tutti i casi: spegnere il pannello, controllare la meccanica, riaccendere.
+
+Il messaggio compare nella riga in basso come `ESTOP - <causa>`, la card `STATO`
+del TFT passa a `ESTOP` e la casella di stato della UI web mostra `ESTOP` con la
+stessa causa (dal firmware v52).
 
 ## 13. Messaggi della striscia in basso
 
@@ -497,7 +506,7 @@ corretta nel TFT: annotare quale zona e segnalarlo.
 | `h5_it.tft` | interfaccia per il pannello: copiarlo sulla SD come `h5.tft` (FAT32, radice) oppure caricarlo dalla Web UI (*Aggiorna display Nextion*) |
 | `h5_it.HMI` | progetto Nextion modificabile, contiene gli sfondi |
 | `h5-IT-20261102-v50.bin` | firmware italiano per ESP32-S3 (H5V50) |
-| `lavorazione_tft_bg.png` | sfondo della pagina LAVORAZIONE (picture 47) |
+| `lavorazione_tft_bg.png` | sfondo della pagina LAVORAZIONE (picture 59) |
 
 Ordine di caricamento in caso di aggiornamento: prima il firmware, poi il TFT.
 Per entrambi serve il controller **spento** (ELS OFF); il TFT richiede il display
@@ -519,18 +528,21 @@ tastierino (solo a ELS spento).
 i finecorsa. Sotto:
 
 * `ZERO` → mette a zero la posizione dell'asse (non tocca i finecorsa);
-* `MAX QUI` / `MIN QUI` → memorizzano la posizione attuale come finecorsa MAX o
+* `MAX` / `MIN` → memorizzano la posizione attuale come finecorsa MAX o
   MIN. Funzionano solo a controller **spento**: se è acceso compare `SPEGNI
   PRIMA`. Se l'asse non è abilitato compare `ASSE NON USATO`.
 
 **Statistiche** — `GIRI` (giri del mandrino dall'accensione), `GIRI/MIN`,
 `ANGOLO` in gradi (0–360) e `PASSATA` (passata corrente / totale).
 
-**STATO / AVVIA-STOP** — la riga `STATO` mostra `OFF`, `ON` o `SIN`; il riquadro
-verde è il tasto: `AVVIA` accende in un solo tocco usando i dati già impostati
-nella pagina modalità (i passi di conferma vengono accettati insieme), `STOP`
-spegne. In G-CODE restano le conferme passo-passo di programma e mandrino. Se
-mancano i finecorsa obbligatori il tasto fa solo beep e la riga in basso mostra
+**STATO / AVVIA-STOP** — la riga `STATO` mostra `OFF` (spento), `ON` (acceso) o
+`SIN` (acceso e in attesa della fase del mandrino). Dopo `ON` l'ELS esegue il
+posizionamento iniziale e poi passa a `SIN`: appena il mandrino gira `SIN` torna
+`ON` e parte la passata; se il mandrino resta fermo `SIN` rimane, è normale. Il
+riquadro verde è il tasto: `AVVIA` accende in un solo tocco usando i dati già
+impostati nella pagina modalità (i passi di conferma vengono accettati insieme),
+`STOP` spegne. In G-CODE restano le conferme passo-passo di programma e mandrino.
+Se mancano i finecorsa obbligatori il tasto fa solo beep e la riga in basso mostra
 `Imposta finecorsa`.
 
 **Jog** — `← Z−`, `Z+ →`, `↑ X+`, `↓ X−` muovono l'asse a pressione mantenuta;

@@ -1,0 +1,3348 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NanoEls H5</title>
+  <link rel="icon" href="data:;base64,">
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --panel: #fff;
+      --border: #c9d0d6;
+      --text: #222;
+      --muted: #5d6770;
+      --primary: #217346;
+      --primary-dark: #14572f;
+      --secondary: #59636d;
+      --secondary-dark: #3f474f;
+      --link: #0a5d9f;
+      color-scheme: light;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: Roboto, Arial, sans-serif;
+      font-size: 17px;
+      margin: 0;
+    }
+    a {
+      color: var(--link);
+    }
+    .page-shell {
+      margin: 0 auto;
+      max-width: 920px;
+      padding: 16px;
+    }
+    h1, h2 {
+      color: var(--text);
+      margin: 0;
+    }
+    h1 {
+      font-size: 1.8rem;
+    }
+    h2 {
+      font-size: 1.35rem;
+    }
+    h3 {
+      font-size: 1.08rem;
+      margin: 0 0 10px;
+    }
+    p {
+      line-height: 1.4;
+      margin: 8px 0;
+    }
+    .app-footer {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.35;
+      margin-top: 18px;
+      text-align: center;
+    }
+    body.control-section-active .app-footer {
+      display: none;
+    }
+    body.control-section-active.control-fullscreen-active .page-topbar {
+      display: none;
+    }
+    .app-footer p {
+      margin: 0;
+    }
+    .section-note, .action-status {
+      color: var(--muted);
+    }
+    .notice {
+      background: #fff7e8;
+      border: 1px solid #e0b46a;
+      border-radius: 4px;
+      margin: 0;
+      padding: 10px 12px;
+    }
+    [hidden] {
+      display: none !important;
+    }
+    .page-topbar {
+      align-items: center;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: none;
+      gap: 10px;
+      margin: 0 0 14px;
+      padding: 8px 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    body.page-open .page-topbar {
+      display: flex;
+    }
+    body.control-fullscreen-active .page-topbar {
+      display: none;
+    }
+    .page-back {
+      align-items: center;
+      background: #e7ecef;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      display: inline-flex;
+      flex: 0 0 auto;
+      font-size: 1rem;
+      font-weight: 700;
+      gap: 6px;
+      min-height: 42px;
+      padding: 8px 14px;
+      text-decoration: none;
+    }
+    .page-back:hover {
+      background: #d9e1e6;
+    }
+    .page-back svg {
+      height: 18px;
+      width: 18px;
+    }
+    .page-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin: 0;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .home-brand {
+      align-items: center;
+      display: flex;
+      gap: 12px;
+      margin: 8px 0 18px;
+    }
+    .home-logo {
+      align-items: center;
+      background: var(--primary);
+      border-radius: 12px;
+      color: #fff;
+      display: flex;
+      flex: 0 0 auto;
+      height: 52px;
+      justify-content: center;
+      width: 52px;
+    }
+    .home-logo svg {
+      height: 30px;
+      width: 30px;
+    }
+    .home-title {
+      font-size: 1.65rem;
+    }
+    .home-subtitle {
+      color: var(--muted);
+      margin: 2px 0 0;
+    }
+    .home-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    }
+    .home-card {
+      align-items: start;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(20, 40, 60, 0.06);
+      color: var(--text);
+      display: grid;
+      gap: 4px 12px;
+      grid-template-areas:
+        "icon title chevron"
+        "icon desc chevron";
+      grid-template-columns: 48px minmax(0, 1fr) 16px;
+      padding: 14px;
+      text-decoration: none;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+    }
+    .home-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 6px 16px rgba(20, 40, 60, 0.14);
+      transform: translateY(-1px);
+    }
+    .home-card:active {
+      transform: translateY(0);
+    }
+    .home-icon {
+      align-items: center;
+      background: #e6f2ea;
+      border-radius: 10px;
+      color: var(--primary);
+      display: flex;
+      grid-area: icon;
+      height: 48px;
+      justify-content: center;
+      width: 48px;
+    }
+    .home-icon svg {
+      height: 27px;
+      width: 27px;
+    }
+    .home-card-title {
+      align-self: end;
+      font-size: 1.1rem;
+      font-weight: 800;
+      grid-area: title;
+    }
+    .home-card-desc {
+      color: var(--muted);
+      font-size: 0.92rem;
+      grid-area: desc;
+      line-height: 1.32;
+    }
+    .home-chevron {
+      align-self: center;
+      color: var(--muted);
+      font-size: 1.5rem;
+      grid-area: chevron;
+      line-height: 1;
+    }
+    .app-section {
+      display: none;
+    }
+    .app-section.active {
+      display: block;
+    }
+    .section-header {
+      display: grid;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    .section-stack {
+      display: grid;
+      gap: 14px;
+    }
+    .panel, .config-section {
+      background-color: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px;
+    }
+    input[type=text], input[type=file], input[type=number], input[type=password], textarea, select {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font: inherit;
+      padding: 10px;
+      width: 100%;
+    }
+    #log {
+      background-color: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      height: 260px;
+      margin-bottom: 12px;
+      overflow-y: scroll;
+      padding: 10px;
+    }
+    #log p {
+      margin: 0;
+      padding: 0;
+    }
+    #command-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    #command {
+      flex: 1;
+    }
+    button, .button-like {
+      background-color: var(--primary);
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+      display: inline-block;
+      font: inherit;
+      min-height: 40px;
+      padding: 10px 18px;
+      text-align: center;
+    }
+    button:hover, .button-like:hover {
+      background-color: var(--primary-dark);
+    }
+    #gcode-list {
+      background-color: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      margin-top: 10px;
+      padding: 0;
+    }
+    #gcode-list.empty {
+      padding: 10px;
+      text-align: center;
+    }
+    #gcode-name, #gcode-content {
+      margin-bottom: 10px;
+    }
+    #gcode-content {
+      height: 200px;
+      resize: vertical;
+    }
+    .remove-icon {
+      cursor: pointer;
+      color: #dc3545;
+      font-size: 16px;
+      width: 20px;
+    }
+    .remove-icon:hover {
+      color: #c82333;
+    }
+    button.disabled, .button-like.disabled {
+      background-color: #b7bec5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    button.disabled:hover, .button-like.disabled:hover {
+      background-color: #b7bec5;
+    }
+    .gcode-row {
+      align-items: center;
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      min-height: 44px;
+      padding: 10px;
+      cursor: pointer;
+    }
+    .gcode-row:hover {
+      background-color: #f0f0f0;
+    }
+    .gcode-item {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .gcode-size {
+      flex-basis: 80px;
+      font-size: 0.9em;
+      color: var(--muted);
+    }
+    .checkbox-container {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .checkbox-container input {
+      margin: 0;
+    }
+    .config-grid {
+      display: grid;
+      gap: 10px 16px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .config-field {
+      display: grid;
+      gap: 6px;
+    }
+    .config-label {
+      font-weight: 600;
+    }
+    .config-unit {
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .config-help {
+      color: var(--muted);
+      font-size: 0.85em;
+      line-height: 1.35;
+    }
+    .config-checkbox {
+      align-items: center;
+      display: flex;
+      gap: 8px;
+      min-height: 34px;
+    }
+    .config-checkbox-field {
+      align-content: start;
+    }
+    .config-checkbox-field .config-checkbox {
+      min-height: 0;
+    }
+    .config-actions {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .sticky-actions {
+      background: rgba(244, 246, 248, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      bottom: 0;
+      margin-top: 12px;
+      padding: 10px;
+      position: sticky;
+      z-index: 8;
+    }
+    .action-status {
+      flex: 1 1 220px;
+      min-height: 1.2em;
+      overflow-wrap: anywhere;
+    }
+    #config-fields, #keyboard-fields {
+      display: grid;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .settings-group, .keyboard-group {
+      padding: 0;
+    }
+    .settings-group summary, .keyboard-group summary {
+      cursor: pointer;
+      font-weight: 700;
+      padding: 12px;
+    }
+    .settings-group[open] summary, .keyboard-group[open] summary {
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-group .config-grid, .keyboard-group .keyboard-grid {
+      padding: 12px;
+    }
+    .accessibility-settings .config-actions {
+      padding: 0 12px 12px;
+    }
+    .config-field > .config-help {
+      color: var(--muted);
+      display: block;
+      line-height: 1.35;
+    }
+    .keyboard-grid {
+      display: grid;
+      gap: 10px 16px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .keyboard-binding {
+      align-items: center;
+      display: grid;
+      gap: 6px 8px;
+      grid-template-columns: minmax(110px, 1fr) 78px auto;
+    }
+    .keyboard-binding label {
+      font-weight: 600;
+    }
+    .keyboard-binding input[type=number] {
+      width: 100%;
+    }
+    .keyboard-binding button {
+      padding: 8px 10px;
+      white-space: nowrap;
+    }
+    button.secondary {
+      background-color: var(--secondary);
+    }
+    button.secondary:hover {
+      background-color: var(--secondary-dark);
+    }
+    #tft-upload-controls, #firmware-upload-controls {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    #tft-file, #firmware-file {
+      display: none;
+    }
+    #tft-upload-controls input, #firmware-upload-controls input {
+      margin-left: 10px;
+    }
+    #tft-progress, #firmware-progress {
+      width: 100%;
+      margin-top: 10px;
+    }
+    #tft-status, #firmware-status {
+      min-height: 1.2em;
+    }
+    .control-status-panel {
+      padding: 12px;
+    }
+    .control-status-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+    .control-status-item {
+      background: #f8fafb;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      min-height: 62px;
+      padding: 10px;
+    }
+    .control-status-button {
+      cursor: pointer;
+      user-select: none;
+    }
+    .control-status-button:hover {
+      background: #edf3f7;
+    }
+    .control-status-button.active {
+      background: #d8ecf6;
+      border-color: var(--primary);
+    }
+    .control-status-button.disabled {
+      cursor: not-allowed;
+      opacity: 0.58;
+    }
+    .control-status-label {
+      color: var(--muted);
+      display: block;
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .control-status-value {
+      display: block;
+      font-size: 1.28rem;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+    .control-axis-stops {
+      color: var(--muted);
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-top: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .control-mode-pitch {
+      display: none;
+    }
+    .control-extra-toggle {
+      cursor: pointer;
+    }
+    .control-mobile-tabs, .control-bottom-bar {
+      display: none;
+    }
+    .control-message {
+      grid-column: 1 / -1;
+    }
+    .control-message-heading {
+      align-items: baseline;
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+      min-width: 0;
+    }
+    .control-action-status {
+      color: var(--muted);
+      flex: 1;
+      font-size: 0.9rem;
+      font-weight: 700;
+      min-width: 0;
+      overflow: hidden;
+      text-align: right;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .control-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .control-panel {
+      align-content: start;
+      display: grid;
+      gap: 10px;
+    }
+    .control-button-grid, .control-numpad {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .control-jog-grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .control-jog-arrow {
+      align-items: center;
+      display: grid;
+      gap: 2px;
+      justify-items: center;
+      min-height: 72px;
+    }
+    .control-jog-symbol {
+      font-size: 1.9rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .control-jog-axis {
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .control-jog-up {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .control-jog-left {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .control-jog-center {
+      align-self: stretch;
+      background: #e7ecef;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      grid-column: 2;
+      grid-row: 2;
+      min-height: 72px;
+    }
+    .control-jog-right {
+      grid-column: 3;
+      grid-row: 2;
+    }
+    .control-jog-down {
+      grid-column: 2;
+      grid-row: 3;
+    }
+    .control-jog-y-forward {
+      grid-column: 1 / 3;
+      grid-row: 4;
+    }
+    .control-jog-y-back {
+      grid-column: 3;
+      grid-row: 4;
+    }
+    .control-button {
+      font-size: 1.05rem;
+      min-height: 54px;
+      padding: 8px;
+      touch-action: manipulation;
+      user-select: none;
+      width: 100%;
+    }
+    .control-button.hold {
+      touch-action: none;
+    }
+    .control-button.active {
+      background-color: #0f5f87;
+    }
+    .control-button.active:hover {
+      background-color: #0f5f87;
+    }
+    .control-button.neutral {
+      background-color: var(--secondary);
+    }
+    .control-button.neutral:hover {
+      background-color: var(--secondary-dark);
+    }
+    .control-button.warning {
+      background-color: #a05a00;
+    }
+    .control-button.warning:hover {
+      background-color: #7c4400;
+    }
+    .control-button.danger {
+      background-color: #b3261e;
+    }
+    .control-button.danger:hover {
+      background-color: #8f1f18;
+    }
+    .control-button.mode {
+      background-color: #0f5f87;
+    }
+    .control-button.mode:hover {
+      background-color: #0b4968;
+    }
+    .control-button.mode-long-label {
+      font-size: 0.85rem;
+    }
+    .control-wide {
+      grid-column: span 2;
+    }
+    @media (max-width: 640px) {
+      .page-shell {
+        padding: 10px;
+      }
+      h1 {
+        font-size: 1.55rem;
+      }
+      .page-topbar {
+        margin-left: -10px;
+        margin-right: -10px;
+        padding: 8px 10px;
+      }
+      .page-title {
+        font-size: 1.08rem;
+      }
+      .home-brand {
+        margin: 4px 0 14px;
+      }
+      .home-grid {
+        grid-template-columns: 1fr;
+      }
+      .home-card {
+        grid-template-columns: 44px minmax(0, 1fr) 16px;
+        padding: 12px;
+      }
+      .home-icon {
+        height: 44px;
+        width: 44px;
+      }
+      .home-icon svg {
+        height: 25px;
+        width: 25px;
+      }
+      .config-grid, .keyboard-grid {
+        grid-template-columns: 1fr;
+      }
+      .keyboard-binding {
+        grid-template-columns: minmax(0, 1fr) 82px 76px;
+      }
+      #command-container {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      #command-container button {
+        width: 100%;
+      }
+      .config-actions, .sticky-actions {
+        align-items: stretch;
+        flex-direction: column;
+      }
+      .config-actions button, .sticky-actions button {
+        width: 100%;
+      }
+      .action-status {
+        flex-basis: auto;
+        width: 100%;
+      }
+      #gcode-content {
+        height: 180px;
+      }
+      #log {
+        height: 220px;
+      }
+      #section-control.active {
+        padding-bottom: 82px;
+      }
+      .control-stack {
+        gap: 10px;
+      }
+      .control-status-panel {
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        padding: 8px;
+      }
+      .control-status-grid {
+        gap: 6px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .control-status-item {
+        min-height: 54px;
+        min-width: 0;
+        padding: 8px;
+      }
+      .control-status-panel.control-y-active .control-status-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .control-status-extra {
+        display: none;
+      }
+      .control-status-panel.control-extra-visible .control-status-extra {
+        display: block;
+      }
+      .control-status-panel.control-extra-visible .control-message {
+        border-color: var(--primary);
+      }
+      .control-status-label {
+        font-size: 0.82rem;
+        margin-bottom: 4px;
+      }
+      .control-status-value {
+        font-size: 1.18rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .control-axis-stops {
+        font-size: 0.86rem;
+      }
+      .control-mode-pitch {
+        color: var(--muted);
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 700;
+        margin-top: 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .control-status-panel.control-extra-visible .control-mode-pitch {
+        display: none;
+      }
+      .control-mobile-tabs {
+        display: grid;
+        gap: 6px;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+      .control-mobile-tab {
+        background: #e7ecef;
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 0.98rem;
+        font-weight: 700;
+        min-height: 44px;
+        padding: 8px 4px;
+      }
+      .control-mobile-tab.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+      }
+      .control-grid {
+        display: block;
+      }
+      .control-panel {
+        display: none;
+      }
+      .control-panel.active {
+        display: grid;
+      }
+      .control-button {
+        font-size: 1.14rem;
+        min-height: 62px;
+        padding: 8px 6px;
+      }
+      .control-jog-arrow, .control-jog-center {
+        min-height: 68px;
+      }
+      .control-jog-symbol {
+        font-size: 2rem;
+      }
+      .control-bottom-bar {
+        align-items: center;
+        background: rgba(255, 255, 255, 0.97);
+        border-top: 1px solid var(--border);
+        bottom: 0;
+        box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.14);
+        gap: 8px;
+        grid-template-columns: 60px minmax(0, 1fr) 68px 78px 78px;
+        left: 0;
+        padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+        position: fixed;
+        right: 0;
+        z-index: 30;
+      }
+      #section-control.active .control-bottom-bar {
+        display: grid;
+      }
+      .control-bottom-state {
+        min-width: 0;
+      }
+      .control-bottom-state .control-status-label, .control-bottom-rpm .control-status-label {
+        font-size: 0.78rem;
+        margin-bottom: 2px;
+      }
+      .control-bottom-state .control-status-value, .control-bottom-rpm .control-status-value {
+        font-size: 1.18rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .control-bottom-rpm {
+        min-width: 0;
+      }
+      .control-bottom-button {
+        min-height: 52px;
+      }
+      .control-fullscreen-button {
+        background: #e7ecef;
+        border: 1px solid var(--border);
+        color: var(--text);
+        min-height: 52px;
+        padding: 8px 4px;
+      }
+      .control-fullscreen-button:hover {
+        background: #d9e1e6;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <nav class="page-topbar" aria-label="Navigazione pagina">
+      <a href="#home" class="page-back" aria-label="Torna al menu principale">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+        Menu
+      </a>
+      <h2 id="page-title" class="page-title">Comando</h2>
+    </nav>
+
+    <main>
+      <section id="section-home" class="app-section home-section" data-section="home">
+        <header class="home-brand">
+          <span class="home-logo" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="12" r="4.5"/><path d="M3 12h2M17 12h4M11 3v2M11 19v2"/></svg>
+          </span>
+          <div>
+            <h1 class="home-title">NanoEls H5</h1>
+            <p class="home-subtitle">Scegli una funzione per aprire la pagina dedicata.</p>
+          </div>
+        </header>
+        <div class="home-grid">
+          <a class="home-card" href="#control" data-section-link="control">
+            <span class="home-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="5"/><path d="M7 10v4M5 12h4M16 11h.01M18.5 13h.01"/></svg>
+            </span>
+            <span class="home-card-title">Comando</span>
+            <span class="home-card-desc">Jog X/Z, ON e OFF, modalità di lavoro, tastierino e finecorsa.</span>
+            <span class="home-chevron" aria-hidden="true">&rsaquo;</span>
+          </a>
+          <a class="home-card" href="#gcode" data-section-link="gcode">
+            <span class="home-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="m10 12-2 2 2 2M14 12l2 2-2 2"/></svg>
+            </span>
+            <span class="home-card-title">GCode</span>
+            <span class="home-card-desc">File salvati in memoria, creazione e invio di nuovi programmi.</span>
+            <span class="home-chevron" aria-hidden="true">&rsaquo;</span>
+          </a>
+          <a class="home-card" href="#updates" data-section-link="updates">
+            <span class="home-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+            </span>
+            <span class="home-card-title">Aggiornamenti</span>
+            <span class="home-card-desc">Carica il firmware ESP32 o aggiorna il display Nextion.</span>
+            <span class="home-chevron" aria-hidden="true">&rsaquo;</span>
+          </a>
+          <a class="home-card" href="#wifi" data-section-link="wifi">
+            <span class="home-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5.5 5.5 0 0 1 7 0"/><path d="M12 19.5h.01"/></svg>
+            </span>
+            <span class="home-card-title">WiFi</span>
+            <span class="home-card-desc">Attiva la rete, imposta nome e password o dimentica la connessione.</span>
+            <span class="home-chevron" aria-hidden="true">&rsaquo;</span>
+          </a>
+          <a class="home-card" href="#ui" data-section-link="ui">
+            <span class="home-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2.2" fill="#fff"/><circle cx="15" cy="12" r="2.2" fill="#fff"/><circle cx="7" cy="17" r="2.2" fill="#fff"/></svg>
+            </span>
+            <span class="home-card-title">Interfaccia</span>
+            <span class="home-card-desc">Voce, annunci di accessibilità e velocità di lettura.</span>
+            <span class="home-chevron" aria-hidden="true">&rsaquo;</span>
+          </a>
+          <a class="home-card" href="#settings" data-section-link="settings">
+            <span class="home-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+            <span class="home-card-title">Impostazioni</span>
+            <span class="home-card-desc">Parametri macchina e configurazione generale del controller.</span>
+            <span class="home-chevron" aria-hidden="true">&rsaquo;</span>
+          </a>
+          <a class="home-card" href="#keyboard" data-section-link="keyboard">
+            <span class="home-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h.01M12 14h.01M16 14h.01"/></svg>
+            </span>
+            <span class="home-card-title">Tastiera</span>
+            <span class="home-card-desc">Mappatura dei tasti fisici e tasti premuti a schermo.</span>
+            <span class="home-chevron" aria-hidden="true">&rsaquo;</span>
+          </a>
+          <a class="home-card" href="#logs" data-section-link="logs">
+            <span class="home-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3M13 15h4"/></svg>
+            </span>
+            <span class="home-card-title">Registro</span>
+            <span class="home-card-desc">Log in tempo reale, comandi manuali e comandi websocket.</span>
+            <span class="home-chevron" aria-hidden="true">&rsaquo;</span>
+          </a>
+        </div>
+      </section>
+
+      <section id="section-control" class="app-section" data-section="control" data-page-title="Comando">
+        <div class="section-stack control-stack">
+          <section id="control-status" class="panel control-status-panel" aria-label="Stato controller">
+            <div class="control-status-grid">
+              <div class="control-status-item control-status-button" data-control-shortcut-panel="modes" role="button" tabindex="0" aria-label="Apri modalità">
+                <span class="control-status-label">Modo</span>
+                <span id="control-mode" class="control-status-value">--</span>
+                <span id="control-mode-pitch" class="control-mode-pitch">--</span>
+              </div>
+              <div class="control-status-item control-status-button" data-control-shortcut-action="88" data-control-shortcut-label="Azzera X" role="button" tabindex="0" aria-label="Azzera X">
+                <span class="control-status-label">X</span>
+                <span id="control-x" class="control-status-value">--</span>
+                <span id="control-x-inline-stops" class="control-axis-stops">--</span>
+              </div>
+              <div class="control-status-item control-status-button" data-control-shortcut-action="90" data-control-shortcut-label="Azzera Z" role="button" tabindex="0" aria-label="Azzera Z">
+                <span class="control-status-label">Z</span>
+                <span id="control-z" class="control-status-value">--</span>
+                <span id="control-z-inline-stops" class="control-axis-stops">--</span>
+              </div>
+              <div class="control-status-item control-status-button control-y" data-control-shortcut-action="72" data-control-shortcut-label="Azzera Y" role="button" tabindex="0" aria-label="Azzera Y" hidden>
+                <span class="control-status-label">Y</span>
+                <span id="control-y" class="control-status-value">--</span>
+                <span id="control-y-inline-stops" class="control-axis-stops">--</span>
+              </div>
+              <div class="control-status-item control-status-button control-status-extra" data-control-shortcut-action="27" data-control-shortcut-label="OFF" role="button" tabindex="0" aria-label="Spegni controller">
+                <span class="control-status-label">Stato</span>
+                <span id="control-state" class="control-status-value">--</span>
+              </div>
+              <div class="control-status-item control-status-button control-status-extra" data-control-shortcut-action="82" data-control-shortcut-label="Inverti" role="button" tabindex="0" aria-label="Inverti passo">
+                <span class="control-status-label">Passo</span>
+                <span id="control-pitch" class="control-status-value">--</span>
+              </div>
+              <div class="control-status-item control-status-button control-status-extra" data-control-shortcut-action="77" data-control-shortcut-label="Unità" role="button" tabindex="0" aria-label="Cambia unità">
+                <span class="control-status-label">Unità</span>
+                <span id="control-measure" class="control-status-value">--</span>
+              </div>
+              <div class="control-status-item control-status-button control-status-extra" data-control-shortcut-action="64" data-control-shortcut-label="Incremento" role="button" tabindex="0" aria-label="Cambia incremento">
+                <span class="control-status-label">Incremento</span>
+                <span id="control-step" class="control-status-value">--</span>
+              </div>
+              <div class="control-status-item control-status-button control-status-extra" data-control-shortcut-action="27" data-control-shortcut-label="Stop" role="button" tabindex="0" aria-label="Azzera giri e angolo">
+                <span class="control-status-label">Giri</span>
+                <span id="control-turns" class="control-status-value">--</span>
+              </div>
+              <div class="control-status-item control-status-button control-status-extra" data-control-shortcut-action="27" data-control-shortcut-label="Stop" role="button" tabindex="0" aria-label="Azzera giri e angolo">
+                <span class="control-status-label">Angolo</span>
+                <span id="control-angle" class="control-status-value">--</span>
+              </div>
+              <div class="control-status-item control-status-extra">
+                <span class="control-status-label">RPM</span>
+                <span id="control-rpm" class="control-status-value">--</span>
+              </div>
+              <div class="control-status-item control-message control-extra-toggle" data-control-extra-toggle role="button" tabindex="0" aria-label="Mostra o nascondi dettagli controller" aria-expanded="false">
+                <div class="control-message-heading">
+                  <span class="control-status-label">Messaggio</span>
+                  <span class="control-action-status" data-control-action-status role="status" aria-live="polite"></span>
+                </div>
+                <span id="control-message" class="control-status-value">--</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="control-mobile-tabs" role="tablist" aria-label="Gruppi di comando">
+            <button type="button" class="control-mobile-tab active" data-control-panel-tab="jog">Jog</button>
+            <button type="button" class="control-mobile-tab" data-control-panel-tab="run">Esegui</button>
+            <button type="button" class="control-mobile-tab" data-control-panel-tab="numpad">Tastierino</button>
+            <button type="button" class="control-mobile-tab" data-control-panel-tab="stops">Finecorsa</button>
+            <button type="button" class="control-mobile-tab" data-control-panel-tab="modes">Modalità</button>
+          </div>
+          <div class="control-grid">
+            <section class="panel control-panel active" data-control-panel="jog">
+              <h3>Jog</h3>
+              <div class="control-jog-grid">
+                <button type="button" class="control-button hold control-jog-arrow control-jog-up" data-control-action="23" data-control-hold="1" data-control-label="X avanti" aria-label="Jog X avanti" title="X avanti">
+                  <span class="control-jog-symbol">↑</span>
+                  <span class="control-jog-axis">X</span>
+                </button>
+                <button type="button" class="control-button hold control-jog-arrow control-jog-left" data-control-action="21" data-control-hold="1" data-control-label="Z sinistra" aria-label="Jog Z sinistra" title="Z sinistra">
+                  <span class="control-jog-symbol">←</span>
+                  <span class="control-jog-axis">Z</span>
+                </button>
+                <div class="control-jog-center" aria-hidden="true"></div>
+                <button type="button" class="control-button hold control-jog-arrow control-jog-right" data-control-action="22" data-control-hold="1" data-control-label="Z destra" aria-label="Jog Z destra" title="Z destra">
+                  <span class="control-jog-symbol">→</span>
+                  <span class="control-jog-axis">Z</span>
+                </button>
+                <button type="button" class="control-button hold control-jog-arrow control-jog-down" data-control-action="24" data-control-hold="1" data-control-label="X indietro" aria-label="Jog X indietro" title="X indietro">
+                  <span class="control-jog-symbol">↓</span>
+                  <span class="control-jog-axis">X</span>
+                </button>
+                <button type="button" class="control-button hold control-jog-arrow control-jog-y-forward control-y" data-control-action="85" data-control-hold="1" data-control-label="Y avanti" aria-label="Jog Y avanti" title="Y avanti" hidden>
+                  <span class="control-jog-symbol">↑</span>
+                  <span class="control-jog-axis">Y</span>
+                </button>
+                <button type="button" class="control-button hold control-jog-arrow control-jog-y-back control-y" data-control-action="74" data-control-hold="1" data-control-label="Y indietro" aria-label="Jog Y indietro" title="Y indietro" hidden>
+                  <span class="control-jog-symbol">↓</span>
+                  <span class="control-jog-axis">Y</span>
+                </button>
+              </div>
+            </section>
+
+            <section class="panel control-panel" data-control-panel="run">
+              <h3>Operazione</h3>
+              <div class="control-button-grid">
+                <button type="button" class="control-button" data-control-action="30">ON</button>
+                <button type="button" class="control-button danger" data-control-action="27">OFF</button>
+                <button type="button" class="control-button neutral" data-control-action="64">Incr.</button>
+                <button type="button" class="control-button" data-control-action="95">Più</button>
+                <button type="button" class="control-button" data-control-action="60">Meno</button>
+                <button type="button" class="control-button neutral" data-control-action="82">Inverti</button>
+                <button type="button" class="control-button neutral" data-control-action="77">Unità</button>
+                <button type="button" class="control-button neutral" data-control-action="12">Info</button>
+                <button type="button" class="control-button neutral" data-control-action="84">Avvii</button>
+              </div>
+            </section>
+
+            <section class="panel control-panel" data-control-panel="numpad">
+              <h3>Tastierino</h3>
+              <div class="control-numpad">
+                <button type="button" class="control-button neutral" data-control-action="49">1</button>
+                <button type="button" class="control-button neutral" data-control-action="50">2</button>
+                <button type="button" class="control-button neutral" data-control-action="51">3</button>
+                <button type="button" class="control-button neutral" data-control-action="52">4</button>
+                <button type="button" class="control-button neutral" data-control-action="53">5</button>
+                <button type="button" class="control-button neutral" data-control-action="54">6</button>
+                <button type="button" class="control-button neutral" data-control-action="55">7</button>
+                <button type="button" class="control-button neutral" data-control-action="56">8</button>
+                <button type="button" class="control-button neutral" data-control-action="57">9</button>
+                <button type="button" class="control-button neutral" data-control-action="48">0</button>
+                <button type="button" class="control-button neutral control-wide" data-control-action="28">Cancella</button>
+              </div>
+            </section>
+
+            <section class="panel control-panel" data-control-panel="stops">
+              <h3>Finecorsa e assi</h3>
+              <div class="control-button-grid">
+                <button type="button" class="control-button warning" data-control-action="65">Fermo Z sx</button>
+                <button type="button" class="control-button warning" data-control-action="68">Fermo Z dx</button>
+                <button type="button" class="control-button neutral" data-control-action="90">Azzera Z</button>
+                <button type="button" class="control-button warning" data-control-action="87">Fermo X avanti</button>
+                <button type="button" class="control-button warning" data-control-action="83">Fermo X dietro</button>
+                <button type="button" class="control-button neutral" data-control-action="88">Azzera X</button>
+                <button type="button" class="control-button warning control-y" data-control-action="73" hidden>Fermo Y avanti</button>
+                <button type="button" class="control-button warning control-y" data-control-action="75" hidden>Fermo Y dietro</button>
+                <button type="button" class="control-button neutral control-y" data-control-action="72" hidden>Azzera Y</button>
+                <button type="button" class="control-button neutral" data-control-action="81">Abilita Z</button>
+                <button type="button" class="control-button neutral" data-control-action="67">Abilita X</button>
+                <button type="button" class="control-button neutral control-y" data-control-action="89" hidden>Abilita Y</button>
+                <button type="button" class="control-button neutral" data-control-action="79">Diametro</button>
+              </div>
+            </section>
+
+            <section class="panel control-panel" data-control-panel="modes">
+              <h3>Modalità</h3>
+              <div class="control-button-grid">
+                <button type="button" class="control-button mode" data-control-action="97">INGR.</button>
+                <button type="button" class="control-button mode" data-control-action="109">X-ING</button>
+                <button type="button" class="control-button mode" data-control-action="108">JOY</button>
+                <button type="button" class="control-button mode" data-control-action="98">TORN.</button>
+                <button type="button" class="control-button mode" data-control-action="99">SPIAN.</button>
+                <button type="button" class="control-button mode" data-control-action="100">CONO</button>
+                <button type="button" class="control-button mode" data-control-action="101">TRONC.</button>
+                <button type="button" class="control-button mode" data-control-action="110">SCAN.</button>
+                <button type="button" class="control-button mode mode-long-label" data-control-action="102">FILETTATURA</button>
+                <button type="button" class="control-button mode" data-control-action="104">ELLIS.</button>
+                <button type="button" class="control-button mode" data-control-action="105">G-CODE</button>
+                <button type="button" class="control-button mode" data-control-action="103">ASINC.</button>
+                <button type="button" class="control-button mode control-y" data-control-action="106" hidden>ASSE Y</button>
+              </div>
+            </section>
+          </div>
+          <div class="control-bottom-bar">
+            <button type="button" id="control-fullscreen" class="control-button control-fullscreen-button" aria-label="Schermo intero">Intero</button>
+            <div class="control-bottom-state control-status-button" data-control-shortcut-action="27" data-control-shortcut-label="OFF" role="button" tabindex="0" aria-label="Spegni controller">
+              <span class="control-status-label">Stato</span>
+              <span id="control-bottom-state" class="control-status-value">--</span>
+            </div>
+            <div class="control-bottom-rpm">
+              <span class="control-status-label">RPM</span>
+              <span id="control-bottom-rpm" class="control-status-value">--</span>
+            </div>
+            <button type="button" class="control-button control-bottom-button" data-control-action="30">ON</button>
+            <button type="button" class="control-button control-bottom-button danger" data-control-action="27">OFF</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-gcode" class="app-section" data-section="gcode" data-page-title="GCode">
+        <div class="section-stack">
+          <section class="panel">
+            <h3>GCode salvati</h3>
+            <div id="gcode-list"></div>
+            <p id="free-space"></p>
+          </section>
+          <section class="panel">
+            <h3>Aggiungi GCode</h3>
+            <p class="section-note">Genera file compatibili con <a href="https://kachurovskiy.com/lathecode/" target="_blank">lathecode</a>.</p>
+            <input type="text" id="gcode-name" placeholder="Nome GCode" required minlength="2">
+            <textarea id="gcode-content" placeholder="Contenuto GCode" required minlength="2"></textarea>
+            <div class="checkbox-container">
+              <button id="add-gcode">Salva</button>
+              <input type="checkbox" id="remove-comments" checked>
+              <label for="remove-comments">Rimuovi commenti prima di salvare</label>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="section-updates" class="app-section" data-section="updates" data-page-title="Aggiornamenti">
+        <div class="section-header">
+          <p class="section-note">Tieni aperta questa pagina finché l'aggiornamento non termina.</p>
+        </div>
+        <div class="section-stack">
+          <section class="panel">
+            <h3>Aggiorna TFT Nextion</h3>
+            <div id="tft-upload-controls">
+              <label for="tft-file" id="tft-browse" class="button-like">Sfoglia</label>
+              <input type="file" id="tft-file" accept=".tft">
+              <input type="checkbox" id="tft-first-upload" checked>
+              <label for="tft-first-upload">Primo caricamento / display di fabbrica (9600 baud)</label>
+            </div>
+            <progress id="tft-progress" value="0" max="100" hidden></progress>
+            <p id="tft-status"></p>
+          </section>
+          <section class="panel">
+            <h3>Aggiorna firmware ESP32</h3>
+            <div id="firmware-upload-controls">
+              <label for="firmware-file" id="firmware-browse" class="button-like">Sfoglia</label>
+              <input type="file" id="firmware-file" accept=".bin,application/octet-stream">
+            </div>
+            <progress id="firmware-progress" value="0" max="100" hidden></progress>
+            <p id="firmware-status"></p>
+          </section>
+        </div>
+      </section>
+
+      <section id="section-wifi" class="app-section" data-section="wifi" data-page-title="WiFi">
+        <form id="wifi-form" class="config-section">
+          <div class="config-grid">
+            <label class="config-checkbox" for="wifi-enabled">
+              <input type="checkbox" id="wifi-enabled">
+              <span>WiFi attivo</span>
+            </label>
+            <label class="config-field" for="wifi-ssid">
+              <span>Nome rete</span>
+              <input type="text" id="wifi-ssid" maxlength="32" autocomplete="off">
+            </label>
+            <label class="config-field" for="wifi-password">
+              <span>Password</span>
+              <input type="password" id="wifi-password" maxlength="63" autocomplete="new-password" placeholder="Lascia invariata">
+            </label>
+            <label class="config-checkbox" for="wifi-clear-password">
+              <input type="checkbox" id="wifi-clear-password">
+              <span>Cancella password salvata</span>
+            </label>
+          </div>
+          <div class="config-actions">
+            <button id="save-wifi" type="submit">Salva e riavvia</button>
+            <button id="reset-wifi" type="button" class="secondary">Dimentica rete</button>
+            <span id="wifi-status" class="action-status" role="status" aria-live="polite"></span>
+          </div>
+        </form>
+      </section>
+
+      <section id="section-ui" class="app-section" data-section="ui" data-page-title="Interfaccia">
+        <div class="section-stack">
+          <details class="config-section settings-group accessibility-settings" open>
+            <summary>Accessibilità (7)</summary>
+            <div class="config-grid">
+              <label class="config-checkbox" for="accessibility-voice-feedback">
+                <input type="checkbox" id="accessibility-voice-feedback">
+                <span>Voce</span>
+              </label>
+              <label class="config-checkbox" for="accessibility-announce-buttons">
+                <input type="checkbox" id="accessibility-announce-buttons">
+                <span>Annuncia pressione pulsanti</span>
+              </label>
+              <label class="config-checkbox" for="accessibility-announce-status">
+                <input type="checkbox" id="accessibility-announce-status">
+                <span>Annuncia cambi di stato</span>
+              </label>
+              <label class="config-checkbox" for="accessibility-announce-warnings">
+                <input type="checkbox" id="accessibility-announce-warnings">
+                <span>Annuncia avvisi ed errori</span>
+              </label>
+              <label class="config-checkbox" for="accessibility-announce-axis">
+                <input type="checkbox" id="accessibility-announce-axis">
+                <span>Annuncia variazione posizione assi</span>
+              </label>
+              <label class="config-checkbox" for="accessibility-quiet-hold">
+                <input type="checkbox" id="accessibility-quiet-hold">
+                <span>Silenzio durante jog</span>
+              </label>
+              <label class="config-field" for="accessibility-speech-rate">
+                <span class="config-label">Velocità voce</span>
+                <select id="accessibility-speech-rate">
+                  <option value="1">1x</option>
+                  <option value="1.5">1.5x</option>
+                  <option value="2">2x</option>
+                  <option value="3">3x</option>
+                </select>
+              </label>
+            </div>
+            <div class="config-actions">
+              <button id="accessibility-test-voice" type="button" class="secondary">Prova voce</button>
+              <span id="accessibility-status" class="action-status" role="status" aria-live="polite"></span>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section id="section-settings" class="app-section" data-section="settings" data-page-title="Impostazioni">
+        <form id="config-form">
+          <div id="config-fields"></div>
+          <div class="config-actions sticky-actions">
+            <button id="save-config" type="submit">Salva e riavvia</button>
+            <button id="reset-config" type="button" class="secondary">Ripristina default</button>
+            <span id="config-status" class="action-status" role="status" aria-live="polite"></span>
+          </div>
+        </form>
+      </section>
+
+      <section id="section-keyboard" class="app-section" data-section="keyboard" data-page-title="Tastiera">
+        <form id="keyboard-form">
+          <section class="config-section">
+            <label class="config-checkbox" for="keyboard-show-keys">
+              <input type="checkbox" id="keyboard-show-keys">
+              <span>Mostra tasti premuti sullo schermo</span>
+            </label>
+            <small class="config-help">Ultimo codice tasto fisico: <span id="keyboard-last-key">nessuno</span></small>
+          </section>
+          <div id="keyboard-fields"></div>
+          <div class="config-actions sticky-actions">
+            <button id="save-keyboard" type="submit">Salva tastiera</button>
+            <button id="reset-keyboard" type="button" class="secondary">Ripristina tastiera</button>
+            <span id="keyboard-status" class="action-status" role="status" aria-live="polite"></span>
+          </div>
+        </form>
+      </section>
+
+      <section id="section-logs" class="app-section" data-section="logs" data-page-title="Registro">
+        <div id="log"></div>
+        <div id="command-container">
+          <input type="text" id="command" placeholder="Inserisci comando" value="?" minlength="1" required>
+          <button id="send">Invia</button>
+        </div>
+        <details class="panel">
+          <summary>Comandi websocket supportati</summary>
+          <ul>
+            <li><code>?</code> richiede lo stato del controller</li>
+            <li><code>@21:1</code> preme il codice azione diretto 21; <code>@21:0</code> lo rilascia senza rimappatura tastiera</li>
+            <li><code>=20</code> invia il codice tasto 20 come se fosse premuto sulla tastiera</li>
+            <li><code>!</code> spegne il controller</li>
+            <li><code>~</code> accende il controller</li>
+            <li><code>""</code> rimuove tutti i GCode</li>
+          </ul>
+        </details>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>NanoEls H5V53. Solo rete locale fidata. Spegni il controller prima di aggiornamenti o modifiche alle impostazioni.</p>
+    </footer>
+  </div>
+
+  <script>
+    const defaultSection = 'home';
+    const sectionLinks = Array.from(document.querySelectorAll('[data-section-link]'));
+    const pageTitle = document.getElementById('page-title');
+    const appSections = Array.from(document.querySelectorAll('[data-section]'));
+    const controlButtons = Array.from(document.querySelectorAll('[data-control-action]'));
+    const controlYElements = Array.from(document.querySelectorAll('.control-y'));
+    const controlStatusPanel = document.getElementById('control-status');
+    const controlExtraToggle = document.querySelector('[data-control-extra-toggle]');
+    const controlMobileTabs = Array.from(document.querySelectorAll('[data-control-panel-tab]'));
+    const controlPanelElements = Array.from(document.querySelectorAll('[data-control-panel]'));
+    const controlShortcutElements = Array.from(document.querySelectorAll('[data-control-shortcut-action], [data-control-shortcut-panel]'));
+    const controlMobileMedia = window.matchMedia ? window.matchMedia('(max-width: 640px)') : { matches: false };
+    const controlState = document.getElementById('control-state');
+    const controlBottomState = document.getElementById('control-bottom-state');
+    const controlMode = document.getElementById('control-mode');
+    const controlModePitch = document.getElementById('control-mode-pitch');
+    const controlPitch = document.getElementById('control-pitch');
+    const controlMeasure = document.getElementById('control-measure');
+    const controlStep = document.getElementById('control-step');
+    const controlTurns = document.getElementById('control-turns');
+    const controlAngle = document.getElementById('control-angle');
+    const controlX = document.getElementById('control-x');
+    const controlXInlineStops = document.getElementById('control-x-inline-stops');
+    const controlXStops = controlXInlineStops;
+    const controlY = document.getElementById('control-y');
+    const controlYInlineStops = document.getElementById('control-y-inline-stops');
+    const controlYStops = controlYInlineStops;
+    const controlZ = document.getElementById('control-z');
+    const controlZInlineStops = document.getElementById('control-z-inline-stops');
+    const controlZStops = controlZInlineStops;
+    const controlRpm = document.getElementById('control-rpm');
+    const controlBottomRpm = document.getElementById('control-bottom-rpm');
+    const controlFullscreenButton = document.getElementById('control-fullscreen');
+    const controlMessage = document.getElementById('control-message');
+    const controlActionStatusElements = Array.from(document.querySelectorAll('[data-control-action-status]'));
+    const controlActionStatus = {
+      set textContent(value) {
+        controlActionStatusElements.forEach(element => { element.textContent = value || ''; });
+      },
+      get textContent() {
+        return controlActionStatusElements.length > 0 ? controlActionStatusElements[0].textContent : '';
+      }
+    };
+    const log = document.getElementById('log');
+    const commandInput = document.getElementById('command');
+    const sendButton = document.getElementById('send');
+    const gcodeList = document.getElementById('gcode-list');
+    const gcodeNameInput = document.getElementById('gcode-name');
+    const gcodeContentInput = document.getElementById('gcode-content');
+    const addGcodeButton = document.getElementById('add-gcode');
+    const removeCommentsCheckbox = document.getElementById('remove-comments');
+    const configForm = document.getElementById('config-form');
+    const configFields = document.getElementById('config-fields');
+    const configStatus = document.getElementById('config-status');
+    const saveConfigButton = document.getElementById('save-config');
+    const resetConfigButton = document.getElementById('reset-config');
+    const accessibilityVoiceFeedbackInput = document.getElementById('accessibility-voice-feedback');
+    const accessibilityAnnounceButtonsInput = document.getElementById('accessibility-announce-buttons');
+    const accessibilityAnnounceStatusInput = document.getElementById('accessibility-announce-status');
+    const accessibilityAnnounceWarningsInput = document.getElementById('accessibility-announce-warnings');
+    const accessibilityAnnounceAxisInput = document.getElementById('accessibility-announce-axis');
+    const accessibilityQuietHoldInput = document.getElementById('accessibility-quiet-hold');
+    const accessibilitySpeechRateInput = document.getElementById('accessibility-speech-rate');
+    const accessibilityTestVoiceButton = document.getElementById('accessibility-test-voice');
+    const accessibilityStatus = document.getElementById('accessibility-status');
+    const tftFirstUploadCheckbox = document.getElementById('tft-first-upload');
+    const tftBrowseButton = document.getElementById('tft-browse');
+    const tftFileInput = document.getElementById('tft-file');
+    const tftProgress = document.getElementById('tft-progress');
+    const tftStatus = document.getElementById('tft-status');
+    const firmwareBrowseButton = document.getElementById('firmware-browse');
+    const firmwareFileInput = document.getElementById('firmware-file');
+    const firmwareProgress = document.getElementById('firmware-progress');
+    const firmwareStatus = document.getElementById('firmware-status');
+    const wifiForm = document.getElementById('wifi-form');
+    const wifiEnabledInput = document.getElementById('wifi-enabled');
+    const wifiSsidInput = document.getElementById('wifi-ssid');
+    const wifiPasswordInput = document.getElementById('wifi-password');
+    const wifiClearPasswordInput = document.getElementById('wifi-clear-password');
+    const saveWifiButton = document.getElementById('save-wifi');
+    const resetWifiButton = document.getElementById('reset-wifi');
+    const wifiStatusElement = document.getElementById('wifi-status');
+    const keyboardForm = document.getElementById('keyboard-form');
+    const keyboardFields = document.getElementById('keyboard-fields');
+    const keyboardShowKeysInput = document.getElementById('keyboard-show-keys');
+    const keyboardLastKey = document.getElementById('keyboard-last-key');
+    const keyboardStatus = document.getElementById('keyboard-status');
+    const saveKeyboardButton = document.getElementById('save-keyboard');
+    const resetKeyboardButton = document.getElementById('reset-keyboard');
+    let tftUploadInProgress = false;
+    let firmwareUploadInProgress = false;
+    let firmwareReloadTimer = 0;
+    let firmwareStatusPollTimer = 0;
+    let firmwareStatusPollBusy = false;
+    let keyboardLearnTarget = '';
+    let keyboardLearnTimer = 0;
+    let controlHoldHeartbeatTimer = 0;
+    let controlWakeLock = null;
+    let controlWakeLockBusy = false;
+    let controlNoSleepVideo = null;
+    let controlNoSleepDrawTimer = 0;
+    let accessibilityAxisTimer = 0;
+    let accessibilityMessageTimer = 0;
+    let accessibilityHoldAnnouncementTimer = 0;
+    let accessibilityLastSpeechPhrase = '';
+    let accessibilityLastSpeechMillis = 0;
+    let accessibilityLastSpeechKind = '';
+    let accessibilityLastStatusText = '';
+    let accessibilityLastMessageText = '';
+    let webUiNumpadEntryActive = false;
+    let webUiNumpadDigits = '';
+    const accessibilityPendingAxisValues = {};
+    const accessibilityLastAxisValues = { x: '', y: '', z: '' };
+    const activeControlActions = new Set();
+    const tftFirstUploadStorageKey = 'nanoels-h5.tft-first-upload';
+    const accessibilityStorageKey = 'nanoels-h5.accessibility';
+    const accessibilityDefaults = {
+      voiceFeedback: false,
+      announceButtons: true,
+      announceStatus: true,
+      announceWarnings: true,
+      announceAxis: false,
+      quietHold: true,
+      speechRate: '1'
+    };
+    let accessibilitySettings = Object.assign({}, accessibilityDefaults);
+    const machineConfigSections = [
+      {
+        title: 'Encoder mandrino',
+        fields: [
+          { key: 'encoderPpr', label: 'PPR encoder', unit: 'impulsi/giro', min: 1, max: 15000, step: 1, help: "Impulsi per giro del mandrino secondo la specifica dell'encoder, prima del conteggio in quadratura. Valori comuni: 600 o 1200." },
+          { key: 'encoderBacklash', label: 'Gioco encoder', unit: 'impulsi', min: 0, max: 30000, step: 1, help: "Impulsi encoder ignorati dopo l'inversione del mandrino. Aumentare solo se l'angolo mostrato oscilla dopo l'inversione." }
+        ]
+      },
+      {
+        title: 'Asse Z',
+        fields: [
+          { key: 'zScrewDu', label: 'Passo vite madre', unit: 'mm/giro', min: 0.0001, max: 1000, step: 0.0001, firmwareScale: 10000, help: "Distanza percorsa da Z per un giro della vite. Vite metrica: usare il passo indicato. Vite in pollici: 25,4 / TPI, quindi 8 TPI = 3,175." },
+          { key: 'zMotorSteps', label: 'Passi motore per giro', unit: 'passi/giro', min: 1, max: 1000000, step: 1, help: "Passi interi motore * microstep driver * rapporto motore/vite. Esempio: motore da 200 passi con microstep 4x = 800." },
+          { key: 'zPulsePerRevolution', label: 'PPR volantino', unit: 'impulsi/giro', min: 1, max: 100000, step: 0.01, help: "Impulsi fisici per giro dell'encoder opzionale del volantino Z. Usare la specifica del volantino." },
+          { key: 'zSpeedStart', label: 'Velocità iniziale', unit: 'passi/s', min: 1, max: 1000000, step: 1, help: "Frequenza iniziale dei passi all'avvio del movimento. Usare un valore da cui il motore parte in modo affidabile senza perdere passi." },
+          { key: 'zAcceleration', label: 'Accelerazione', unit: 'passi/s^2', min: 1, max: 100000000, step: 1, help: "Ramp di accelerazione e decelerazione. Più alto è più reattivo ma può perdere passi se il motore o il carico non seguono." },
+          { key: 'zSpeedManualMove', label: 'Velocità manuale', unit: 'passi/s', min: 1, max: 1000000, step: 1, help: "Velocità massima per jog, ritorni rapidi e movimenti GCode su Z. La velocità dipende anche dai passi per mm." },
+          { key: 'zMaxTravelMm', label: 'Corsa massima', unit: 'mm', min: 1, max: 10000, step: 1, help: "Massimo movimento Z singolo consentito. Impostare poco sopra la corsa fisica sicura del carro." },
+          { key: 'zBacklashDu', label: 'Gioco', unit: 'mm', min: 0, max: 1000, step: 0.0001, firmwareScale: 10000, help: "Movimento Z perso all'inversione. Misurare con comparatore: muovere in un verso, azzerare, invertire finché l'indice non si muove." },
+          { key: 'zInvert', label: 'Inverti direzione', type: 'checkbox', help: "Attivare se l'asse Z si muove nel verso opposto a schermo o tastiera." },
+          { key: 'zInvertEnable', label: 'Inverti abilitazione', type: 'checkbox', help: "Attivare solo se l'ingresso enable del driver lavora al contrario." },
+          { key: 'zNeedsRest', label: 'Riposo motore', type: 'checkbox', help: "Attivare se il driver deve essere alimentato solo durante il movimento. Lasciare disattivo se Z deve mantenere la posizione da fermo." }
+        ]
+      },
+      {
+        title: 'Asse X',
+        fields: [
+          { key: 'xScrewDu', label: 'Passo vite madre', unit: 'mm/giro', min: 0.0001, max: 1000, step: 0.0001, firmwareScale: 10000, help: "Distanza percorsa da X per un giro della vite. Vite metrica: usare il passo indicato. Vite in pollici: 25,4 / TPI, quindi 10 TPI = 2,54." },
+          { key: 'xMotorSteps', label: 'Passi motore per giro', unit: 'passi/giro', min: 1, max: 1000000, step: 1, help: "Passi interi motore * microstep driver * rapporto motore/vite. Esempio: motore da 200 passi con microstep 4x = 800." },
+          { key: 'xPulsePerRevolution', label: 'PPR volantino', unit: 'impulsi/giro', min: 1, max: 100000, step: 0.01, help: "Impulsi fisici per giro dell'encoder opzionale del volantino X. Usare la specifica del volantino." },
+          { key: 'xSpeedStart', label: 'Velocità iniziale', unit: 'passi/s', min: 1, max: 1000000, step: 1, help: "Frequenza iniziale dei passi all'avvio del movimento. Usare un valore da cui il motore parte in modo affidabile senza perdere passi." },
+          { key: 'xAcceleration', label: 'Accelerazione', unit: 'passi/s^2', min: 1, max: 100000000, step: 1, help: "Ramp di accelerazione e decelerazione. Più alto è più reattivo ma può perdere passi se il motore o la slitta non seguono." },
+          { key: 'xSpeedManualMove', label: 'Velocità manuale', unit: 'passi/s', min: 1, max: 1000000, step: 1, help: "Velocità massima per jog, ritorni rapidi e movimenti GCode su X. La velocità dipende anche dai passi per mm." },
+          { key: 'xMaxTravelMm', label: 'Corsa massima', unit: 'mm', min: 1, max: 10000, step: 1, help: "Massimo movimento X singolo consentito. Impostare poco sopra la corsa fisica sicura della slitta trasversale." },
+          { key: 'xBacklashDu', label: 'Gioco', unit: 'mm', min: 0, max: 1000, step: 0.0001, firmwareScale: 10000, help: "Movimento X perso all'inversione. Misurare con comparatore: muovere in un verso, azzerare, invertire finché l'indice non si muove." },
+          { key: 'xInvert', label: 'Inverti direzione', type: 'checkbox', help: "Attivare se l'asse X si muove nel verso opposto a schermo o tastiera." },
+          { key: 'xInvertEnable', label: 'Inverti abilitazione', type: 'checkbox', help: "Attivare solo se l'ingresso enable del driver lavora al contrario." },
+          { key: 'xNeedsRest', label: 'Riposo motore', type: 'checkbox', help: "Attivare se il driver deve essere alimentato solo durante il movimento. Lasciare disattivo se X deve mantenere la posizione da fermo." }
+        ]
+      },
+      {
+        title: 'Movimento manuale',
+        fields: [
+          { key: 'stepTimeMs', label: 'Tempo passo', unit: 'ms', min: 1, max: 10000, step: 1, help: "Tempo obiettivo per un passo di precisione quando l'incremento selezionato non è continuo." },
+          { key: 'delayBetweenStepsMs', label: 'Ritardo passo', unit: 'ms', min: 0, max: 10000, step: 1, help: "Pausa tra passi di precisione ripetuti mentre si tiene premuto un pulsante di movimento." },
+          { key: 'enableContinuousMove', label: 'Abilita movimenti continui', type: 'checkbox', help: "Fa scorrere i pulsanti di movimento in continuo quando l'incremento è 1 mm o 0,1 in." },
+          { key: 'axisEncoderBacklash', label: 'Gioco volantino', unit: 'impulsi', min: 0, max: 30000, step: 1, help: "Impulsi del volantino ignorati dopo l'inversione sugli ingressi Z/X/Y. Impostare 0 per encoder diretti senza gioco meccanico." }
+        ]
+      },
+      {
+        title: 'Modalità automatiche',
+        fields: [
+          { key: 'safeDistanceDu', label: 'Distanza di arretramento', unit: 'mm', min: 0, max: 1000, step: 0.0001, firmwareScale: 10000, help: "Distanza di cui l'asse ausiliario si allontana dal materiale tra le passate automatiche. Impostare 0 per disattivare l'arretramento extra." },
+          { key: 'slotLeftReductionDu', label: 'Riduzione sinistra scanalatura', unit: 'mm/passata', min: 0, max: 1000, step: 0.0001, firmwareScale: 10000, help: "Accorcia progressivamente il taglio sinistro di ogni scanalatura di questa distanza Z per scanalature cieche. Impostare 0 per passate a tutta lunghezza." }
+        ]
+      },
+      {
+        title: 'Cono',
+        fields: [
+          { key: 'coneDiaBigDu', label: 'Diametro grande', unit: 'mm', min: 0.1, max: 999.99, step: 0.01, firmwareScale: 10000, help: "Diametro maggiore del pezzo. Con il diametro piccolo e la corsa Z definisce il rapporto del cono." },
+          { key: 'coneDiaSmallDu', label: 'Diametro piccolo', unit: 'mm', min: 0, max: 999.99, step: 0.01, firmwareScale: 10000, help: "Diametro minore del pezzo. Il rapporto mostrato sul display è corsa Z / (diametro grande − diametro piccolo), lo stesso valore delle tabelle dei coni." }
+        ]
+      },
+      {
+        title: 'Asse Y',
+        fields: [
+          { key: 'activeY', label: 'Asse Y collegato', type: 'checkbox', help: "Attivare solo se l'asse Y opzionale o il divisore è cablato e configurato." },
+          { key: 'rotaryY', label: 'Asse rotativo', type: 'checkbox', help: "Attivo: valori Y in gradi. Disattivo: valori Y come distanza lineare." },
+          { key: 'yMotorSteps', label: 'Passi motore per giro', unit: 'passi/giro', min: 1, max: 1000000, step: 1, help: "Passi interi motore * microstep driver * rapporto motore/asse." },
+          { key: 'yPulsePerRevolution', label: 'PPR volantino', unit: 'impulsi/giro', min: 1, max: 100000, step: 0.01, help: "Impulsi fisici per giro dell'encoder opzionale del volantino Y. Usare la specifica del volantino." },
+          { key: 'yScrewDu', label: 'Corsa per giro vite', unit: 'mm o gradi/giro', min: 0.0001, max: 1000, step: 0.0001, firmwareScale: 10000, help: "Per Y rotativo, gradi per giro della vite senza fine. Per Y lineare, mm per giro della vite madre." },
+          { key: 'ySpeedStart', label: 'Velocità iniziale', unit: 'passi/s', min: 1, max: 1000000, step: 1, help: "Frequenza iniziale dei passi all'avvio del movimento Y. Usare un valore da cui il motore parte in modo affidabile." },
+          { key: 'yAcceleration', label: 'Accelerazione', unit: 'passi/s^2', min: 1, max: 100000000, step: 1, help: "Ramp di accelerazione e decelerazione del movimento Y." },
+          { key: 'ySpeedManualMove', label: 'Velocità manuale', unit: 'passi/s', min: 1, max: 1000000, step: 1, help: "Velocità massima per movimenti Y manuali e GCode." },
+          { key: 'yMaxTravelMm', label: 'Corsa massima', unit: 'mm o gradi', min: 1, max: 10000, step: 1, help: "Massimo movimento Y singolo consentito. Per Y rotativo è in gradi." },
+          { key: 'yBacklashDu', label: 'Gioco', unit: 'mm o gradi', min: 0, max: 1000, step: 0.0001, firmwareScale: 10000, help: "Movimento Y perso all'inversione. Per Y rotativo inserire gradi; per Y lineare inserire mm." },
+          { key: 'yInvert', label: 'Inverti direzione', type: 'checkbox', help: "Attivare se Y si muove nel verso opposto a quello atteso." },
+          { key: 'yInvertEnable', label: 'Inverti abilitazione', type: 'checkbox', help: "Attivare solo se l'ingresso enable del driver Y lavora al contrario." },
+          { key: 'yNeedsRest', label: 'Riposo motore', type: 'checkbox', help: "Attivare se il driver Y deve essere alimentato solo durante il movimento. Lasciare disattivo se deve mantenere la posizione da fermo." }
+        ]
+      },
+      {
+        title: 'Joystick',
+        fields: [
+          { key: 'joystickEnabled', label: 'Joystick attivo', type: 'checkbox', help: "Attivare solo dopo aver cablato il joystick analogico opzionale. Gli assi devono fornire ingressi ADC da 3,3 V compatibili con ESP32." },
+          { key: 'joystickZEnabled', label: 'Ingresso Z attivo', type: 'checkbox', help: "Attivare se il joystick ha il potenziometro Z cablato su JZ. Disattivare per joystick senza questo asse." },
+          { key: 'joystickXEnabled', label: 'Ingresso X attivo', type: 'checkbox', help: "Attivare se il joystick ha il potenziometro X cablato su JX. Disattivare per joystick senza questo asse." },
+          { key: 'joystickYEnabled', label: 'Ingresso Y attivo', type: 'checkbox', help: "Attivare se il joystick ha il potenziometro Y cablato su JY. Disattivare per joystick senza questo asse." },
+          { key: 'joystickButtonTogglesOnOff', label: 'Pulsante attiva/disattiva', type: 'checkbox', help: "In modalità JOY, un clic breve con Z e X in centro attiva/disattiva l'avanzamento. Tenendo premuto con Z o X deflesso si esegue il movimento rapido." },
+          { key: 'joystickCenterSamples', label: 'Campioni centro', unit: 'campioni', min: 1, max: 1024, step: 1, help: "Numero di letture ADC mediate all'avvio per apprendere il centro del joystick." },
+          { key: 'joystickOversamples', label: 'Sovracampionamento', unit: 'campioni', min: 1, max: 1024, step: 1, help: "Letture ADC mediate per ogni aggiornamento del joystick. Valori alti riducono il rumore ma aggiungono ritardo." },
+          { key: 'joystickSampleIntervalMs', label: 'Intervallo campioni', unit: 'ms', min: 1, max: 1000, step: 1, help: "Tempo tra gli aggiornamenti del joystick. Valori piccoli reagiscono più in fretta e usano più CPU." },
+          { key: 'joystickAdcMax', label: 'ADC massimo', unit: 'valori', min: 1, max: 65535, step: 1, help: "Massimo valore ADC grezzo. L'ADC a 12 bit dell'ESP32 normalmente usa 4095." },
+          { key: 'joystickDeadband', label: 'Zona morta', unit: 'valori', min: 0, max: 65534, step: 1, help: "Valori ADC attorno al centro trattati come zero. Aumentare se un asse va alla deriva al rilascio." },
+          { key: 'joystickPulseQueueLimit', label: 'Limite coda impulsi', unit: 'impulsi', min: 1, max: 1000000, step: 1, help: "Massimo numero di impulsi virtuali del volantino in coda. Valori alti consentono più movimento bufferizzato." },
+          { key: 'joystickNormalRevolutionsPerSecond', label: 'Velocità normale', unit: 'giri/s', min: 0.01, max: 1000, step: 0.01, help: "Velocità jog del joystick in giri vite equivalenti al secondo quando il rapido non è premuto." },
+          { key: 'joystickRapidRevolutionsPerSecond', label: 'Velocità rapida', unit: 'giri/s', min: 0.01, max: 1000, step: 0.01, help: "Velocità jog del joystick in giri vite equivalenti al secondo mentre il pulsante è premuto." },
+          { key: 'invertJoystickZ', label: 'Inverti Z', type: 'checkbox', help: "Attivare se la deflessione Z del joystick muove il carro nel verso sbagliato." },
+          { key: 'invertJoystickX', label: 'Inverti X', type: 'checkbox', help: "Attivare se la deflessione X del joystick muove la slitta trasversale nel verso sbagliato." },
+          { key: 'invertJoystickY', label: 'Inverti Y', type: 'checkbox', help: "Attivare se la deflessione Y del joystick cambia il valore nel verso sbagliato." },
+          { key: 'invertJoystickButton', label: 'Inverti pulsante', type: 'checkbox', help: "Attivare se il pulsante del joystick risulta premuto quando è rilasciato." }
+        ]
+      }
+    ];
+    const machineConfigFields = machineConfigSections.flatMap(section => section.fields);
+    const keyboardBindingSections = [
+      {
+        title: 'Movimento',
+        fields: [
+          { key: 'left', label: 'Sinistra' },
+          { key: 'right', label: 'Destra' },
+          { key: 'up', label: 'Su' },
+          { key: 'down', label: 'Giù' },
+          { key: 'forward', label: 'Y avanti' },
+          { key: 'back', label: 'Y indietro' }
+        ]
+      },
+      {
+        title: 'Operazione',
+        fields: [
+          { key: 'on', label: 'On / avvia' },
+          { key: 'off', label: 'Off / stop' },
+          { key: 'plus', label: 'Più' },
+          { key: 'minus', label: 'Meno' },
+          { key: 'step', label: 'Incremento' },
+          { key: 'reverse', label: 'Inverti passo' },
+          { key: 'measure', label: 'Unità di misura' },
+          { key: 'display', label: 'Info display' },
+          { key: 'multistart', label: 'Avvii multipli' }
+        ]
+      },
+      {
+        title: 'Fermi e assi',
+        fields: [
+          { key: 'stopL', label: 'Imposta fermo Z sx' },
+          { key: 'stopR', label: 'Imposta fermo Z dx' },
+          { key: 'stopU', label: 'Imposta fermo X avanti' },
+          { key: 'stopD', label: 'Imposta fermo X dietro' },
+          { key: 'stopF', label: 'Imposta fermo Y avanti' },
+          { key: 'stopB', label: 'Imposta fermo Y dietro' },
+          { key: 'zeroX', label: 'Azzera X' },
+          { key: 'zeroZ', label: 'Azzera Z' },
+          { key: 'zeroY', label: 'Azzera Y' },
+          { key: 'diameter', label: 'Imposta diametro' },
+          { key: 'enableX', label: 'Abilita X' },
+          { key: 'enableZ', label: 'Abilita Z' },
+          { key: 'enableY', label: 'Abilita Y' }
+        ]
+      },
+      {
+        title: 'Inserimento numeri',
+        fields: [
+          { key: 'digit0', label: 'Cifra 0' },
+          { key: 'digit1', label: 'Cifra 1' },
+          { key: 'digit2', label: 'Cifra 2' },
+          { key: 'digit3', label: 'Cifra 3' },
+          { key: 'digit4', label: 'Cifra 4' },
+          { key: 'digit5', label: 'Cifra 5' },
+          { key: 'digit6', label: 'Cifra 6' },
+          { key: 'digit7', label: 'Cifra 7' },
+          { key: 'digit8', label: 'Cifra 8' },
+          { key: 'digit9', label: 'Cifra 9' },
+          { key: 'backspace', label: 'Cancella' }
+        ]
+      },
+      {
+        title: 'Modalità',
+        fields: [
+          { key: 'mode', label: 'Menu modalità' },
+          { key: 'modeGears', label: 'Modalità ingranaggi' },
+          { key: 'modeXGear', label: 'Modalità X-ingranaggi' },
+          { key: 'modeJoystick', label: 'Modalità joystick' },
+          { key: 'modeTurn', label: 'Modalità tornitura' },
+          { key: 'modeFace', label: 'Modalità spianatura' },
+          { key: 'modeCone', label: 'Modalità cono' },
+          { key: 'modeCut', label: 'Modalità troncatura' },
+          { key: 'modeSlot', label: 'Modalità scanalatura' },
+          { key: 'modeThread', label: 'Modalità filettatura' },
+          { key: 'modeEllipse', label: 'Modalità ellisse' },
+          { key: 'modeGcode', label: 'Modalità GCode' },
+          { key: 'modeAsync', label: 'Modalità asincrona' },
+          { key: 'modeY', label: 'Modalità asse Y' }
+        ]
+      }
+    ];
+    const keyboardBindingFields = keyboardBindingSections.flatMap(section => section.fields);
+
+    const normalizeSection = (section) => {
+      return appSections.some(element => element.dataset.section === section) ? section : defaultSection;
+    };
+
+    const sectionFromHash = () => {
+      const hash = window.location.hash || '';
+      return normalizeSection(hash.length > 1 ? hash.substring(1).toLowerCase() : '');
+    };
+
+    const showSection = (section) => {
+      const activeSection = normalizeSection(section);
+      appSections.forEach(element => {
+        element.classList.toggle('active', element.dataset.section === activeSection);
+      });
+      sectionLinks.forEach(link => {
+        link.classList.toggle('active', link.dataset.sectionLink === activeSection);
+      });
+      const activeElement = appSections.find(element => element.dataset.section === activeSection);
+      if (pageTitle) pageTitle.textContent = (activeElement && activeElement.dataset.pageTitle) || activeSection;
+      document.body.classList.toggle('control-section-active', activeSection === 'control');
+      document.body.classList.toggle('page-open', activeSection !== 'home');
+    };
+
+    const handleSectionChange = (scrollToTop) => {
+      showSection(sectionFromHash());
+      if (scrollToTop) window.scrollTo(0, 0);
+    };
+
+    function speechSupported() {
+      return 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+    }
+
+    function normalizeSpeechPhrase(value) {
+      return String(value || '')
+        .replace(/\b([XYZ])-(?=\d)/gi, '$1 meno ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function speechRate() {
+      const rate = Number(accessibilitySettings.speechRate);
+      return Number.isFinite(rate) ? Math.min(3, Math.max(0.5, rate)) : 1;
+    }
+
+    function cancelAxisAnnouncement() {
+      clearTimeout(accessibilityAxisTimer);
+      accessibilityAxisTimer = 0;
+      Object.keys(accessibilityPendingAxisValues).forEach(key => { delete accessibilityPendingAxisValues[key]; });
+      if (accessibilityLastSpeechKind === 'axis' && speechSupported()) {
+        window.speechSynthesis.cancel();
+        accessibilityLastSpeechKind = '';
+      }
+    }
+
+    function cancelMessageAnnouncement() {
+      clearTimeout(accessibilityMessageTimer);
+      accessibilityMessageTimer = 0;
+      if (accessibilityLastSpeechKind === 'message' && speechSupported()) {
+        window.speechSynthesis.cancel();
+        accessibilityLastSpeechKind = '';
+      }
+    }
+
+    function speakAccessibility(phrase, options = {}) {
+      const text = normalizeSpeechPhrase(phrase);
+      if (!text || !speechSupported()) return false;
+      if (!options.force && !accessibilitySettings.voiceFeedback) return false;
+      if (!options.force) {
+        const now = Date.now();
+        const cooldown = options.cooldownMs === undefined ? 1500 : options.cooldownMs;
+        if (text === accessibilityLastSpeechPhrase && now - accessibilityLastSpeechMillis < cooldown) return false;
+      }
+      if (options.kind !== 'axis' && (options.cancelPrevious || options.kind === 'button' || options.kind === 'panel' || options.kind === 'warning')) {
+        cancelAxisAnnouncement();
+      }
+      if (options.kind !== 'message' && (options.cancelPrevious || options.kind === 'button' || options.kind === 'panel' || options.kind === 'warning' || options.kind === 'status')) {
+        cancelMessageAnnouncement();
+      }
+      if (options.cancelPrevious) window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = speechRate();
+      utterance.onend = () => {
+        if (accessibilityLastSpeechKind === options.kind) accessibilityLastSpeechKind = '';
+      };
+      utterance.onerror = utterance.onend;
+      window.speechSynthesis.speak(utterance);
+      accessibilityLastSpeechPhrase = text;
+      accessibilityLastSpeechMillis = Date.now();
+      accessibilityLastSpeechKind = options.kind || '';
+      return true;
+    }
+
+    function announceButtonAction(label, state = '') {
+      if (!accessibilitySettings.announceButtons) return;
+      const phrase = normalizeSpeechPhrase(`${label}${state ? ' ' + state : ''}`);
+      speakAccessibility(phrase, { kind: 'button' });
+    }
+
+    function axisStatusValue(axisName) {
+      const elements = { x: controlX, y: controlY, z: controlZ };
+      const element = elements[axisName.toLowerCase()];
+      return normalizeSpeechPhrase(element ? element.textContent : '');
+    }
+
+    function axisLooksEnabled(axisName) {
+      const value = axisStatusValue(axisName);
+      return !!value && value !== '--';
+    }
+
+    function stopDatasetForAxis(axisName) {
+      const elements = { x: controlXStops, y: controlYStops, z: controlZStops };
+      return elements[axisName.toLowerCase()] || null;
+    }
+
+    function enteredNumpadValueText() {
+      const message = normalizeSpeechPhrase(controlMessage ? controlMessage.textContent : '');
+      const match = message.match(/^Usa\s+(.+)\?$/i);
+      if (match) return match[1];
+      return '';
+    }
+
+    function stopActionAnnouncement(actionCode) {
+      const stopActions = {
+        '65': { axis: 'Z', side: 'left', label: 'sinistro' },
+        '68': { axis: 'Z', side: 'right', label: 'destro' },
+        '87': { axis: 'X', side: 'left', label: 'avanti' },
+        '83': { axis: 'X', side: 'right', label: 'dietro' },
+        '73': { axis: 'Y', side: 'left', label: 'avanti' },
+        '75': { axis: 'Y', side: 'right', label: 'dietro' }
+      };
+      const action = stopActions[String(actionCode)];
+      if (!action) return '';
+      if (webUiNumpadEntryActive) {
+        const valueText = enteredNumpadValueText();
+        return `Fermo ${action.axis} ${action.label} impostato${valueText ? ' a ' + valueText : ' al valore inserito'}`;
+      }
+      const stops = stopDatasetForAxis(action.axis);
+      const current = stops ? (stops.dataset[action.side] || '') : '';
+      return `Fermo ${action.axis} ${action.label} ${current ? 'rimosso' : 'aggiunto'}`;
+    }
+
+    function enableActionAnnouncement(actionCode) {
+      const enableActions = { '81': 'Z', '67': 'X', '89': 'Y' };
+      const axis = enableActions[String(actionCode)];
+      if (!axis) return '';
+      return `Asse ${axis} ${axisLooksEnabled(axis) ? 'disabilitato' : 'abilitato'}`;
+    }
+
+    function actionAnnouncementForSpeech(actionCode, label) {
+      return stopActionAnnouncement(actionCode) || enableActionAnnouncement(actionCode) || actionLabelForSpeech(actionCode, label);
+    }
+
+    function updateWebUiNumpadTracking(actionCode) {
+      const code = String(actionCode);
+      const codeNumber = Number(code);
+      if (codeNumber >= 48 && codeNumber <= 57) {
+        if (!webUiNumpadEntryActive) webUiNumpadDigits = '';
+        webUiNumpadEntryActive = true;
+        if (webUiNumpadDigits.length < 8) webUiNumpadDigits += String.fromCharCode(codeNumber);
+        return;
+      }
+      if (code === '28') {
+        webUiNumpadEntryActive = true;
+        webUiNumpadDigits = webUiNumpadDigits.substring(0, Math.max(0, webUiNumpadDigits.length - 1));
+        return;
+      }
+      if (webUiNumpadEntryActive && (code === '95' || code === '60')) return;
+      webUiNumpadEntryActive = false;
+      webUiNumpadDigits = '';
+    }
+
+    function announcePanelChange(panelName) {
+      if (!accessibilitySettings.announceButtons) return;
+      const labels = { jog: 'Jog', run: 'Esegui', numpad: 'Tastierino', stops: 'Fermi', modes: 'Modalità' };
+      speakAccessibility(labels[panelName] || panelName, { kind: 'panel' });
+    }
+
+    function announceWarning(text) {
+      if (!accessibilitySettings.announceWarnings) return;
+      speakAccessibility(text, { kind: 'warning', cancelPrevious: true });
+    }
+
+    function statusPhrase(value) {
+      const status = normalizeSpeechPhrase(value).toUpperCase();
+      if (status === 'ON') return 'Controller acceso';
+      if (status === 'OFF') return 'Controller spento';
+      if (status === 'SIN') return 'Controller sincronizzato';
+      if (status === 'CONNECTED') return 'Connesso';
+      if (status === 'DISCONNECTED') return 'Disconnesso';
+      return normalizeSpeechPhrase(value);
+    }
+
+    function announceStatusChange(value) {
+      const phrase = statusPhrase(value);
+      if (!phrase || phrase === accessibilityLastStatusText) return;
+      accessibilityLastStatusText = phrase;
+      if (!accessibilitySettings.announceStatus) return;
+      speakAccessibility(phrase, { kind: 'status' });
+    }
+
+    function announceControlMessage(value) {
+      const phrase = normalizeSpeechPhrase(value);
+      if (!phrase || phrase === '--' || phrase === accessibilityLastMessageText) return;
+      accessibilityLastMessageText = phrase;
+      if (!accessibilitySettings.announceStatus) return;
+      cancelMessageAnnouncement();
+      accessibilityMessageTimer = setTimeout(() => {
+        accessibilityMessageTimer = 0;
+        speakAccessibility(phrase, { kind: 'message', cancelPrevious: true, cooldownMs: 500 });
+      }, 650);
+    }
+
+    function announceAxisPosition(axisName, value) {
+      if (!accessibilitySettings.announceAxis) return;
+      const axisKey = axisName.toLowerCase();
+      const cleanValue = normalizeSpeechPhrase(value);
+      if (!cleanValue || cleanValue === '--' || accessibilityLastAxisValues[axisKey] === cleanValue) return;
+      accessibilityLastAxisValues[axisKey] = cleanValue;
+      clearTimeout(accessibilityAxisTimer);
+      accessibilityAxisTimer = 0;
+      if (accessibilityLastSpeechKind === 'axis' && speechSupported()) {
+        window.speechSynthesis.cancel();
+        accessibilityLastSpeechKind = '';
+      }
+      accessibilityPendingAxisValues[axisName] = cleanValue;
+      accessibilityAxisTimer = setTimeout(() => {
+        const phrase = Object.keys(accessibilityPendingAxisValues).map(axis => `${axis} ${accessibilityPendingAxisValues[axis]}`).join(', ');
+        Object.keys(accessibilityPendingAxisValues).forEach(key => { delete accessibilityPendingAxisValues[key]; });
+        accessibilityAxisTimer = 0;
+        speakAccessibility(phrase, { kind: 'axis', cancelPrevious: true, cooldownMs: 250 });
+      }, 450);
+    }
+
+    function actionLabelForSpeech(actionCode, label) {
+      const text = normalizeSpeechPhrase(label);
+      const actionLabels = {
+        '21': 'Jog Z sinistra',
+        '22': 'Jog Z destra',
+        '23': 'Jog X avanti',
+        '24': 'Jog X indietro',
+        '85': 'Jog Y avanti',
+        '74': 'Jog Y indietro',
+        '27': 'OFF',
+        '30': 'ON',
+        '64': 'Incremento',
+        '82': 'Inverti passo',
+        '77': 'Unità',
+        '88': 'Azzera X',
+        '90': 'Azzera Z',
+        '72': 'Azzera Y',
+        '97': 'Modalità ingranaggi',
+        '98': 'Modalità tornitura',
+        '99': 'Modalità spianatura',
+        '100': 'Modalità cono',
+        '101': 'Modalità troncatura',
+        '102': 'Modalità filettatura',
+        '103': 'Modalità asincrona',
+        '104': 'Modalità ellisse',
+        '105': 'Modalità G code',
+        '106': 'Modalità asse Y',
+        '108': 'Modalità joystick',
+        '109': 'Modalità X ingranaggi',
+        '110': 'Modalità scanalatura'
+      };
+      return actionLabels[String(actionCode)] || text;
+    }
+
+    function announceActiveHolds() {
+      if (accessibilitySettings.quietHold || !accessibilitySettings.announceButtons || activeControlActions.size === 0) return;
+      activeControlActions.forEach(actionCode => {
+        const button = document.querySelector(`[data-control-action="${actionCode}"]`);
+        const label = actionAnnouncementForSpeech(actionCode, controlButtonLabel(button));
+        speakAccessibility(`${label} premuto`, { kind: 'button', cooldownMs: 2200 });
+      });
+    }
+
+    function updateHoldAnnouncementTimer() {
+      clearInterval(accessibilityHoldAnnouncementTimer);
+      accessibilityHoldAnnouncementTimer = 0;
+      if (!accessibilitySettings.quietHold && activeControlActions.size > 0) {
+        accessibilityHoldAnnouncementTimer = setInterval(announceActiveHolds, 2500);
+      }
+    }
+
+    function loadAccessibilitySettings() {
+      try {
+        const stored = localStorage.getItem(accessibilityStorageKey);
+        if (stored) accessibilitySettings = Object.assign({}, accessibilityDefaults, JSON.parse(stored));
+      } catch (error) {
+        accessibilitySettings = Object.assign({}, accessibilityDefaults);
+      }
+      accessibilityVoiceFeedbackInput.checked = !!accessibilitySettings.voiceFeedback;
+      accessibilityAnnounceButtonsInput.checked = !!accessibilitySettings.announceButtons;
+      accessibilityAnnounceStatusInput.checked = !!accessibilitySettings.announceStatus;
+      accessibilityAnnounceWarningsInput.checked = !!accessibilitySettings.announceWarnings;
+      accessibilityAnnounceAxisInput.checked = !!accessibilitySettings.announceAxis;
+      accessibilityQuietHoldInput.checked = !!accessibilitySettings.quietHold;
+      if (!['1', '1.5', '2', '3'].includes(String(accessibilitySettings.speechRate))) {
+        accessibilitySettings.speechRate = accessibilityDefaults.speechRate;
+      }
+      accessibilitySpeechRateInput.value = accessibilitySettings.speechRate || accessibilityDefaults.speechRate;
+      if (!speechSupported()) {
+        accessibilityStatus.textContent = 'Lettura vocale non supportata da questo browser';
+        accessibilityVoiceFeedbackInput.disabled = true;
+        accessibilityTestVoiceButton.disabled = true;
+        accessibilityTestVoiceButton.classList.add('disabled');
+      }
+    }
+
+    function saveAccessibilitySettings() {
+      accessibilitySettings = {
+        voiceFeedback: accessibilityVoiceFeedbackInput.checked,
+        announceButtons: accessibilityAnnounceButtonsInput.checked,
+        announceStatus: accessibilityAnnounceStatusInput.checked,
+        announceWarnings: accessibilityAnnounceWarningsInput.checked,
+        announceAxis: accessibilityAnnounceAxisInput.checked,
+        quietHold: accessibilityQuietHoldInput.checked,
+        speechRate: accessibilitySpeechRateInput.value
+      };
+      if (!accessibilitySettings.announceAxis) cancelAxisAnnouncement();
+      if (!accessibilitySettings.announceStatus) cancelMessageAnnouncement();
+      if (!accessibilitySettings.voiceFeedback && speechSupported()) {
+        cancelAxisAnnouncement();
+        cancelMessageAnnouncement();
+        window.speechSynthesis.cancel();
+      }
+      updateHoldAnnouncementTimer();
+      try {
+        localStorage.setItem(accessibilityStorageKey, JSON.stringify(accessibilitySettings));
+      } catch (error) {
+      }
+      accessibilityStatus.textContent = speechSupported() ? 'Impostazioni accessibilità salvate su questo browser' : 'Lettura vocale non supportata da questo browser';
+    }
+
+    function setupAccessibilitySettings() {
+      loadAccessibilitySettings();
+      [
+        accessibilityVoiceFeedbackInput,
+        accessibilityAnnounceButtonsInput,
+        accessibilityAnnounceStatusInput,
+        accessibilityAnnounceWarningsInput,
+        accessibilityAnnounceAxisInput,
+        accessibilityQuietHoldInput,
+        accessibilitySpeechRateInput
+      ].forEach(input => input.addEventListener('change', () => {
+        const wasVoiceEnabled = accessibilitySettings.voiceFeedback;
+        saveAccessibilitySettings();
+        if (!wasVoiceEnabled && accessibilitySettings.voiceFeedback) {
+          speakAccessibility('Lettura vocale attivata', { force: true, kind: 'test', cancelPrevious: true });
+        }
+      }));
+      accessibilityTestVoiceButton.addEventListener('click', () => {
+        speakAccessibility('Prova lettura vocale', { force: true, kind: 'test', cancelPrevious: true });
+        accessibilityStatus.textContent = speechSupported() ? 'Prova vocale inviata' : 'Lettura vocale non supportata da questo browser';
+      });
+    }
+
+    function setControlText(element, value) {
+      if (element) element.textContent = value || '--';
+    }
+
+    function setControlStateText(value) {
+      announceStatusChange(value);
+      setControlText(controlState, value);
+      setControlText(controlBottomState, value);
+    }
+
+    function setControlModeText(value) {
+      setControlText(controlMode, value);
+    }
+
+    function setControlPitchText(value) {
+      setControlText(controlPitch, value);
+      if (controlModePitch) controlModePitch.textContent = value ? `Pitch ${value}` : '--';
+    }
+
+    function setControlRpmText(value) {
+      setControlText(controlRpm, value);
+      setControlText(controlBottomRpm, value);
+    }
+
+    function setControlMessageText(value) {
+      announceControlMessage(value);
+      setControlText(controlMessage, value);
+    }
+
+    function setControlAxisText(axisElement, value, axisName = '') {
+      setControlText(axisElement, value);
+      if (axisName) announceAxisPosition(axisName, value);
+    }
+
+    function setControlExtraVisible(visible) {
+      if (!controlStatusPanel) return;
+      controlStatusPanel.classList.toggle('control-extra-visible', visible);
+      if (controlExtraToggle) controlExtraToggle.setAttribute('aria-expanded', visible ? 'true' : 'false');
+    }
+
+    function toggleControlExtraInfo() {
+      if (!controlMobileMedia.matches || !controlStatusPanel) return;
+      setControlExtraVisible(!controlStatusPanel.classList.contains('control-extra-visible'));
+    }
+
+    function setupControlExtraToggle() {
+      if (!controlExtraToggle) return;
+      controlExtraToggle.addEventListener('click', event => {
+        event.preventDefault();
+        toggleControlExtraInfo();
+      });
+      controlExtraToggle.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        toggleControlExtraInfo();
+      });
+      if (controlMobileMedia.addEventListener) {
+        controlMobileMedia.addEventListener('change', () => setControlExtraVisible(false));
+      } else if (controlMobileMedia.addListener) {
+        controlMobileMedia.addListener(() => setControlExtraVisible(false));
+      }
+    }
+
+    function setActiveControlPanel(panelName, scrollToPanel = false, announce = false) {
+      const activePanel = controlPanelElements.some(panel => panel.dataset.controlPanel === panelName) ? panelName : 'jog';
+      controlPanelElements.forEach(panel => {
+        panel.classList.toggle('active', panel.dataset.controlPanel === activePanel);
+      });
+      controlMobileTabs.forEach(tab => {
+        const active = tab.dataset.controlPanelTab === activePanel;
+        tab.classList.toggle('active', active);
+        tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      if (scrollToPanel) {
+        const panel = controlPanelElements.find(element => element.dataset.controlPanel === activePanel);
+        if (panel && panel.scrollIntoView) panel.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      }
+      if (announce) announcePanelChange(activePanel);
+    }
+
+    function setupControlPanelTabs() {
+      controlMobileTabs.forEach(tab => {
+        tab.setAttribute('role', 'tab');
+        tab.addEventListener('click', event => {
+          event.preventDefault();
+          setActiveControlPanel(tab.dataset.controlPanelTab, false, true);
+        });
+      });
+      setActiveControlPanel('jog');
+    }
+
+    function activateControlShortcut(element) {
+      if (element.classList.contains('disabled')) return;
+      const panelName = element.dataset.controlShortcutPanel;
+      if (panelName) {
+        setActiveControlPanel(panelName, true, true);
+        controlActionStatus.textContent = `${panelName === 'stops' ? 'Fermi' : 'Modalità'} aperti`;
+        return;
+      }
+      const actionCode = element.dataset.controlShortcutAction;
+      if (actionCode) {
+        pulseControlAction(actionCode, element.dataset.controlShortcutLabel || element.textContent.trim(), element);
+      }
+    }
+
+    function setupControlStatusShortcuts() {
+      controlShortcutElements.forEach(element => {
+        element.addEventListener('click', event => {
+          event.preventDefault();
+          activateControlShortcut(element);
+        });
+        element.addEventListener('keydown', event => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          activateControlShortcut(element);
+        });
+      });
+    }
+
+    function fullscreenElement() {
+      return document.fullscreenElement || document.webkitFullscreenElement || null;
+    }
+
+    function fullscreenSupported() {
+      return !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+    }
+
+    function wakeLockSupported() {
+      return !!(navigator.wakeLock && navigator.wakeLock.request);
+    }
+
+    function stopControlNoSleepFallback() {
+      clearInterval(controlNoSleepDrawTimer);
+      controlNoSleepDrawTimer = 0;
+      if (!controlNoSleepVideo) return;
+      controlNoSleepVideo.pause();
+      if (controlNoSleepVideo.srcObject) {
+        controlNoSleepVideo.srcObject.getTracks().forEach(track => track.stop());
+      }
+      controlNoSleepVideo.remove();
+      controlNoSleepVideo = null;
+    }
+
+    function startControlNoSleepFallback() {
+      if (controlNoSleepVideo) return;
+      const canvas = document.createElement('canvas');
+      if (!canvas.captureStream) return;
+      canvas.width = 2;
+      canvas.height = 2;
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      const drawFrame = () => {
+        const dark = Math.floor(Date.now() / 1000) % 2 === 0;
+        context.fillStyle = dark ? '#000' : '#111';
+        context.fillRect(0, 0, 2, 2);
+      };
+      drawFrame();
+      const video = document.createElement('video');
+      video.muted = true;
+      video.playsInline = true;
+      video.setAttribute('playsinline', '');
+      video.setAttribute('aria-hidden', 'true');
+      video.style.cssText = 'position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:0.01;pointer-events:none;';
+      video.srcObject = canvas.captureStream(1);
+      document.body.appendChild(video);
+      controlNoSleepVideo = video;
+      controlNoSleepDrawTimer = setInterval(drawFrame, 15000);
+      const playResult = video.play();
+      if (playResult && playResult.catch) playResult.catch(stopControlNoSleepFallback);
+    }
+
+    function releaseControlWakeLock() {
+      stopControlNoSleepFallback();
+      if (!controlWakeLock) return;
+      const lock = controlWakeLock;
+      controlWakeLock = null;
+      if (lock.release) lock.release().catch(() => {});
+    }
+
+    function requestControlWakeLock() {
+      if (!fullscreenElement() || document.hidden || controlWakeLock || controlWakeLockBusy) return;
+      if (!wakeLockSupported()) {
+        startControlNoSleepFallback();
+        return;
+      }
+      controlWakeLockBusy = true;
+      navigator.wakeLock.request('screen')
+        .then(lock => {
+          controlWakeLock = lock;
+          stopControlNoSleepFallback();
+          lock.addEventListener('release', () => {
+            if (controlWakeLock === lock) controlWakeLock = null;
+          });
+        })
+        .catch(() => {
+          if (fullscreenElement() && !document.hidden) startControlNoSleepFallback();
+        })
+        .then(() => {
+          controlWakeLockBusy = false;
+        });
+    }
+
+    function syncControlWakeLock() {
+      if (fullscreenElement() && !document.hidden) requestControlWakeLock();
+      else releaseControlWakeLock();
+    }
+
+    function updateFullscreenButton() {
+      if (!controlFullscreenButton) return;
+      const supported = fullscreenSupported();
+      const active = !!fullscreenElement();
+      document.body.classList.toggle('control-fullscreen-active', active);
+      controlFullscreenButton.disabled = !supported;
+      controlFullscreenButton.classList.toggle('disabled', !supported);
+      controlFullscreenButton.textContent = active ? 'Esci' : 'Intero';
+      controlFullscreenButton.setAttribute('aria-label', active ? 'Esci da schermo intero' : 'Schermo intero');
+    }
+
+    function afterFullscreenChange() {
+      updateFullscreenButton();
+      syncControlWakeLock();
+    }
+
+    function toggleFullscreen() {
+      if (!fullscreenSupported()) return;
+      let result;
+      const enteringFullscreen = !fullscreenElement();
+      if (!enteringFullscreen) {
+        if (document.exitFullscreen) result = document.exitFullscreen();
+        else if (document.webkitExitFullscreen) result = document.webkitExitFullscreen();
+      } else if (document.documentElement.requestFullscreen) {
+        result = document.documentElement.requestFullscreen();
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        result = document.documentElement.webkitRequestFullscreen();
+      }
+      if (enteringFullscreen) startControlNoSleepFallback();
+      updateFullscreenButton();
+      if (enteringFullscreen) setTimeout(syncControlWakeLock, 1000);
+      if (result && result.then) {
+        result.then(afterFullscreenChange).catch(() => {
+          updateFullscreenButton();
+          syncControlWakeLock();
+        });
+      }
+    }
+
+    if (controlFullscreenButton) {
+      controlFullscreenButton.addEventListener('click', event => {
+        event.preventDefault();
+        toggleFullscreen();
+      });
+      document.addEventListener('fullscreenchange', afterFullscreenChange);
+      document.addEventListener('webkitfullscreenchange', afterFullscreenChange);
+      document.addEventListener('visibilitychange', syncControlWakeLock);
+      updateFullscreenButton();
+    }
+
+    setupAccessibilitySettings();
+    setupControlExtraToggle();
+    setupControlPanelTabs();
+    setupControlStatusShortcuts();
+    showSection(sectionFromHash());
+    window.addEventListener('hashchange', () => handleSectionChange(true));
+
+    const ws = new WebSocket(`ws://${window.location.host.split(':')[0]}:81`);
+
+    ws.onopen = () => {
+      logMessage('Connesso al server');
+      setControlStateText('Connesso');
+      setControlMessageText('Connesso');
+      controlActionStatus.textContent = 'Connesso';
+      updateButtonStates();
+    };
+
+    ws.onmessage = (event) => {
+      const handled = handleRealtimeMessage(event.data);
+      if (!handled) logMessage('Ricevuto: ' + event.data);
+    };
+
+    ws.onclose = () => {
+      releaseAllControlActions(false);
+      setControlStateText('Disconnesso');
+      setControlMessageText('Disconnesso');
+      controlActionStatus.textContent = 'Disconnesso';
+      updateButtonStates();
+      logMessage('Disconnesso dal server');
+    };
+
+    function updateButtonStates() {
+      const uploadInProgress = tftUploadInProgress || firmwareUploadInProgress;
+      sendButton.disabled = commandInput.value.trim().length < 1 || uploadInProgress;
+      addGcodeButton.disabled = gcodeNameInput.value.trim().length < 2 || gcodeContentInput.value.trim().length < 2 || uploadInProgress;
+      saveConfigButton.disabled = uploadInProgress;
+      resetConfigButton.disabled = uploadInProgress;
+      saveWifiButton.disabled = uploadInProgress;
+      resetWifiButton.disabled = uploadInProgress;
+      saveKeyboardButton.disabled = uploadInProgress;
+      resetKeyboardButton.disabled = uploadInProgress;
+      tftFirstUploadCheckbox.disabled = uploadInProgress;
+      tftFileInput.disabled = uploadInProgress;
+      firmwareFileInput.disabled = uploadInProgress;
+      const controlDisabled = uploadInProgress || ws.readyState !== WebSocket.OPEN;
+      controlButtons.forEach(button => {
+        button.disabled = controlDisabled;
+        button.classList.toggle('disabled', controlDisabled);
+      });
+      controlShortcutElements.forEach(element => {
+        const disabled = !!element.dataset.controlShortcutAction && controlDisabled;
+        element.classList.toggle('disabled', disabled);
+        element.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+      });
+      sendButton.classList.toggle('disabled', sendButton.disabled);
+      addGcodeButton.classList.toggle('disabled', addGcodeButton.disabled);
+      saveConfigButton.classList.toggle('disabled', saveConfigButton.disabled);
+      resetConfigButton.classList.toggle('disabled', resetConfigButton.disabled);
+      saveWifiButton.classList.toggle('disabled', saveWifiButton.disabled);
+      resetWifiButton.classList.toggle('disabled', resetWifiButton.disabled);
+      saveKeyboardButton.classList.toggle('disabled', saveKeyboardButton.disabled);
+      resetKeyboardButton.classList.toggle('disabled', resetKeyboardButton.disabled);
+      document.querySelectorAll('.keyboard-learn').forEach(button => {
+        button.disabled = uploadInProgress;
+        button.classList.toggle('disabled', button.disabled);
+      });
+      tftBrowseButton.classList.toggle('disabled', uploadInProgress);
+      firmwareBrowseButton.classList.toggle('disabled', uploadInProgress);
+    }
+
+    function websocketReady() {
+      return ws.readyState === WebSocket.OPEN;
+    }
+
+    function setControlButtonsActive(actionCode, active) {
+      document.querySelectorAll(`[data-control-action="${actionCode}"]`).forEach(button => {
+        button.classList.toggle('active', active);
+      });
+    }
+
+    function sendWebControlAction(actionCode, isPress) {
+      if (!websocketReady()) {
+        controlActionStatus.textContent = 'Disconnesso';
+        announceWarning('Disconnesso dal server');
+        updateButtonStates();
+        return false;
+      }
+      ws.send(`@${actionCode}:${isPress ? 1 : 0}\n`);
+      return true;
+    }
+
+    function controlButtonLabel(button) {
+      if (!button) return '';
+      return button.dataset.controlLabel || button.getAttribute('aria-label') || button.textContent.trim();
+    }
+
+    function startControlHoldHeartbeat() {
+      if (controlHoldHeartbeatTimer) return;
+      controlHoldHeartbeatTimer = setInterval(() => {
+        if (!websocketReady()) {
+          releaseAllControlActions(false);
+          return;
+        }
+        activeControlActions.forEach(actionCode => {
+          sendWebControlAction(actionCode, true);
+        });
+      }, 200);
+    }
+
+    function stopControlHoldHeartbeatIfIdle() {
+      if (activeControlActions.size > 0) return;
+      clearInterval(controlHoldHeartbeatTimer);
+      controlHoldHeartbeatTimer = 0;
+    }
+
+    function pressControlButton(button) {
+      if (button.disabled) return;
+      const actionCode = button.dataset.controlAction;
+      if (!actionCode || activeControlActions.has(actionCode)) return;
+      if (sendWebControlAction(actionCode, true)) {
+        activeControlActions.add(actionCode);
+        setControlButtonsActive(actionCode, true);
+        startControlHoldHeartbeat();
+        const label = controlButtonLabel(button);
+        controlActionStatus.textContent = `${label} premuto`;
+        announceButtonAction(actionAnnouncementForSpeech(actionCode, label), 'premuto');
+        updateWebUiNumpadTracking(actionCode);
+        updateHoldAnnouncementTimer();
+      }
+    }
+
+    function releaseControlAction(actionCode, sendRelease) {
+      if (!activeControlActions.has(actionCode)) return;
+      activeControlActions.delete(actionCode);
+      setControlButtonsActive(actionCode, false);
+      if (sendRelease) sendWebControlAction(actionCode, false);
+      stopControlHoldHeartbeatIfIdle();
+      updateHoldAnnouncementTimer();
+      if (sendRelease) {
+        const button = document.querySelector(`[data-control-action="${actionCode}"]`);
+        announceButtonAction(actionAnnouncementForSpeech(actionCode, controlButtonLabel(button)), 'rilasciato');
+      }
+    }
+
+    function releaseControlButton(button, sendRelease) {
+      const actionCode = button.dataset.controlAction;
+      if (actionCode) releaseControlAction(actionCode, sendRelease);
+    }
+
+    function releaseAllControlActions(sendRelease = true) {
+      Array.from(activeControlActions).forEach(actionCode => releaseControlAction(actionCode, sendRelease));
+    }
+
+    function pulseControlAction(actionCode, label, activeElement) {
+      if (!actionCode || !sendWebControlAction(actionCode, true)) return false;
+      if (activeElement) activeElement.classList.add('active');
+      controlActionStatus.textContent = `${label} inviato`;
+      announceButtonAction(actionAnnouncementForSpeech(actionCode, label));
+      updateWebUiNumpadTracking(actionCode);
+      setTimeout(() => {
+        sendWebControlAction(actionCode, false);
+        if (activeElement) activeElement.classList.remove('active');
+      }, 70);
+      return true;
+    }
+
+    function pulseControlButton(button) {
+      if (button.disabled) return;
+      const actionCode = button.dataset.controlAction;
+      pulseControlAction(actionCode, controlButtonLabel(button), button);
+    }
+
+    function setupControlButtons() {
+      controlButtons.forEach(button => {
+        if (button.dataset.controlHold === '1') {
+          button.addEventListener('pointerdown', event => {
+            if (event.button !== undefined && event.button !== 0) return;
+            event.preventDefault();
+            if (button.setPointerCapture) button.setPointerCapture(event.pointerId);
+            pressControlButton(button);
+          });
+          button.addEventListener('pointerup', event => {
+            event.preventDefault();
+            releaseControlButton(button, true);
+          });
+          button.addEventListener('pointercancel', () => releaseControlButton(button, true));
+          button.addEventListener('lostpointercapture', () => releaseControlButton(button, true));
+          button.addEventListener('pointerleave', event => {
+            if (event.pointerType === 'mouse') releaseControlButton(button, true);
+          });
+        } else {
+          button.addEventListener('click', event => {
+            event.preventDefault();
+            pulseControlButton(button);
+          });
+        }
+      });
+      window.addEventListener('blur', () => releaseAllControlActions(true));
+      window.addEventListener('beforeunload', () => releaseAllControlActions(true));
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) releaseAllControlActions(true);
+      });
+    }
+
+    function updateControlStatusFromText(line) {
+      if (!line.startsWith('<') || !line.endsWith('>')) return false;
+      const parts = line.substring(1, line.length - 1).split('|');
+      setControlStateText(parts[0]);
+      const wpos = parts.find(part => part.startsWith('WPos:'));
+      if (wpos) {
+        const values = wpos.substring('WPos:'.length).split(',');
+        setControlAxisText(controlX, values[0], 'X');
+        setControlAxisText(controlZ, values[2], 'Z');
+      }
+      const fs = parts.find(part => part.startsWith('FS:'));
+      if (fs) {
+        const values = fs.substring('FS:'.length).split(',');
+        setControlRpmText(values[1]);
+      }
+      return true;
+    }
+
+    function updateControlStatusLine(line) {
+      const index = line.indexOf('=');
+      if (index <= 3 || !line.startsWith('UI.')) return false;
+      const key = line.substring(3, index);
+      const value = line.substring(index + 1);
+      if (key === 'status') setControlStateText(value);
+      else if (key === 'mode') setControlModeText(value);
+      else if (key === 'pitch') setControlPitchText(value);
+      else if (key === 'measure') setControlText(controlMeasure, value);
+      else if (key === 'step') setControlText(controlStep, value);
+      else if (key === 'turns') setControlText(controlTurns, value);
+      else if (key === 'angle') setControlText(controlAngle, value);
+      else if (key === 'x') setControlAxisText(controlX, value, 'X');
+      else if (key === 'xLeft') controlXStops.dataset.left = value;
+      else if (key === 'xRight') controlXStops.dataset.right = value;
+      else if (key === 'y') setControlAxisText(controlY, value, 'Y');
+      else if (key === 'yLeft') controlYStops.dataset.left = value;
+      else if (key === 'yRight') controlYStops.dataset.right = value;
+      else if (key === 'z') setControlAxisText(controlZ, value, 'Z');
+      else if (key === 'zLeft') controlZStops.dataset.left = value;
+      else if (key === 'zRight') controlZStops.dataset.right = value;
+      else if (key === 'rpm') setControlRpmText(value);
+      else if (key === 'message') setControlMessageText(value);
+      updateAxisStopDisplays(controlXStops, controlXInlineStops);
+      updateAxisStopDisplays(controlYStops, controlYInlineStops);
+      updateAxisStopDisplays(controlZStops, controlZInlineStops);
+      return true;
+    }
+
+    function updateStopDisplay(element) {
+      if (!element) return;
+      const left = element.dataset.left || '';
+      const right = element.dataset.right || '';
+      element.textContent = left || right ? `${left || '-'} / ${right || '-'}` : '--';
+    }
+
+    function updateInlineStopDisplay(element, left, right) {
+      setControlText(element, left || right ? `${left || '-'} / ${right || '-'}` : '');
+    }
+
+    function updateAxisStopDisplays(statusElement, inlineElement) {
+      if (!statusElement) return;
+      const left = statusElement.dataset.left || '';
+      const right = statusElement.dataset.right || '';
+      updateStopDisplay(statusElement);
+      updateInlineStopDisplay(inlineElement, left, right);
+    }
+
+    function applyControlConfigValues(values) {
+      const showY = values.activeY === '1';
+      controlYElements.forEach(element => {
+        element.hidden = !showY;
+      });
+      if (controlStatusPanel) controlStatusPanel.classList.toggle('control-y-active', showY);
+    }
+
+    function parseStatusValue(data, key) {
+      const prefix = key + '=';
+      const line = data.split('\n').find(l => l.startsWith(prefix));
+      return line ? line.substring(prefix.length) : '';
+    }
+
+    function parseKeyValueText(data) {
+      const values = {};
+      data.split('\n').forEach(line => {
+        const index = line.indexOf('=');
+        if (index > 0) {
+          values[line.substring(0, index)] = line.substring(index + 1);
+        }
+      });
+      return values;
+    }
+
+    function updateFirmwareProgress(percent, message) {
+      if (!firmwareUploadInProgress && percent < 100) return;
+      firmwareProgress.hidden = false;
+      firmwareProgress.value = Math.max(Number(firmwareProgress.value) || 0, Math.min(100, Math.max(0, percent)));
+      if (message) firmwareStatus.textContent = message;
+    }
+
+    function updateFirmwareStatusFromText(data) {
+      const size = Number(parseStatusValue(data, 'FW.size'));
+      const uploaded = Number(parseStatusValue(data, 'FW.uploaded'));
+      const message = parseStatusValue(data, 'FW.message');
+      if (size > 0 && uploaded >= 0) {
+        updateFirmwareProgress(Math.round(uploaded * 100 / size), message || `Scrittura firmware ${Math.round(uploaded * 100 / size)}%`);
+      } else if (message) {
+        firmwareStatus.textContent = message;
+      }
+    }
+
+    function pollFirmwareStatus() {
+      if (firmwareStatusPollBusy) return;
+      firmwareStatusPollBusy = true;
+      fetch(`/status?ts=${Date.now()}`, { cache: 'no-store' })
+        .then(response => response.text())
+        .then(updateFirmwareStatusFromText)
+        .catch(() => {})
+        .then(() => {
+          firmwareStatusPollBusy = false;
+        });
+    }
+
+    function startFirmwareStatusPolling() {
+      clearInterval(firmwareStatusPollTimer);
+      firmwareStatusPollTimer = setInterval(pollFirmwareStatus, 1000);
+    }
+
+    function stopFirmwareStatusPolling() {
+      clearInterval(firmwareStatusPollTimer);
+      firmwareStatusPollTimer = 0;
+    }
+
+    function formatScaledConfigValue(value) {
+      if (!Number.isFinite(value)) return '';
+      return value.toFixed(4).replace(/\.?0+$/, '');
+    }
+
+    function configValueToDisplay(field, value) {
+      if (field.firmwareScale) {
+        return formatScaledConfigValue(Number(value) / field.firmwareScale);
+      }
+      return value;
+    }
+
+    function configValueToFirmware(field, value) {
+      const trimmed = value.trim();
+      if (field.firmwareScale) {
+        const parsed = Number(trimmed);
+        return Number.isFinite(parsed) ? String(Math.round(parsed * field.firmwareScale)) : trimmed;
+      }
+      return trimmed;
+    }
+
+    function addConfigHelp(row, field) {
+      if (!field.help) return;
+      const help = document.createElement('small');
+      help.className = 'config-help';
+      help.textContent = field.help;
+      row.appendChild(help);
+    }
+
+    function renderConfigFields() {
+      configFields.innerHTML = '';
+      machineConfigSections.forEach((section, index) => {
+        const sectionElement = document.createElement('details');
+        sectionElement.className = 'config-section settings-group';
+        const summary = document.createElement('summary');
+        summary.textContent = `${section.title} (${section.fields.length})`;
+        const grid = document.createElement('div');
+        grid.className = 'config-grid';
+        section.fields.forEach(field => {
+          const id = `config-${field.key}`;
+          const row = document.createElement('div');
+          row.className = field.type === 'checkbox' ? 'config-field config-checkbox-field' : 'config-field';
+          if (field.type === 'checkbox') {
+            const label = document.createElement('label');
+            label.className = 'config-checkbox';
+            label.htmlFor = id;
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.id = id;
+            input.dataset.key = field.key;
+            const text = document.createElement('span');
+            text.textContent = field.label;
+            label.appendChild(input);
+            label.appendChild(text);
+            row.appendChild(label);
+            addConfigHelp(row, field);
+          } else {
+            const label = document.createElement('label');
+            label.className = 'config-label';
+            label.htmlFor = id;
+            label.textContent = field.label;
+            if (field.unit) {
+              const unit = document.createElement('span');
+              unit.className = 'config-unit';
+              unit.textContent = ` (${field.unit})`;
+              label.appendChild(unit);
+            }
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.id = id;
+            input.dataset.key = field.key;
+            input.min = field.min;
+            input.max = field.max;
+            input.step = field.step;
+            input.required = true;
+            row.appendChild(label);
+            row.appendChild(input);
+            addConfigHelp(row, field);
+          }
+          grid.appendChild(row);
+        });
+        sectionElement.appendChild(summary);
+        sectionElement.appendChild(grid);
+        configFields.appendChild(sectionElement);
+      });
+    }
+
+    function applyConfigValues(values) {
+      machineConfigFields.forEach(field => {
+        const input = document.getElementById(`config-${field.key}`);
+        if (!input || !(field.key in values)) return;
+        if (field.type === 'checkbox') {
+          input.checked = values[field.key] === '1';
+        } else {
+          input.value = configValueToDisplay(field, values[field.key]);
+        }
+      });
+    }
+
+    function loadConfig() {
+      configStatus.textContent = 'Caricamento configurazione macchina...';
+      fetch('/config', { cache: 'no-store' })
+        .then(response => response.text())
+        .then(data => {
+          const values = parseKeyValueText(data);
+          applyConfigValues(values);
+          applyControlConfigValues(values);
+          configStatus.textContent = '';
+        })
+        .catch(() => {
+          configStatus.textContent = 'Impossibile caricare la configurazione macchina';
+        });
+    }
+
+    function collectConfigValues() {
+      const values = new URLSearchParams();
+      machineConfigFields.forEach(field => {
+        const input = document.getElementById(`config-${field.key}`);
+        values.append(field.key, field.type === 'checkbox' ? (input.checked ? '1' : '0') : configValueToFirmware(field, input.value));
+      });
+      return values;
+    }
+
+    function saveConfig(event) {
+      event.preventDefault();
+      configStatus.textContent = 'Salvataggio configurazione macchina...';
+      fetch('/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: collectConfigValues()
+      })
+      .then(response => response.text().then(text => ({ ok: response.ok, text })))
+      .then(result => {
+        configStatus.textContent = result.text;
+        logMessage(result.text);
+        if (result.ok) {
+          waitForControllerReload();
+        }
+      })
+      .catch(() => {
+        configStatus.textContent = 'Impossibile salvare la configurazione macchina';
+      });
+    }
+
+    function resetConfig() {
+      if (!confirm('Ripristinare la configurazione macchina ai valori di fabbrica e riavviare il controller?')) return;
+      configStatus.textContent = 'Ripristino configurazione macchina...';
+      fetch('/config/reset', { method: 'POST' })
+        .then(response => response.text().then(text => ({ ok: response.ok, text })))
+        .then(result => {
+          configStatus.textContent = result.text;
+          logMessage(result.text);
+          if (result.ok) {
+            waitForControllerReload();
+          }
+        })
+        .catch(() => {
+          configStatus.textContent = 'Impossibile ripristinare la configurazione macchina';
+        });
+    }
+
+    function renderKeyboardFields() {
+      keyboardFields.innerHTML = '';
+      keyboardBindingSections.forEach((section, index) => {
+        const sectionElement = document.createElement('details');
+        sectionElement.className = 'config-section keyboard-group';
+        sectionElement.open = index === 0;
+        const summary = document.createElement('summary');
+        summary.textContent = `${section.title} (${section.fields.length})`;
+        const grid = document.createElement('div');
+        grid.className = 'keyboard-grid';
+        section.fields.forEach(field => {
+          const id = `keyboard-${field.key}`;
+          const row = document.createElement('div');
+          row.className = 'keyboard-binding';
+
+          const label = document.createElement('label');
+          label.htmlFor = id;
+          label.textContent = field.label;
+
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.id = id;
+          input.dataset.key = field.key;
+          input.min = 1;
+          input.max = 255;
+          input.step = 1;
+          input.required = true;
+
+          const learnButton = document.createElement('button');
+          learnButton.type = 'button';
+          learnButton.className = 'secondary keyboard-learn';
+          learnButton.dataset.key = field.key;
+          learnButton.textContent = 'Impara';
+          learnButton.addEventListener('click', () => beginKeyboardLearn(field));
+
+          row.appendChild(label);
+          row.appendChild(input);
+          row.appendChild(learnButton);
+          grid.appendChild(row);
+        });
+        sectionElement.appendChild(summary);
+        sectionElement.appendChild(grid);
+        keyboardFields.appendChild(sectionElement);
+      });
+    }
+
+    function applyKeyboardValues(values) {
+      keyboardShowKeysInput.checked = values.showKeyPresses === '1';
+      keyboardBindingFields.forEach(field => {
+        const input = document.getElementById(`keyboard-${field.key}`);
+        if (input && field.key in values) input.value = values[field.key];
+      });
+    }
+
+    function loadKeyboardConfig() {
+      keyboardStatus.textContent = 'Caricamento configurazione tastiera...';
+      fetch('/keyboard-config', { cache: 'no-store' })
+        .then(response => response.text())
+        .then(data => {
+          applyKeyboardValues(parseKeyValueText(data));
+          keyboardStatus.textContent = '';
+        })
+        .catch(() => {
+          keyboardStatus.textContent = 'Impossibile caricare la configurazione tastiera';
+        });
+    }
+
+    function collectKeyboardConfigValues() {
+      const values = new URLSearchParams();
+      values.append('showKeyPresses', keyboardShowKeysInput.checked ? '1' : '0');
+      keyboardBindingFields.forEach(field => {
+        const input = document.getElementById(`keyboard-${field.key}`);
+        values.append(field.key, input.value.trim());
+      });
+      return values;
+    }
+
+    function stopKeyboardCaptureRequest() {
+      fetch('/keyboard-capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ enabled: '0' })
+      }).catch(() => {});
+    }
+
+    function clearKeyboardLearn() {
+      clearTimeout(keyboardLearnTimer);
+      keyboardLearnTimer = 0;
+      keyboardLearnTarget = '';
+    }
+
+    function saveKeyboardConfig(event) {
+      event.preventDefault();
+      clearKeyboardLearn();
+      stopKeyboardCaptureRequest();
+      keyboardStatus.textContent = 'Salvataggio configurazione tastiera...';
+      fetch('/keyboard-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: collectKeyboardConfigValues()
+      })
+      .then(response => response.text().then(text => ({ ok: response.ok, text })))
+      .then(result => {
+        keyboardStatus.textContent = result.text;
+        logMessage(result.text);
+      })
+      .catch(() => {
+        keyboardStatus.textContent = 'Impossibile salvare la configurazione tastiera';
+      });
+    }
+
+    function resetKeyboardConfig() {
+      if (!confirm('Ripristinare la mappatura tastiera ai valori di fabbrica?')) return;
+      clearKeyboardLearn();
+      stopKeyboardCaptureRequest();
+      keyboardStatus.textContent = 'Ripristino configurazione tastiera...';
+      fetch('/keyboard-config/reset', { method: 'POST' })
+        .then(response => response.text().then(text => ({ ok: response.ok, text })))
+        .then(result => {
+          keyboardStatus.textContent = result.text;
+          logMessage(result.text);
+          if (result.ok) loadKeyboardConfig();
+        })
+        .catch(() => {
+          keyboardStatus.textContent = 'Impossibile ripristinare la configurazione tastiera';
+        });
+    }
+
+    function beginKeyboardLearn(field) {
+      clearKeyboardLearn();
+      keyboardLearnTarget = field.key;
+      keyboardStatus.textContent = `Apprendimento ${field.label}: premi un tasto sulla tastiera fisica`;
+      keyboardLearnTimer = setTimeout(() => {
+        keyboardLearnTarget = '';
+        keyboardStatus.textContent = 'Acquisizione tasto scaduta';
+        stopKeyboardCaptureRequest();
+      }, 30000);
+      fetch('/keyboard-capture', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ enabled: '1' })
+      })
+      .then(response => response.text().then(text => ({ ok: response.ok, text })))
+      .then(result => {
+        if (!result.ok) {
+          clearKeyboardLearn();
+          keyboardStatus.textContent = result.text;
+        }
+      })
+      .catch(() => {
+        clearKeyboardLearn();
+        keyboardStatus.textContent = 'Acquisizione tasto non riuscita';
+      });
+    }
+
+    function handleKeyboardPressCode(code) {
+      keyboardLastKey.textContent = String(code);
+      if (!keyboardLearnTarget) return;
+      const input = document.getElementById(`keyboard-${keyboardLearnTarget}`);
+      if (input) {
+        input.value = String(code);
+        const field = keyboardBindingFields.find(item => item.key === keyboardLearnTarget);
+        keyboardStatus.textContent = `${field ? field.label : keyboardLearnTarget} impostato al codice tasto ${code}`;
+      }
+      clearKeyboardLearn();
+    }
+
+    function applyWifiValues(values) {
+      wifiEnabledInput.checked = values.wifiEnabled === '1';
+      wifiSsidInput.value = values.wifiSsid || '';
+      wifiPasswordInput.value = '';
+      wifiPasswordInput.placeholder = values.wifiPasswordSet === '1' ? 'Lascia invariata' : 'Password';
+      wifiClearPasswordInput.checked = false;
+      const mode = values.wifiMode || 'sconosciuto';
+      const ip = values.wifiIp ? `, ${values.wifiIp}` : '';
+      const setup = values.setupApSsid ? `, AP di configurazione ${values.setupApSsid}` : '';
+      wifiStatusElement.textContent = `Modo: ${mode}${ip}${setup}`;
+    }
+
+    function loadWifi() {
+      wifiStatusElement.textContent = 'Caricamento configurazione WiFi...';
+      fetch('/wifi', { cache: 'no-store' })
+        .then(response => response.text())
+        .then(data => {
+          applyWifiValues(parseKeyValueText(data));
+        })
+        .catch(() => {
+          wifiStatusElement.textContent = 'Impossibile caricare la configurazione WiFi';
+        });
+    }
+
+    function collectWifiValues() {
+      return new URLSearchParams({
+        wifiEnabled: wifiEnabledInput.checked ? '1' : '0',
+        wifiSsid: wifiSsidInput.value.trim(),
+        wifiPassword: wifiPasswordInput.value,
+        wifiClearPassword: wifiClearPasswordInput.checked ? '1' : '0'
+      });
+    }
+
+    function saveWifi(event) {
+      event.preventDefault();
+      wifiStatusElement.textContent = 'Salvataggio configurazione WiFi...';
+      fetch('/wifi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: collectWifiValues()
+      })
+      .then(response => response.text().then(text => ({ ok: response.ok, text })))
+      .then(result => {
+        wifiStatusElement.textContent = result.text;
+        logMessage(result.text);
+        if (result.ok) {
+          waitForControllerReload();
+        }
+      })
+      .catch(() => {
+        wifiStatusElement.textContent = 'Impossibile salvare la configurazione WiFi';
+      });
+    }
+
+    function resetWifi() {
+      if (!confirm('Dimenticare la rete WiFi salvata e riavviare l\'AP di configurazione?')) return;
+      wifiStatusElement.textContent = 'Ripristino configurazione WiFi...';
+      fetch('/wifi/reset', { method: 'POST' })
+        .then(response => response.text().then(text => ({ ok: response.ok, text })))
+        .then(result => {
+          wifiStatusElement.textContent = result.text;
+          logMessage(result.text);
+          if (result.ok) {
+            waitForControllerReload();
+          }
+        })
+        .catch(() => {
+          wifiStatusElement.textContent = 'Impossibile ripristinare la configurazione WiFi';
+        });
+    }
+
+    function handleRealtimeMessage(message) {
+      let handled = false;
+      message.split('\n').map(line => line.trim()).filter(line => !!line).forEach(line => {
+        if (updateControlStatusLine(line)) {
+          handled = true;
+        } else if (updateControlStatusFromText(line)) {
+          handled = true;
+        } else if (line.startsWith('WEBUI.error=')) {
+          const text = line.substring('WEBUI.error='.length);
+          controlActionStatus.textContent = text;
+          announceWarning(text);
+          handled = true;
+        } else if (line.startsWith('WEBUI.warning=')) {
+          const text = line.substring('WEBUI.warning='.length);
+          controlActionStatus.textContent = text;
+          announceWarning(text);
+          handled = true;
+        } else if (line.startsWith('KEY.press=')) {
+          const code = Number(line.substring('KEY.press='.length));
+          if (!Number.isNaN(code)) handleKeyboardPressCode(code);
+          handled = true;
+        } else if (line.startsWith('KEY.release=') || line.startsWith('KEY.action=')) {
+          handled = true;
+        } else if (line.startsWith('FW: avanzamento ')) {
+          const percent = Number(line.substring('FW: avanzamento '.length).replace('%', ''));
+          if (!Number.isNaN(percent)) {
+            updateFirmwareProgress(percent, `Scrittura firmware ${percent}%`);
+          }
+          handled = true;
+        } else if (line === 'FW: upload completato, riavvio del controller') {
+          updateFirmwareProgress(100, 'Upload firmware completato. Riavvio del controller...');
+          handled = true;
+        } else if (line.startsWith('FW: errore:')) {
+          firmwareStatus.textContent = line.substring('FW: '.length);
+          announceWarning(firmwareStatus.textContent);
+          handled = true;
+        }
+      });
+      return handled;
+    }
+
+    function waitForControllerReload() {
+      clearTimeout(firmwareReloadTimer);
+      firmwareReloadTimer = setTimeout(() => {
+        fetch(`/status?reload=${Date.now()}`, { cache: 'no-store' })
+          .then(response => {
+            if (response.ok) {
+              window.location.reload();
+            } else {
+              waitForControllerReload();
+            }
+          })
+          .catch(waitForControllerReload);
+      }, 2000);
+    }
+
+    function waitForFirmwareReload() {
+      waitForControllerReload();
+    }
+
+    commandInput.addEventListener('input', updateButtonStates);
+    gcodeNameInput.addEventListener('input', updateButtonStates);
+    gcodeContentInput.addEventListener('input', updateButtonStates);
+    configForm.addEventListener('submit', saveConfig);
+    resetConfigButton.addEventListener('click', resetConfig);
+    wifiForm.addEventListener('submit', saveWifi);
+    resetWifiButton.addEventListener('click', resetWifi);
+    keyboardForm.addEventListener('submit', saveKeyboardConfig);
+    resetKeyboardButton.addEventListener('click', resetKeyboardConfig);
+    tftFirstUploadCheckbox.addEventListener('change', saveTftFirstUploadPreference);
+    tftFileInput.addEventListener('change', uploadTftFile);
+    firmwareFileInput.addEventListener('change', uploadFirmwareFile);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setupControlButtons();
+      loadTftFirstUploadPreference();
+      renderConfigFields();
+      renderKeyboardFields();
+      loadConfig();
+      loadWifi();
+      loadKeyboardConfig();
+      updateButtonStates();
+    });
+
+    function loadTftFirstUploadPreference() {
+      try {
+        const stored = localStorage.getItem(tftFirstUploadStorageKey);
+        if (stored === 'true') {
+          tftFirstUploadCheckbox.checked = true;
+        } else if (stored === 'false') {
+          tftFirstUploadCheckbox.checked = false;
+        }
+      } catch (error) {
+      }
+    }
+
+    function saveTftFirstUploadPreference() {
+      try {
+        localStorage.setItem(tftFirstUploadStorageKey, tftFirstUploadCheckbox.checked ? 'true' : 'false');
+      } catch (error) {
+      }
+    }
+
+    function send() {
+      const command = commandInput.value.trim();
+      if (command) {
+        logMessage('Inviato: ' + command);
+        ws.send(command + '\n');
+        commandInput.value = '';
+        updateButtonStates();
+      }
+    }
+
+    commandInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') send();
+    });
+
+    sendButton.addEventListener('click', () => {
+      send();
+    });
+
+    function removeComments(content) {
+      return content.split('\n').map(line => line.split(';')[0].trim()).filter(line => !!line).join('\n');
+    }
+
+    addGcodeButton.addEventListener('click', () => {
+      const name = gcodeNameInput.value.trim();
+      let content = gcodeContentInput.value.trim();
+      if (removeCommentsCheckbox.checked) {
+        content = removeComments(content);
+      }
+      if (name && content) {
+        fetch('/gcode/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ name, gcode: content })
+        })
+        .then(response => response.text())
+        .then(data => {
+          logMessage(data);
+          listGcodes();
+          gcodeNameInput.value = '';
+          gcodeContentInput.value = '';
+          updateButtonStates();
+        });
+      }
+    });
+
+    function uploadTftFile() {
+      const file = tftFileInput.files[0];
+      if (!file || tftUploadInProgress) return;
+      const nextionBaud = tftFirstUploadCheckbox.checked ? 9600 : 115200;
+
+      const formData = new FormData();
+      formData.append('tft', file, file.name);
+      const request = new XMLHttpRequest();
+      tftUploadInProgress = true;
+      tftProgress.value = 0;
+      tftProgress.hidden = false;
+      tftStatus.textContent = `Caricamento di ${file.name} a ${nextionBaud} baud. Lascia aperta questa pagina; la scrittura del display può richiedere diversi minuti.`;
+      updateButtonStates();
+
+      request.upload.onprogress = event => {
+        if (event.lengthComputable) {
+          tftProgress.value = Math.round(event.loaded * 100 / event.total);
+        }
+      };
+      request.onload = () => {
+        tftUploadInProgress = false;
+        tftStatus.textContent = request.responseText;
+        logMessage(request.responseText);
+        tftFileInput.value = '';
+        tftProgress.hidden = true;
+        updateButtonStates();
+      };
+      request.onerror = () => {
+        tftUploadInProgress = false;
+        tftStatus.textContent = 'Upload TFT non riuscito';
+        logMessage('Upload TFT non riuscito');
+        announceWarning('Upload TFT non riuscito');
+        tftFileInput.value = '';
+        tftProgress.hidden = true;
+        updateButtonStates();
+      };
+      request.open('POST', `/tft/upload?size=${file.size}&baud=${nextionBaud}`);
+      request.send(formData);
+    }
+
+    function uploadFirmwareFile() {
+      const file = firmwareFileInput.files[0];
+      if (!file || tftUploadInProgress || firmwareUploadInProgress) return;
+      if (!file.name.toLowerCase().endsWith('.bin')) {
+        firmwareStatus.textContent = 'Seleziona un file firmware .bin compilato';
+        announceWarning('Seleziona un file firmware bin compilato');
+        firmwareFileInput.value = '';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('firmware', file, file.name);
+      const request = new XMLHttpRequest();
+      firmwareUploadInProgress = true;
+      firmwareProgress.value = 0;
+      firmwareProgress.hidden = false;
+      firmwareStatus.textContent = `Caricamento di ${file.name}. Lascia aperta questa pagina; il controller si riavvierà al termine dell'upload.`;
+      startFirmwareStatusPolling();
+      updateButtonStates();
+
+      request.upload.onprogress = event => {
+        if (event.lengthComputable) {
+          firmwareStatus.textContent = `Invio firmware al controller ${Math.round(event.loaded * 100 / event.total)}%. Attendo l'avanzamento di scrittura dal controller.`;
+        }
+      };
+      request.onload = () => {
+        logMessage(request.responseText);
+        firmwareFileInput.value = '';
+        stopFirmwareStatusPolling();
+        if (request.status >= 200 && request.status < 300) {
+          firmwareProgress.value = 100;
+          firmwareStatus.textContent = `${request.responseText} Attendo che il controller torni online.`;
+          waitForFirmwareReload();
+        } else {
+          firmwareUploadInProgress = false;
+          firmwareStatus.textContent = request.responseText;
+          announceWarning(request.responseText);
+          firmwareProgress.hidden = true;
+          updateButtonStates();
+        }
+      };
+      request.onerror = () => {
+        firmwareUploadInProgress = false;
+        stopFirmwareStatusPolling();
+        firmwareStatus.textContent = 'Upload firmware non riuscito';
+        logMessage('Upload firmware non riuscito');
+        announceWarning('Upload firmware non riuscito');
+        firmwareFileInput.value = '';
+        firmwareProgress.hidden = true;
+        updateButtonStates();
+      };
+      request.open('POST', `/firmware/upload?size=${file.size}`);
+      request.send(formData);
+    }
+
+    function listGcodes() {
+      fetch('/gcode/list')
+        .then(response => response.text())
+        .then(data => {
+          gcodeList.innerHTML = '';
+          gcodeList.classList.toggle('empty', !data);
+          if (data) {
+            data.split('\n').map(g => g.trim()).filter(g => !!g).forEach(gcode => {
+              const row = document.createElement('div');
+              row.className = 'gcode-row';
+              row.dataset.name = gcode;
+              row.innerHTML = `
+                <span class="gcode-item" data-name="${gcode}">${gcode}</span>
+                <span class="gcode-size"></span>
+                <span class="remove-icon" data-name="${gcode}">&times;</span>
+              `;
+              row.addEventListener('click', (event) => {
+                loadGcode(event.target.dataset.name);
+              });
+              row.title = 'Clicca per caricare il G-code';
+              gcodeList.appendChild(row);
+              fetch(`/gcode/get?name=${encodeURIComponent(gcode)}`)
+                .then(response => response.text())
+                .then(text => {
+                  row.querySelector('.gcode-size').textContent = `${(text.length / 1024).toFixed(1)} KB`;
+                })
+            });
+            document.querySelectorAll('.remove-icon').forEach(icon => {
+              icon.title = 'Clicca per rimuovere il G-code';
+              icon.addEventListener('click', (event) => {
+                const name = event.target.getAttribute('data-name');
+                removeGcode(name);
+              });
+            });
+          } else {
+            gcodeList.innerHTML = 'Nessun G-code salvato';
+          }
+          fetchFreeSpace();
+        });
+    }
+
+    function loadGcode(name) {
+      fetch(`/gcode/get?name=${encodeURIComponent(name)}`)
+        .then(response => response.text())
+        .then(data => {
+          gcodeNameInput.value = name;
+          gcodeContentInput.value = data;
+          updateButtonStates();
+        });
+    }
+
+    function removeGcode(name) {
+      fetch('/gcode/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ name })
+      })
+      .then(response => response.text())
+      .then(data => {
+        logMessage(data);
+        listGcodes();
+      });
+    }
+
+    function fetchFreeSpace() {
+      fetch('/status')
+        .then(response => response.text())
+        .then(data => {
+          const freeSpaceBytes = Number(data.split('\n').find(l => l.startsWith('LittleFS.freeSpace=')).substr('LittleFS.freeSpace='.length));
+          if (freeSpaceBytes) {
+            const freeSpaceElement = document.getElementById('free-space');
+            freeSpaceElement.textContent = `Spazio libero: ${Math.floor(freeSpaceBytes / 1024)} KB`;
+          }
+        });
+    }
+
+    function logMessage(message) {
+      const p = document.createElement('p');
+      p.textContent = message;
+      log.appendChild(p);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    listGcodes();
+  </script>
+</body>
+</html>

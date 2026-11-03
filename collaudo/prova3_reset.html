@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>NanoEls H5 — Collaudo prova 3: reset generale</title>
+<style>
+  @page { size: A4; margin: 11mm 12mm 10mm 12mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    color: #111;
+    font-size: 8.7pt;
+    line-height: 1.2;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1 { font-size: 14pt; margin: 0 0 0.6mm 0; letter-spacing: 0.2pt; }
+  .sub { font-size: 9pt; color: #444; margin: 0 0 1.5mm 0; }
+  h2 {
+    font-size: 9.6pt;
+    margin: 2.3mm 0 0.8mm 0;
+    padding-bottom: 0.6mm;
+    border-bottom: 0.7pt solid #111;
+    text-transform: uppercase;
+    letter-spacing: 0.4pt;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 0.9mm 0; }
+  th, td {
+    border: 0.4pt solid #999;
+    padding: 0.9mm 1.4mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #ebebeb; font-weight: 600; font-size: 8.4pt; }
+  td.c, th.c { text-align: center; }
+  td.n { font-weight: 700; text-align: center; width: 7mm; }
+  td.fillcell { height: 5.4mm; }
+  .cb {
+    display: inline-block;
+    width: 3.6mm;
+    height: 3.6mm;
+    border: 0.6pt solid #333;
+    vertical-align: -0.6mm;
+  }
+  .sig { font-family: Consolas, "Courier New", monospace; font-weight: 700; }
+  .muted { color: #555; }
+  .warn {
+    border: 0.8pt solid #111;
+    padding: 1.2mm 2.2mm;
+    margin: 0 0 0.9mm 0;
+    font-size: 8.4pt;
+    background: #f4f4f4;
+  }
+  .warn b { text-transform: uppercase; letter-spacing: 0.3pt; }
+  .stop {
+    border: 0.8pt solid #111;
+    border-left-width: 2.4mm;
+    padding: 1.2mm 2.2mm;
+    margin: 1mm 0 0 0;
+    font-size: 8.4pt;
+  }
+  .stop ul, .warn ul { margin: 0.4mm 0 0 0; padding-left: 4.4mm; }
+  .stop li, .warn li { margin-bottom: 0.3mm; }
+  .meta td { padding: 1.3mm 1.8mm; }
+  .meta .fill { border-bottom: 0.5pt solid #666; min-width: 34mm; display: inline-block; height: 4mm; }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1.6pt solid #111;
+    padding-bottom: 1.2mm;
+    margin-bottom: 1mm;
+  }
+  .head .right { text-align: right; font-size: 8.2pt; color: #444; }
+  .foot {
+    margin-top: 1.6mm;
+    border-top: 0.5pt solid #999;
+    padding-top: 0.9mm;
+    font-size: 7.4pt;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+  }
+  .foot span:last-child { white-space: nowrap; }
+  .esito td { padding: 1.6mm 2mm; }
+  .esito .big { font-size: 9.6pt; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1>NanoEls H5 — Collaudo sicurezza, prova 3</h1>
+    <div class="sub">Reset generale: tasto fisico OFF tenuto per <b>pi&ugrave; di 3 secondi</b> (firmware H5V53)</div>
+  </div>
+  <div class="right">
+    Foglio A4 — stampa al 100%<br>
+    Spuntare ogni riga solo se il<br>risultato è quello scritto
+  </div>
+</div>
+
+<table class="meta">
+  <tr>
+    <td>Data <span class="fill"></span></td>
+    <td>Operatore <span class="fill"></span></td>
+    <td>Firmware in esecuzione <span class="fill"></span></td>
+    <td>Banco / macchina <span class="fill"></span></td>
+  </tr>
+</table>
+
+<div class="warn">
+  <b>Attenzione.</b> Il reset <b>cancella</b> finecorsa, posizioni, origini, PASSO, modalit&agrave;, unit&agrave;, PRINCIPI e rapporto cono.
+  Farlo solo se si vuole ricominciare da zero, <b>per ultimo</b> (dopo le prove 1 e 2), con assi fermi ed ELS spento.
+</div>
+
+<h2>1. Valori da annotare prima del reset</h2>
+<table>
+  <tr>
+    <th style="width:27%">Voce</th>
+    <th>Valore attuale</th>
+    <th style="width:27%">Voce</th>
+    <th>Valore attuale</th>
+  </tr>
+  <tr>
+    <td>Finecorsa <b>Z sinistro</b></td>
+    <td class="fillcell"></td>
+    <td>Finecorsa <b>Z destro</b></td>
+    <td class="fillcell"></td>
+  </tr>
+  <tr>
+    <td>Finecorsa <b>X sinistro</b></td>
+    <td class="fillcell"></td>
+    <td>Finecorsa <b>X destro</b></td>
+    <td class="fillcell"></td>
+  </tr>
+  <tr>
+    <td><b>PASSO</b></td>
+    <td class="fillcell"></td>
+    <td><b>Modalit&agrave;</b></td>
+    <td class="fillcell"></td>
+  </tr>
+  <tr>
+    <td><b>Unit&agrave;</b> (MM / POLLICI)</td>
+    <td class="fillcell"></td>
+    <td><b>PRINCIPI</b></td>
+    <td class="fillcell"></td>
+  </tr>
+  <tr>
+    <td><b>Rapporto cono</b></td>
+    <td class="fillcell"></td>
+    <td><b>Origini / posizioni Z e X</b></td>
+    <td class="fillcell"></td>
+  </tr>
+</table>
+
+<h2>2. Condizioni di partenza</h2>
+<table>
+  <tr>
+    <th class="c" style="width:9mm">&#10003;</th>
+    <th>Controllo</th>
+    <th class="c" style="width:9mm">&#10003;</th>
+    <th>Controllo</th>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>ELS spento, assi fermi</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Nessun programma G-CODE in esecuzione</td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>UI web aperta, controller online, versione <b>H5V53</b></td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Macchina in posizione sicura, nessun pezzo</td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Valori annotati nella tabella sopra</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Tasto fisico OFF/ON a portata di mano</td>
+  </tr>
+</table>
+
+<h2>3. Esecuzione</h2>
+<table>
+  <tr>
+    <th class="c" style="width:7mm">#</th>
+    <th style="width:35%">Azione</th>
+    <th>Risultato atteso</th>
+    <th class="c" style="width:9mm">&#10003;</th>
+  </tr>
+  <tr>
+    <td class="n">1</td>
+    <td>Tieni premuto il <b>tasto fisico OFF/ON</b> per pi&ugrave; di 3 secondi</td>
+    <td>Nessun movimento; ELS spento</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">2</td>
+    <td><b>Rilascia</b> il tasto</td>
+    <td>Nessuna schermata di avvio (non &egrave; prevista): il display resta sulla pagina</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">3</td>
+    <td>Guarda la riga in basso del TFT e il <b>PASSO</b></td>
+    <td>Modalit&agrave; <span class="sig">INGRANAGGI</span>; PASSO <span class="sig">0.000</span></td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">4</td>
+    <td>Controlla <b>unit&agrave;</b>, <b>PRINCIPI</b> e <b>rapporto cono</b> nella UI web e nelle pagine modalit&agrave;</td>
+    <td>Unit&agrave; <span class="sig">MM</span>; PRINCIPI <span class="sig">1</span>; rapporto cono <span class="sig">0</span> (cilindrico)</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">5</td>
+    <td>Controlla <b>posizioni e origini</b> Z e X</td>
+    <td>Tutte a <span class="sig">0</span></td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">6</td>
+    <td>Apri una modalit&agrave; a passate, per esempio <b>TORNITURA</b></td>
+    <td>Riga in basso: <span class="sig">Imposta finecorsa</span> (o <span class="sig">Imposta finecorsa X</span>)</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">7</td>
+    <td>Prova ad avviare in quella modalit&agrave;</td>
+    <td>Avvio rifiutato (bip), nessun movimento</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">8</td>
+    <td>Reimposta i <b>finecorsa</b> (MIN) e, se serve, il rapporto cono; poi avvia</td>
+    <td>Avvio consentito, ELS funzionante come prima</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+</table>
+
+<div class="stop">
+  <b>Da non fare / errori comuni</b>
+  <ul>
+    <li>Usarlo per <b>fermare</b> la macchina: per la fermata basta un tocco breve (prova 1).</li>
+    <li>Farlo senza aver annotato i finecorsa: vanno rimessi <b>a mano</b> prima di lavorare.</li>
+    <li>Aspettarsi una schermata di avvio dopo il reset: il firmware non la mostra.</li>
+  </ul>
+</div>
+
+<h2>4. Esito</h2>
+<table class="esito">
+  <tr>
+    <td style="width:52%">
+      <span class="big">Esito prova:</span><br><br>
+      <span class="cb"></span> <b>SUPERATA</b> &nbsp;&nbsp;&nbsp;&nbsp;
+      <span class="cb"></span> <b>NON SUPERATA</b>
+    </td>
+    <td>
+      <b>Se un valore non torna</b>, annota qui la voce, il valore visto e la pagina:<br>
+      <span class="muted">note: ______________________________________________________________</span><br>
+      <span class="muted">____________________________________________________________________</span>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <b>Annotazioni</b><br>
+      <span class="muted">__________________________________________________________________________________________</span><br>
+      <span class="muted">__________________________________________________________________________________________</span><br>
+      <span class="muted">__________________________________________________________________________________________</span>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      Firma operatore _______________________________ &nbsp;&nbsp;&nbsp;&nbsp; Data ____________________
+    </td>
+  </tr>
+</table>
+
+<div class="foot">
+  <span>NanoEls H5 &mdash; collaudo sicurezza, procedura prova 3 &middot; reset generale</span>
+  <span>rev. 1 &middot; 02/11/2026</span>
+</div>
+
+</body>
+</html>
