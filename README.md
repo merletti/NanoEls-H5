@@ -110,6 +110,8 @@ sotto. In alternativa si apre `firmware-it/h5/h5.ino` con l'Arduino IDE (scheda
 
 - [Manuale d'uso](screen-it/MANUALE_USO.md) — modalità, procedure passo-passo,
   messaggi, emergenze.
+- [Montaggio sul tornio](MONTAGGIO_TORNIO.md) — checklist dal banco alla macchina:
+  cablaggio, parametri, verifiche a vuoto e prove di lavorazione.
 - [Mappa delle pagine](screen-it/TABELLA_PAGINE_MENU.md) — pagine, ID, script.
 - [Componenti e zone touch](screen-it/TABELLA_COMPONENTI.md).
 - [Guida a Nextion Editor](screen-it/GUIDA_NEXTION_EDITOR.md).
