@@ -16,6 +16,25 @@ screen-it/_*.png
 gui/*.png
 mockup-tft${id}.png
 
+# Artefatti di prova della GUI
+gui/*.log
+gui/*.txt
+gui/*.json
+gui/sim_pages/
+
+# Script di automazione locale (riferimenti alla rete di casa)
+collaudo/ws_read.ps1
+gui/clickwin.ps1
+gui/compose_clean11.ps1
+gui/debugbtn.ps1
+gui/dump_comp.pl
+gui/ed_*.ps1
+gui/imgdiff.ps1
+gui/list_objnames.pl
+gui/scan_events.pl
+gui/scan_tc0.pl
+gui/simcmds.ps1
+
 # Snapshot datate conservate accanto al repository
 NanoEls-H5-*/
 
