@@ -41,3 +41,6 @@ NanoEls-H5-*/
 # Sistema
 Thumbs.db
 desktop.ini
+
+# Backup interni
+backup-*/
