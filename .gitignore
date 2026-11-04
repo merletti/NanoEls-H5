@@ -16,6 +16,9 @@ screen-it/_*.png
 gui/*.png
 mockup-tft${id}.png
 
+# Snapshot datate conservate accanto al repository
+NanoEls-H5-*/
+
 # Sistema
 Thumbs.db
 desktop.ini
