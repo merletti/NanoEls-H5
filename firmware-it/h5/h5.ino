@@ -201,7 +201,7 @@ const bool SPINDLE_PAUSES_GCODE = true; // pause GCode execution when spindle st
 const int GCODE_MIN_RPM = 30; // pause GCode execution if RPM is below this
 
 // To be incremented whenever a measurable improvement is made.
-#define SOFTWARE_VERSION 64
+#define SOFTWARE_VERSION 65
 
 // To be changed whenever a different PCB / encoder / stepper / ... design is used.
 #define HARDWARE_VERSION 5
@@ -957,6 +957,9 @@ const char indexhtml[] PROGMEM = R"rawliteral(
       position: sticky;
       z-index: 8;
     }
+    .config-backup {
+      margin-top: 12px;
+    }
     .action-status {
       flex: 1 1 220px;
       min-height: 1.2em;
@@ -1010,11 +1013,15 @@ const char indexhtml[] PROGMEM = R"rawliteral(
       padding: 8px 10px;
       white-space: nowrap;
     }
-    button.secondary {
+    button.secondary, .button-like.secondary {
       background-color: var(--secondary);
     }
-    button.secondary:hover {
+    button.secondary:hover, .button-like.secondary:hover {
       background-color: var(--secondary-dark);
+    }
+    a.link-button {
+      color: #fff;
+      text-decoration: none;
     }
     #gcode-upload-controls, #tft-upload-controls, #firmware-upload-controls {
       align-items: center;
@@ -1733,8 +1740,9 @@ const char indexhtml[] PROGMEM = R"rawliteral(
           </section>
           <section class="panel">
             <h3>Aggiungi GCode</h3>
-            <p class="section-note">Genera file compatibili con <a href="https://kachurovskiy.com/lathecode/" target="_blank">lathecode</a>.</p>
+            <p class="section-note">Senza un file pronto, genera il GCode con lathecode: il pulsante apre l'editor tradotto in italiano.</p>
             <div id="gcode-upload-controls">
+              <a id="open-lathecode" class="button-like secondary link-button" href="https://kachurovskiy-com.translate.goog/lathecode/?_x_tr_sl=en&amp;_x_tr_tl=it&amp;_x_tr_hl=it" target="_blank" rel="noopener noreferrer" title="Apre lathecode tradotto in italiano con Google Translate">Apri lathecode in italiano</a>
               <label for="gcode-file" id="gcode-browse" class="button-like">Sfoglia file .gcode</label>
               <input type="file" id="gcode-file" accept=".gcode,.nc,.txt,text/plain">
             </div>
@@ -1773,6 +1781,14 @@ const char indexhtml[] PROGMEM = R"rawliteral(
             </div>
             <progress id="firmware-progress" value="0" max="100" hidden></progress>
             <p id="firmware-status"></p>
+          </section>
+          <section class="panel">
+            <h3>Riavvio controller</h3>
+            <p class="section-note">Riavvia la scheda senza togliere alimentazione. Richiede ELS spento e nessun aggiornamento in corso.</p>
+            <div class="config-actions">
+              <button id="reboot-controller" type="button" class="secondary">Riavvia controller</button>
+              <span id="reboot-status" class="action-status" role="status" aria-live="polite"></span>
+            </div>
           </section>
         </div>
       </section>
@@ -1861,6 +1877,17 @@ const char indexhtml[] PROGMEM = R"rawliteral(
             <span id="config-status" class="action-status" role="status" aria-live="polite"></span>
           </div>
         </form>
+        <section id="config-backup-panel" class="panel config-backup">
+          <h3>Backup configurazione</h3>
+          <p class="section-note">Salva su file i parametri macchina per ripristinarli dopo una modifica o su una seconda macchina. La password WiFi non è inclusa.</p>
+          <div class="config-actions">
+            <button id="download-config" type="button">Scarica backup</button>
+            <label for="config-import-file" id="config-import-browse" class="button-like">Scegli file</label>
+            <button id="import-config" type="button" class="secondary" disabled>Ripristina da file</button>
+            <span id="config-backup-status" class="action-status" role="status" aria-live="polite"></span>
+          </div>
+          <input type="file" id="config-import-file" accept=".json,.txt,application/json,text/plain">
+        </section>
       </section>
 
       <section id="section-keyboard" class="app-section" data-section="keyboard" data-page-title="Tastiera">
@@ -1908,6 +1935,7 @@ const char indexhtml[] PROGMEM = R"rawliteral(
 
   <script>
     const defaultSection = 'home';
+    const controllerVersion = ")rawliteral" CONTROLLER_VERSION_TEXT R"rawliteral(";
     const sectionLinks = Array.from(document.querySelectorAll('[data-section-link]'));
     const pageTitle = document.getElementById('page-title');
     const appSections = Array.from(document.querySelectorAll('[data-section]'));
@@ -1965,6 +1993,13 @@ const char indexhtml[] PROGMEM = R"rawliteral(
     const configStatus = document.getElementById('config-status');
     const saveConfigButton = document.getElementById('save-config');
     const resetConfigButton = document.getElementById('reset-config');
+    const downloadConfigButton = document.getElementById('download-config');
+    const configImportBrowseButton = document.getElementById('config-import-browse');
+    const configImportFileInput = document.getElementById('config-import-file');
+    const importConfigButton = document.getElementById('import-config');
+    const configBackupStatus = document.getElementById('config-backup-status');
+    const rebootButton = document.getElementById('reboot-controller');
+    const rebootStatus = document.getElementById('reboot-status');
     const accessibilityVoiceFeedbackInput = document.getElementById('accessibility-voice-feedback');
     const accessibilityAnnounceButtonsInput = document.getElementById('accessibility-announce-buttons');
     const accessibilityAnnounceStatusInput = document.getElementById('accessibility-announce-status');
@@ -2005,6 +2040,9 @@ const char indexhtml[] PROGMEM = R"rawliteral(
     let firmwareStatusPollBusy = false;
     let keyboardLearnTarget = '';
     let keyboardLearnTimer = 0;
+    let configImportText = '';
+    let configImportPending = false;
+    let rebootPending = false;
     let controlHoldHeartbeatTimer = 0;
     let controlWakeLock = null;
     let controlWakeLockBusy = false;
@@ -2873,6 +2911,10 @@ const char indexhtml[] PROGMEM = R"rawliteral(
       addGcodeButton.disabled = gcodeNameInput.value.trim().length < 2 || gcodeContentInput.value.trim().length < 2 || uploadInProgress;
       saveConfigButton.disabled = uploadInProgress;
       resetConfigButton.disabled = uploadInProgress;
+      downloadConfigButton.disabled = uploadInProgress;
+      configImportFileInput.disabled = uploadInProgress;
+      importConfigButton.disabled = uploadInProgress || configImportPending || configImportText.trim().length === 0;
+      rebootButton.disabled = uploadInProgress || rebootPending;
       saveWifiButton.disabled = uploadInProgress;
       resetWifiButton.disabled = uploadInProgress;
       saveKeyboardButton.disabled = uploadInProgress;
@@ -2895,6 +2937,10 @@ const char indexhtml[] PROGMEM = R"rawliteral(
       addGcodeButton.classList.toggle('disabled', addGcodeButton.disabled);
       saveConfigButton.classList.toggle('disabled', saveConfigButton.disabled);
       resetConfigButton.classList.toggle('disabled', resetConfigButton.disabled);
+      downloadConfigButton.classList.toggle('disabled', downloadConfigButton.disabled);
+      configImportBrowseButton.classList.toggle('disabled', uploadInProgress);
+      importConfigButton.classList.toggle('disabled', importConfigButton.disabled);
+      rebootButton.classList.toggle('disabled', rebootButton.disabled);
       saveWifiButton.classList.toggle('disabled', saveWifiButton.disabled);
       resetWifiButton.classList.toggle('disabled', resetWifiButton.disabled);
       saveKeyboardButton.classList.toggle('disabled', saveKeyboardButton.disabled);
@@ -3334,6 +3380,151 @@ const char indexhtml[] PROGMEM = R"rawliteral(
         });
     }
 
+    function submitConfigValues(values, statusElement) {
+      fetch('/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: values
+      })
+      .then(response => response.text().then(text => ({ ok: response.ok, text })))
+      .then(result => {
+        statusElement.textContent = result.text;
+        logMessage(result.text);
+        if (result.ok) {
+          waitForControllerReload();
+        } else {
+          configImportPending = false;
+          importConfigButton.disabled = false;
+          importConfigButton.classList.remove('disabled');
+        }
+      })
+      .catch(() => {
+        statusElement.textContent = 'Impossibile salvare la configurazione macchina';
+      });
+    }
+
+    function downloadConfigBackup() {
+      configBackupStatus.textContent = 'Preparazione del backup...';
+      fetch('/config', { cache: 'no-store' })
+        .then(response => {
+          if (!response.ok) throw new Error('config');
+          return response.text();
+        })
+        .then(data => {
+          const values = parseKeyValueText(data);
+          const machine = {};
+          machineConfigFields.forEach(field => {
+            if (field.key in values) machine[field.key] = values[field.key];
+          });
+          const backup = {
+            format: 'nanoels-h5-config',
+            version: 1,
+            controller: controllerVersion,
+            savedAt: new Date().toISOString(),
+            machine
+          };
+          const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+          link.href = url;
+          link.download = `nanoels-h5-config-${stamp}.json`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          configBackupStatus.textContent = 'Backup scaricato';
+        })
+        .catch(() => {
+          configBackupStatus.textContent = 'Impossibile scaricare la configurazione';
+        });
+    }
+
+    function loadConfigImportFile() {
+      const file = configImportFileInput.files && configImportFileInput.files[0];
+      configImportText = '';
+      importConfigButton.disabled = true;
+      importConfigButton.classList.add('disabled');
+      if (!file) {
+        configBackupStatus.textContent = '';
+        return;
+      }
+      file.text()
+        .then(text => {
+          configImportText = text;
+          importConfigButton.disabled = text.trim().length === 0;
+          importConfigButton.classList.toggle('disabled', importConfigButton.disabled);
+          configBackupStatus.textContent = `File pronto: ${file.name}`;
+        })
+        .catch(() => {
+          configBackupStatus.textContent = 'Impossibile leggere il file';
+        });
+    }
+
+    function parseConfigBackup(text) {
+      const trimmed = text.trim();
+      if (trimmed.startsWith('{')) {
+        const parsed = JSON.parse(trimmed);
+        if (parsed.format && parsed.format !== 'nanoels-h5-config') {
+          throw new Error('formato');
+        }
+        return parsed.machine || parsed;
+      }
+      return parseKeyValueText(text);
+    }
+
+    function importConfig() {
+      if (!configImportText) return;
+      let values;
+      try {
+        values = parseConfigBackup(configImportText);
+      } catch (error) {
+        configBackupStatus.textContent = 'File di backup non valido';
+        return;
+      }
+      const missing = machineConfigFields.filter(field => !(field.key in values));
+      if (missing.length > 0) {
+        configBackupStatus.textContent = `File di backup incompleto: manca ${missing[0].key}`;
+        return;
+      }
+      if (!confirm('Ripristinare la configurazione macchina dal file e riavviare il controller?')) return;
+
+      const request = new URLSearchParams();
+      machineConfigFields.forEach(field => {
+        request.append(field.key, String(values[field.key]));
+      });
+      importConfigButton.disabled = true;
+      importConfigButton.classList.add('disabled');
+      configImportPending = true;
+      configBackupStatus.textContent = 'Ripristino configurazione macchina...';
+      submitConfigValues(request, configBackupStatus);
+    }
+
+    function rebootController() {
+      if (!confirm('Riavviare il controller? La pagina si ricarica da sola quando torna disponibile.')) return;
+      rebootButton.disabled = true;
+      rebootButton.classList.add('disabled');
+      rebootPending = true;
+      rebootStatus.textContent = 'Riavvio in corso...';
+      fetch('/reboot', { method: 'POST' })
+        .then(response => response.text().then(text => ({ ok: response.ok, text })))
+        .then(result => {
+          rebootStatus.textContent = result.text;
+          logMessage(result.text);
+          if (result.ok) {
+            waitForControllerReload();
+          } else {
+            rebootPending = false;
+            rebootButton.disabled = false;
+            rebootButton.classList.remove('disabled');
+          }
+        })
+        .catch(() => {
+          rebootStatus.textContent = 'Riavvio inviato, attendere la riconnessione';
+          waitForControllerReload();
+        });
+    }
+
     function renderKeyboardFields() {
       keyboardFields.innerHTML = '';
       keyboardBindingSections.forEach((section, index) => {
@@ -3637,6 +3828,10 @@ const char indexhtml[] PROGMEM = R"rawliteral(
     gcodeContentInput.addEventListener('input', updateButtonStates);
     configForm.addEventListener('submit', saveConfig);
     resetConfigButton.addEventListener('click', resetConfig);
+    downloadConfigButton.addEventListener('click', downloadConfigBackup);
+    configImportFileInput.addEventListener('change', loadConfigImportFile);
+    importConfigButton.addEventListener('click', importConfig);
+    rebootButton.addEventListener('click', rebootController);
     wifiForm.addEventListener('submit', saveWifi);
     resetWifiButton.addEventListener('click', resetWifi);
     keyboardForm.addEventListener('submit', saveKeyboardConfig);
@@ -5611,6 +5806,17 @@ void handleConfigReset() {
   server.send(200, "text/plain", "Configurazione macchina ripristinata. Riavvio del controller...");
 }
 
+void handleReboot() {
+  if (machineConfigChangeBlocked()) {
+    server.send(409, "text/plain", "Spegni il controller e attendi la fine degli upload prima di riavviare");
+    return;
+  }
+
+  Serial.println("Riavvio richiesto dalla UI web");
+  scheduleConfigRestart();
+  server.send(200, "text/plain", "Riavvio del controller...");
+}
+
 void handleKeyboardConfigGet() {
   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server.send(200, "text/plain", getKeyboardConfigResponse());
@@ -6119,6 +6325,7 @@ void registerWebRoutes() {
   server.on("/config", HTTP_GET, handleConfigGet);
   server.on("/config", HTTP_POST, handleConfigSave);
   server.on("/config/reset", HTTP_POST, handleConfigReset);
+  server.on("/reboot", HTTP_POST, handleReboot);
   server.on("/keyboard-config", HTTP_GET, handleKeyboardConfigGet);
   server.on("/keyboard-config", HTTP_POST, handleKeyboardConfigSave);
   server.on("/keyboard-config/reset", HTTP_POST, handleKeyboardConfigReset);

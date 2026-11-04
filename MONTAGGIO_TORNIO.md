@@ -1,6 +1,6 @@
 # NanoEls H5 — Montaggio sul tornio
 
-Checklist per passare dal banco alla macchina. Riferimenti: firmware **H5V64**,
+Checklist per passare dal banco alla macchina. Riferimenti: firmware **H5V65**,
 [schema di cablaggio](cablaggio/schema_cablaggio.html) rev. 6,
 [manuale d'uso](screen-it/MANUALE_USO.md), prove obbligatorie in
 [PUBBLICAZIONE.md](PUBBLICAZIONE.md) §3.
@@ -84,6 +84,9 @@ Altro:
 - [ ] **Cono**: Diametro grande, Diametro piccolo (la corsa Z è il finecorsa MAX
       impostato nella pagina CONO).
 - [ ] **Joystick**: lasciarlo disattivato se non collegato.
+- [ ] **Backup configurazione**: in *Impostazioni*, dopo aver verificato i
+      parametri, premere **Scarica backup** e conservare il file JSON. Serve per
+      ripristinare la macchina dopo una modifica o per configurarne una seconda.
 - [ ] Annotare i valori scelti qui sotto, servono per il collaudo.
 
 | Parametro | Z | X |
@@ -98,7 +101,7 @@ Altro:
 
 Senza pezzo, con l'utensile lontano dal mandrino e la mano sul fungo.
 
-1. [ ] Accensione: display su MENU, UI web raggiungibile, versione H5V64.
+1. [ ] Accensione: display su MENU, UI web raggiungibile, versione H5V65.
 2. [ ] **ELS OFF**. Jog Z+ e Z− con tocchi brevi: verso corretto sullo schermo,
        distanza pari a STEP misurata col comparatore. Se il verso è sbagliato:
        spegnere, attivare **Inverti direzione** in UI web e riprovare.

@@ -406,7 +406,8 @@ della faccia. La riga DIREZIONE mostra la scelta come `DX>SX` o `SX>DX`.
 
 1. I programmi si caricano dalla sezione **GCode** della UI web: si incolla il
    testo oppure si usa **Sfoglia file .gcode**, poi `Salva` (i commenti vengono
-   scartati se l'opzione è attiva).
+   scartati se l'opzione è attiva). Se il file non c'è, **Apri lathecode in
+   italiano** apre l'editor esterno già tradotto, in una scheda nuova.
 2. `G-CODE`, `OK` → scelta del programma con `▲`/`▼` (`−` cancella il file selezionato).
 3. `OK` → `Accendi il mandrino!`: avviare il mandrino a mano.
 4. `OK` → il programma parte; la striscia mostra il comando in esecuzione.
@@ -508,7 +509,7 @@ corretta nel TFT: annotare quale zona e segnalarlo.
 |---|---|
 | `h5_it.tft` | interfaccia per il pannello: copiarlo sulla SD come `h5.tft` (FAT32, radice) oppure caricarlo dalla Web UI (*Aggiorna display Nextion*) |
 | `h5_it.HMI` | progetto Nextion modificabile, contiene gli sfondi |
-| `h5-IT-20261103-v64.bin` | firmware italiano per ESP32-S3 (H5V64) |
+| `h5-IT-20261104-v65.bin` | firmware italiano per ESP32-S3 (H5V65) |
 | `lavorazione_tft_bg.png` | sfondo della pagina LAVORAZIONE (picture 59) |
 
 Ordine di caricamento in caso di aggiornamento: prima il firmware, poi il TFT.

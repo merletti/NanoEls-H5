@@ -462,11 +462,15 @@
       padding: 8px 10px;
       white-space: nowrap;
     }
-    button.secondary {
+    button.secondary, .button-like.secondary {
       background-color: var(--secondary);
     }
-    button.secondary:hover {
+    button.secondary:hover, .button-like.secondary:hover {
       background-color: var(--secondary-dark);
+    }
+    a.link-button {
+      color: #fff;
+      text-decoration: none;
     }
     #gcode-upload-controls, #tft-upload-controls, #firmware-upload-controls {
       align-items: center;
@@ -1185,8 +1189,9 @@
           </section>
           <section class="panel">
             <h3>Aggiungi GCode</h3>
-            <p class="section-note">Genera file compatibili con <a href="https://kachurovskiy.com/lathecode/" target="_blank">lathecode</a>.</p>
+            <p class="section-note">Senza un file pronto, genera il GCode con lathecode: il pulsante apre l'editor tradotto in italiano.</p>
             <div id="gcode-upload-controls">
+              <a id="open-lathecode" class="button-like secondary link-button" href="https://kachurovskiy-com.translate.goog/lathecode/?_x_tr_sl=en&amp;_x_tr_tl=it&amp;_x_tr_hl=it" target="_blank" rel="noopener noreferrer" title="Apre lathecode tradotto in italiano con Google Translate">Apri lathecode in italiano</a>
               <label for="gcode-file" id="gcode-browse" class="button-like">Sfoglia file .gcode</label>
               <input type="file" id="gcode-file" accept=".gcode,.nc,.txt,text/plain">
             </div>
@@ -1354,7 +1359,7 @@
     </main>
 
     <footer class="app-footer">
-      <p>NanoEls H5V64. Solo rete locale fidata. Spegni il controller prima di aggiornamenti o modifiche alle impostazioni.</p>
+      <p>NanoEls H5V65. Solo rete locale fidata. Spegni il controller prima di aggiornamenti o modifiche alle impostazioni.</p>
     </footer>
   </div>
 
