@@ -11,11 +11,11 @@ File principali: [README.md](README.md) (presentazione), [LICENSE](LICENSE)
 ## A. Prima di pubblicare
 
 1. **Completare i test sul tornio** elencati in PUBBLICAZIONE.md, sezione 3.
-2. **Link del progetto originale**: è già in [README.md](README.md), sezione
-   *Progetto originale*, e rimanda a
-   [kachurovskiy/nanoels — h5](https://github.com/kachurovskiy/nanoels/tree/main/h5).
-   Se in futuro vuoi aggiungere un link donazioni, crea un account Ko-fi o Buy Me
-   a Coffee, inseriscilo nella stessa sezione e fai un commit (sezione D).
+2. **Link del progetto originale e donazioni**: il link al progetto originale è
+   in [README.md](README.md), sezione *Progetto originale*
+   ([kachurovskiy/nanoels — h5](https://github.com/kachurovskiy/nanoels/tree/main/h5));
+   il link «offri un caffè» (PayPal) è nella sezione *Sostieni il progetto*.
+   Per cambiarlo basta modificare quell'indirizzo e fare un commit (sezione D).
 3. **Firma**:
    - la licenza riporta `NanoEls H5 contributors`; se si vuole nome e cognome,
      modificare [LICENSE](LICENSE);
@@ -44,7 +44,7 @@ cartella prima di pubblicarla.
 2. Aprire Git Bash nella cartella e digitare:
 
    ```sh
-   git remote add origin https://github.com/TUONOME/nanoels-h5.git
+   git remote add origin https://github.com/merletti/nanoels-h5.git
    git push -u origin main
    ```
 
@@ -71,7 +71,7 @@ Dal sito GitHub: repository → **Releases** → **Draft a new release**.
 
 - Tag: `v0.1.0` — titolo: `NanoEls H5 v0.1.0`.
 - Allegare i file già presenti nella cartella:
-  - `firmware-it/h5-IT-20261104-v65.bin`
+  - `firmware-it/h5-IT-20261105-v65.bin`
   - `screen-it/h5_it.tft`
   - `screen-it/MANUALE_USO.md`
 - Descrivere le novità e l'ordine di aggiornamento (**prima firmware, poi TFT**),

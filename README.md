@@ -175,6 +175,12 @@ Il montaggio su tornio di questa variante è descritto in
 [MONTAGGIO_TORNIO.md](MONTAGGIO_TORNIO.md). Il progetto è libero e gratuito,
 senza funzioni a pagamento.
 
+## Sostieni il progetto
+
+Se il progetto ti è stato utile, puoi offrirmi un caffè con PayPal:
+[Offri un caffè](https://www.paypal.com/biz/profile/officinamerletti).
+Le donazioni sono facoltative: nessuna funzione è a pagamento.
+
 ## Crediti
 
 - Maxim Kachurovskiy — progetto [NanoEls](https://github.com/kachurovskiy/nanoels).

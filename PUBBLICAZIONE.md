@@ -1,13 +1,16 @@
 # Pubblicazione del progetto
 
-Checklist per mettere online il repository in modo libero e gratuito, senza
-donazioni. Da completare quando il progetto è testato.
+Checklist per mettere online il repository in modo libero e gratuito, con un
+link donazioni facoltativo. Da completare quando il progetto è testato.
 
 ## 1. Contenuti da completare
 
 - [x] **Link del progetto originale**: in [README.md](README.md), sezione
-      *Progetto originale*, rimanda a `kachurovskiy/nanoels/h5`. Nessun link
-      donazioni.
+      *Progetto originale*, rimanda a `kachurovskiy/nanoels/h5`.
+- [x] **Link «offri un caffè»**: sezione *Sostieni il progetto* di
+      [README.md](README.md), con il profilo PayPal
+      `paypal.com/biz/profile/officinamerletti`. Le donazioni restano
+      facoltative.
 - [ ] **Nome autore**: in [LICENSE](LICENSE) c'è `NanoEls H5 contributors`;
       se vuoi comparire con nome e cognome, aggiornalo (e la config git del repo).
 - [ ] **Screenshot reali**: le immagini del README sono gli sfondi 800×480 del
