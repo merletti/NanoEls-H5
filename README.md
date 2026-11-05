@@ -169,6 +169,7 @@ la nota di copyright originale è mantenuta.
 
 Questa è una variante italiana del progetto H5 di NanoEls. Sorgenti, storia e
 istruzioni originali: [kachurovskiy/nanoels — h5](https://github.com/kachurovskiy/nanoels/tree/main/h5).
+Video del progetto: [guarda su YouTube](https://www.youtube.com/watch?v=thNJafjMl1Y).
 
 Il montaggio su tornio di questa variante è descritto in
 [MONTAGGIO_TORNIO.md](MONTAGGIO_TORNIO.md). Il progetto è libero e gratuito,
