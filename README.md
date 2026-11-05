@@ -149,19 +149,30 @@ Da completare prima della pubblicazione:
 - Il controller comanda motori: prima di ogni prova togliere l'utensile dal pezzo
   e tenere a portata di mano lo STOP.
 
+## Responsabilità
+
+Il progetto è distribuito con licenza MIT, **così com'è e senza alcuna garanzia**.
+Chi lo costruisce, lo modifica o lo usa se ne assume ogni rischio: il controller
+comanda motori e organi in movimento, quindi un errore di cablaggio, di parametri
+o di software può danneggiare la macchina o provocare lesioni. Prima dell'uso
+verificare i dispositivi di sicurezza del tornio, rispettare le norme locali e
+non lasciare la macchina incustodita durante la lavorazione. Gli autori non
+rispondono di danni a cose, persone o perdite di dati derivanti dall'uso del
+progetto.
+
 ## Licenza
 
 [MIT](LICENSE). Il progetto deriva da NanoEls di Maxim Kachurovskiy (MIT, 2020):
 la nota di copyright originale è mantenuta.
 
-## Sostieni il progetto
+## Progetto originale
 
-Il progetto è libero e gratuito, senza funzioni a pagamento. Se ti è utile e vuoi
-offrirmi un caffè, il link per le donazioni sarà inserito qui prima della
-pubblicazione:
+Questa è una variante italiana del progetto H5 di NanoEls. Sorgenti, storia e
+istruzioni originali: [kachurovskiy/nanoels — h5](https://github.com/kachurovskiy/nanoels/tree/main/h5).
 
-<!-- TODO: inserire qui il link "offrimi un caffè" (Buy Me a Coffee / Ko-fi) -->
-_link donazioni in arrivo_
+Il montaggio su tornio di questa variante è descritto in
+[MONTAGGIO_TORNIO.md](MONTAGGIO_TORNIO.md). Il progetto è libero e gratuito,
+senza funzioni a pagamento.
 
 ## Crediti
 

@@ -1,13 +1,13 @@
 # Pubblicazione del progetto
 
-Checklist per mettere online il repository in modo libero e gratuito, con la
-possibilità di offrire un caffè. Da completare quando il progetto è testato.
+Checklist per mettere online il repository in modo libero e gratuito, senza
+donazioni. Da completare quando il progetto è testato.
 
 ## 1. Contenuti da completare
 
-- [ ] **Link donazioni**: sostituire il segnaposto in [README.md](README.md)
-      (sezione *Sostieni il progetto*) con il link Buy Me a Coffee / Ko-fi.
-      Il link va creato prima: il progetto non ne contiene ancora uno.
+- [x] **Link del progetto originale**: in [README.md](README.md), sezione
+      *Progetto originale*, rimanda a `kachurovskiy/nanoels/h5`. Nessun link
+      donazioni.
 - [ ] **Nome autore**: in [LICENSE](LICENSE) c'è `NanoEls H5 contributors`;
       se vuoi comparire con nome e cognome, aggiornalo (e la config git del repo).
 - [ ] **Screenshot reali**: le immagini del README sono gli sfondi 800×480 del
@@ -23,6 +23,8 @@ possibilità di offrire un caffè. Da completare quando il progetto è testato.
 - [ ] `git status` pulito e repository senza remote.
 - [ ] Licenza: il progetto deriva da NanoEls (MIT). La nota di copyright originale
       deve restare in [LICENSE](LICENSE).
+- [x] Avvertenza di responsabilità presente in [README.md](README.md) (sezione
+      *Responsabilità*).
 - [ ] I binari in `firmware-it/` corrispondono al firmware compilato (versione in
       `SOFTWARE_VERSION`).
 

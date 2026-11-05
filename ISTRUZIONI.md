@@ -11,12 +11,11 @@ File principali: [README.md](README.md) (presentazione), [LICENSE](LICENSE)
 ## A. Prima di pubblicare
 
 1. **Completare i test sul tornio** elencati in PUBBLICAZIONE.md, sezione 3.
-2. **Link "offrimi un caffè"**:
-   - creare un account su buymeacoffee.com oppure ko-fi.com;
-   - copiare il link del proprio profilo;
-   - aprire [README.md](README.md), cercare la riga `_link donazioni in arrivo_`
-     e sostituirla con `[Offrimi un caffè](IL_TUO_LINK)`;
-   - salvare e fare un commit (comandi in sezione D).
+2. **Link del progetto originale**: è già in [README.md](README.md), sezione
+   *Progetto originale*, e rimanda a
+   [kachurovskiy/nanoels — h5](https://github.com/kachurovskiy/nanoels/tree/main/h5).
+   Se in futuro vuoi aggiungere un link donazioni, crea un account Ko-fi o Buy Me
+   a Coffee, inseriscilo nella stessa sezione e fai un commit (sezione D).
 3. **Firma**:
    - la licenza riporta `NanoEls H5 contributors`; se si vuole nome e cognome,
      modificare [LICENSE](LICENSE);
