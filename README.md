@@ -9,6 +9,11 @@ Kachurovskiy (licenza MIT); questa variante aggiunge l'interfaccia H5, la grafic
 TFT a card, l'avvio della lavorazione in un tocco e la gestione OTA di firmware e
 display.
 
+> **Avvertenza**: il progetto è fornito **così com'è, senza alcuna garanzia**. Chi
+> lo costruisce, lo modifica o lo usa se ne assume ogni rischio e responsabilità:
+> il controller comanda motori e organi in movimento. Vedi
+> [Responsabilità](#responsabilità).
+
 > Il progetto è in fase di rifinitura. Il firmware compila, gira sul controller e
 > l'interfaccia è verificata; restano da completare le prove fisiche sul tornio
 > (vedi [Stato del progetto](#stato-del-progetto)) prima della pubblicazione.
@@ -152,13 +157,13 @@ Da completare prima della pubblicazione:
 ## Responsabilità
 
 Il progetto è distribuito con licenza MIT, **così com'è e senza alcuna garanzia**.
-Chi lo costruisce, lo modifica o lo usa se ne assume ogni rischio: il controller
-comanda motori e organi in movimento, quindi un errore di cablaggio, di parametri
-o di software può danneggiare la macchina o provocare lesioni. Prima dell'uso
-verificare i dispositivi di sicurezza del tornio, rispettare le norme locali e
-non lasciare la macchina incustodita durante la lavorazione. Gli autori non
-rispondono di danni a cose, persone o perdite di dati derivanti dall'uso del
-progetto.
+L'uso è a proprio rischio e pericolo. Chi lo costruisce, lo modifica o lo usa se
+ne assume ogni responsabilità: il controller comanda motori e organi in movimento,
+quindi un errore di cablaggio, di parametri o di software può danneggiare la
+macchina o provocare lesioni. Prima dell'uso verificare i dispositivi di sicurezza
+del tornio, rispettare le norme locali e non lasciare la macchina incustodita
+durante la lavorazione. L'autore non si assume alcuna responsabilità per danni a
+cose, persone o perdite di dati derivanti dall'uso del progetto.
 
 ## Licenza
 
