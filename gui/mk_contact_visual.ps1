@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $jpg  = Join-Path $PSScriptRoot 'contact_sheet.jpg'
-$out  = 'C:\Users\Admin\.qoder\app\chat-session-visualizations\dfa27f31-ad6f-4586-8b16-fd6196262fb9\visualizations\pagine-tft-verifica-01.html'
+$out  = Join-Path $PSScriptRoot 'pagine-tft-verifica-01.html'
 $b64  = [Convert]::ToBase64String([IO.File]::ReadAllBytes($jpg))
 $html = @"
 <style>

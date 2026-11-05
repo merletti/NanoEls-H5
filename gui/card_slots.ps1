@@ -1,4 +1,4 @@
-param([string]$root = "C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5")
+param([string]$root = (Split-Path $PSScriptRoot -Parent))
 Add-Type -AssemblyName System.Drawing
 $ids = Get-Content (Join-Path $root "mockup-tft\card_clean\order.txt")
 foreach ($id in $ids) {

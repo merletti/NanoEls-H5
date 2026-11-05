@@ -1,4 +1,4 @@
-param([string]$root = "C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5")
+param([string]$root = (Split-Path $PSScriptRoot -Parent))
 Add-Type -AssemblyName System.Drawing
 $bmp = [System.Drawing.Bitmap]::FromFile((Join-Path $root "screen-it\card_clean_ingranaggi.png"))
 for ($y = 240; $y -lt $bmp.Height; $y++) {

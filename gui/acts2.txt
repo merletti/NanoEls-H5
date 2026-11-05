@@ -1,1 +1,1 @@
-click,18,518;wait,1800;click,750,890;key,^a;key,{DEL};wait,200;type,C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5\screen-it\asincrono_bg.png;key,{ENTER};wait,3000;click,831,554;wait,1500;
+click,18,518;wait,1800;click,750,890;key,^a;key,{DEL};wait,200;type,screen-it\asincrono_bg.png;key,{ENTER};wait,3000;click,831,554;wait,1500;

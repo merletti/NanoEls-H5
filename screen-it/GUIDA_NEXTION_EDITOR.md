@@ -9,7 +9,7 @@ cercala tra le proprietà a destra (sono gli stessi attributi usati dal firmware
 
 ## 0. Prima di toccare qualsiasi cosa
 
-1. Copia `C:\Users\Admin\Desktop\h5\screen\h5.HMI` e il `h5.tft` di fabbrica in una
+1. Copia l'`h5.HMI` originale del progetto (e il `h5.tft` di fabbrica) in una
    cartella di backup (`backup-tft\`). Servono per tornare indietro.
 2. Apri Nextion Editor → **File → Open** → `h5.HMI`.
 3. **File → Save As** → `h5_it.HMI` nella cartella `screen-it`.

@@ -9,7 +9,7 @@ function Sample($file, $points) {
   }
   $bmp.Dispose()
 }
-$base = "C:/Users/Admin/Documents/Qoder/2026-10-30/dfa27f31/nanoels-h5/screen-it/"
+$base = "$PSScriptRoot\..\screen-it\"
 Sample ($base + "ingranaggi_bg.png") @(@(400,300),@(300,100),@(640,300),@(700,310),@(50,460))
 Sample ($base + "scanalatura_bg.png") @(@(400,300),@(250,310),@(400,460),@(400,320))
 Sample ($base + "menu_bg.png") @(@(400,60),@(700,30),@(750,37),@(300,200))

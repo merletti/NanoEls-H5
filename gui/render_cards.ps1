@@ -1,7 +1,7 @@
-param([string]$root = "C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5")
+param([string]$root = (Split-Path $PSScriptRoot -Parent))
 Add-Type -AssemblyName System.Drawing
 
-$chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+$chrome = "$env:ProgramFiles\Google\Chrome\Application\chrome.exe"
 $mp = Join-Path $root "mockup-tft"
 $ids = Get-Content (Join-Path $mp "card_clean\order.txt")
 $cards = @()

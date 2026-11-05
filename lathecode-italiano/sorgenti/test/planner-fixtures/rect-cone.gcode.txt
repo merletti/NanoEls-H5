@@ -1,0 +1,135 @@
+; Lines starting with ";" are comments
+;
+; UNITS IN ; you can use inches
+; STOCK D5
+; STOCK R2.5 ; diameter or radius can be used
+;
+; TOOL RECT R0.2 L3
+; TOOL ROUND R8 ; round tool is also supported
+; TOOL ANG R0.2 L7.75 A30 NA55 ; L - edge length, NA - nose angle, A - tool rotation
+;
+; DEPTH CUT1 ; default depth of cut is 0.5mm
+; FEED MOVE200 PASS50 PART10 ; speeds mm/min
+;
+; L1 D2
+; L3 D3
+; L4 DS3 DE5
+; L3
+
+; Run time 0.8 min, cutting 71% of time
+; Working area 11.00 by 2.66 mm
+; Axes expected: Z+ points left, X+ points up
+
+G21 ; metric
+G18 ; ZX plane
+G90 ; absolute positioning
+F200
+X-2.5 ; zero your tool X on centerline
+Z0 ; zero your tool Z at the right edge of the stock
+G91 ; relative positioning
+Z1
+
+F50
+X1.4 ; cut 1.3916 mm2
+
+F200
+X-1.4
+Z1
+
+F50
+X0.9 ; cut 0.8916 mm2
+
+F200
+X-0.9
+Z1
+
+F50
+X0.9 ; cut 0.9 mm2
+
+F200
+X-0.9
+Z1
+
+F50
+X0.9 ; cut 0.9 mm2
+
+F200
+X-0.9
+Z1
+
+F50
+X0.69 ; cut 0.6816 mm2
+Z-0.82 X0.21 ; cut 0.0968 mm2 at -75.64°
+
+F200
+X-0.9
+Z1.82
+
+F50
+X0.44 ; cut 0.4316 mm2
+Z-1 X0.25 ; cut 0.0934 mm2 at -75.96°
+
+F200
+X-0.69
+Z2
+
+F50
+Z-0.02 X0.2 ; cut 0.19 mm2 at -5.71°
+Z-0.98 X0.24 ; cut 0.085 mm2 at -76.24°
+
+F200
+X-0.44
+Z1.75
+
+F50
+Z-0.75 X0.19 ; cut 0.05 mm2 at -75.78°
+
+F200
+X-0.19
+Z3.99
+
+F10
+X0.16 ; cut 0.4632 mm2
+
+F200
+X-0.16
+Z-10.99
+X1.67
+
+F50
+Z0.02 X-0.06 ; cut 0.002 mm2 at -18.43°
+Z0.07 X-0.07 ; cut 0.004 mm2 at -45.00°
+Z0.08 X-0.04 ; cut 0.0044 mm2 at -63.43°
+Z0.83 ; cut 0.0901 mm2
+Z0.01 X-0.37 ; cut 0.0046 mm2 at -1.55°
+Z0.03 X-0.05 ; cut 0.0021 mm2 at -30.96°
+Z0.08 X-0.06 ; cut 0.0039 mm2 at -53.13°
+Z0.05 X-0.02 ; cut 0.0031 mm2 at -68.20°
+Z3.01 ; cut 0.3039 mm2
+Z3.97 X-1 ; cut 0.3674 mm2 at -75.86°
+Z2.68 ; cut 0.0268 mm2
+
+F200
+Z0.06 X0.02 ; cut 0.0006 mm2 at 71.57°
+Z0.07 X0.07 ; cut 0.0008 mm2 at 45.00°
+Z0.03 X0.07 ; cut 0.0007 mm2 at 23.20°
+
+F50
+Z0.01 X2.5 ; cut 7.0384 mm2 at 0.23°
+
+F200
+X-2.66
+Z-0.01
+
+F50
+X0.16 ; cut 0.0016 mm2
+
+F200
+Z0.01 X0.01 ; cut 0.0001 mm2
+
+F50
+X2.49 ; cut 0.0249 mm2
+X-2.66 ; cut 0.0266 mm2
+
+F200
+Z-11

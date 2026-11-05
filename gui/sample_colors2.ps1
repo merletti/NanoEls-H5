@@ -9,7 +9,7 @@ function Sample($file, $points) {
   }
   $bmp.Dispose()
 }
-$base = "C:/Users/Admin/Documents/Qoder/2026-10-30/dfa27f31/nanoels-h5/gui/"
+$base = "$PSScriptRoot\"
 Sample ($base + "sim_gcode2_open.png") @(@(600,250),@(600,300),@(600,355),@(100,230),@(100,290),@(100,350))
 Sample ($base + "sim_setup_open.png") @(@(200,200),@(400,300),@(150,190))
 Sample ($base + "sim_wifi_open.png") @(@(60,280),@(300,280),@(60,240),@(700,260))

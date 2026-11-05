@@ -1,0 +1,116 @@
+; shape.stl
+;
+; Uncomment and modify lines below as needed
+; STOCK D5
+; TOOL RECT R0.2 L2
+; DEPTH CUT1 FINISH0.1
+; FEED MOVE200 PASS50 PART10 ; speeds mm/min
+; MODE TURN ; for classic style of material removal
+; AXES RIGHT DOWN ; for non-NanoEls controllers
+;
+; L5.000 R6.000
+; L5.000 R10.000
+
+; Run time 1.4 min, cutting 77% of time
+; Working area 10.00 by 4.35 mm
+; Axes expected: Z+ points left, X+ points up
+
+G21 ; metric
+G18 ; ZX plane
+G90 ; absolute positioning
+F200
+X-10 ; zero your tool X on centerline
+Z0 ; zero your tool Z at the right edge of the stock
+G91 ; relative positioning
+Z0.5
+
+F50
+X3.9 ; cut 1.9156 mm2
+
+F200
+X-3.9
+Z0.5
+
+F50
+X3.9 ; cut 1.95 mm2
+
+F200
+X-3.9
+Z0.5
+
+F50
+X3.9 ; cut 1.95 mm2
+
+F200
+X-3.9
+Z0.5
+
+F50
+X3.9 ; cut 1.95 mm2
+
+F200
+X-3.9
+Z0.5
+
+F50
+X3.9 ; cut 1.95 mm2
+
+F200
+X-3.9
+Z0.5
+
+F50
+X3.9 ; cut 1.95 mm2
+
+F200
+X-3.9
+Z0.5
+
+F50
+X3.9 ; cut 1.95 mm2
+
+F200
+X-3.9
+Z0.5
+
+F50
+X3.9 ; cut 1.95 mm2
+
+F200
+X-3.9
+Z0.5
+
+F50
+X3.9 ; cut 1.95 mm2
+
+F200
+X-3.9
+Z0.5
+
+F50
+X3.9 ; cut 1.95 mm2
+
+F200
+X-3.9
+Z-5
+X4.35
+
+F50
+Z0.02 X-0.08 ; cut 0.0021 mm2 at -14.04°
+Z0.06 X-0.1 ; cut 0.0024 mm2 at -30.96°
+Z0.11 X-0.11 ; cut 0.0032 mm2 at -45.00°
+Z0.16 X-0.06 ; cut 0.0083 mm2 at -69.44°
+Z4.65 ; cut 0.4858 mm2
+X-3.65 ; cut 0.0365 mm2
+
+F200
+Z0.02 X-0.08 ; cut 0.0008 mm2 at -14.04°
+Z0.06 X-0.1 ; cut 0.001 mm2 at -30.96°
+
+F50
+Z0.11 X-0.11 ; cut 0.0012 mm2 at -45.00°
+Z0.16 X-0.06 ; cut 0.0016 mm2 at -69.44°
+Z4.65 ; cut 0.0465 mm2
+
+F200
+Z-10

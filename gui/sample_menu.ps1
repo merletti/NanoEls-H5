@@ -1,5 +1,5 @@
 Add-Type -AssemblyName System.Drawing
-$base = "C:/Users/Admin/Documents/Qoder/2026-10-30/dfa27f31/nanoels-h5/"
+$base = "$PSScriptRoot\..\"
 $bmp = [System.Drawing.Bitmap]::FromFile($base + "screen-it/menu_bg.png")
 foreach ($p in @(@(120,90),@(20,80),@(120,400),@(300,400),@(400,300),@(600,50),@(400,460))) {
   $c = $bmp.GetPixel($p[0], $p[1])

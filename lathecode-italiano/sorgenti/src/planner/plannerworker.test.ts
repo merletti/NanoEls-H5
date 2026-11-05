@@ -1,0 +1,232 @@
+import { describe, expect, it } from 'vitest';
+import { LatheCode } from '../common/lathecode';
+import { Move } from '../common/move';
+import { PixelMove } from '../common/pixel';
+import { AppSettings } from '../common/settings';
+import { PlannerBitmap, PlannerCell } from './bitmap';
+import { PLANNER_PREVIEW_MAX_PIXELS, PlannerWorker } from './plannerworker';
+
+describe('PlannerWorker', () => {
+  it('uses the pixel planner by default', () => {
+    const messages = planMessages('STOCK D4\nTOOL RECT R0 L1 H1\nDEPTH CUT0.5 FINISH0.1\nMODE TURN\nL2 R1', 10);
+    const moves = messages.find(message => message.moves)?.moves;
+
+    expect(moves?.length).toBeGreaterThan(0);
+    expect(moves?.[0]).toBeInstanceOf(PixelMove);
+    expect(messages.some(message => message.canvas || message.tool)).toBeTruthy();
+    expect(messages.some(message => message.progressMessage?.startsWith('Sgrossatura vettoriale '))).toBeFalsy();
+  });
+
+  it('uses the vector planner only when selected', () => {
+    const messages = planMessages(
+      'STOCK D4\nTOOL RECT R0 L1 H1\nDEPTH CUT0.5 FINISH0.1\nMODE TURN\nL2 R1',
+      {pxPerMm: 10, plannerEngine: 'vector'},
+    );
+    const moves = messages.find(message => message.moves)?.moves;
+
+    expect(moves?.length).toBeGreaterThan(0);
+    expect(moves?.[0]).toBeInstanceOf(Move);
+    expect(messages.some(message => message.canvas || message.tool)).toBeFalsy();
+    expect(messages.some(message => message.progressMessage?.startsWith('Passata di sgrossatura vettoriale longitudinale '))).toBeTruthy();
+  });
+
+  it('finishes the chuck-side region after the last face-mode cutoff', () => {
+    const messages = planMessages(`STOCK D22
+TOOL RECT R0.15 L1.5 H4
+DEPTH CUT0.45 FINISH0.1
+FEED MOVE220 PASS50 PART12
+L2 D12
+L4 D14
+L1.5
+L2 D10
+L5 D16
+L1.5
+L2 D12
+L7 D18
+L3 D20`, 10);
+
+    const finishMessages = messages.filter(message => message.progressMessage === "Finitura dell'area già tagliata");
+
+    expect(finishMessages.length).toBe(3);
+  });
+
+  it('merges duplicate cutoff passes in turn mode', () => {
+    const messages = planMessages(`STOCK D4
+TOOL RECT R0 L1 H1
+DEPTH CUT0.5 FINISH0.1
+MODE TURN
+L2 D2
+L1
+L1 D2`, 10);
+
+    const completedPasses = messages.filter(message => message.progressMessage?.startsWith('Passata '));
+
+    expect(completedPasses.map(message => message.progressMessage)).toEqual([
+      'Passata 0 completata',
+      'Passata 1 completata',
+    ]);
+  });
+
+  it('preserves finishing when merging duplicate face passes', () => {
+    const messages = planMessages(`STOCK D4
+TOOL RECT R0 L1 H1
+DEPTH CUT0.5 FINISH0.1
+L1 D2
+L1`, 10);
+
+    const finishMessages = messages.filter(message => message.progressMessage === "Finitura dell'area già tagliata");
+
+    expect(finishMessages.length).toBe(2);
+  });
+
+  it('cuts a finish pass for outside profiles on tube stock', () => {
+    const moves = planMoves(`STOCK D10 ID4
+TOOL ANG R0.2 L6 A35 NA55
+DEPTH CUT0.6 FINISH0.1
+MODE TURN
+L3 R3.5
+L4 RS3.5 RE4.6
+L2 R4.6`, 100);
+    const finishCutMoves = moves.filter(move =>
+      move instanceof PixelMove &&
+      move.isFinishPass &&
+      move.cutArea > 0 &&
+      move.cutBounds);
+    const finishCutArea = finishCutMoves.reduce((sum, move) => sum + (move as PixelMove).cutArea, 0);
+
+    expect(finishCutMoves.length).toBeGreaterThan(0);
+    expect(finishCutArea).toBeGreaterThan(5000);
+  });
+
+  it('keeps inch depth-of-cut passes on the integer pixel grid', () => {
+    const moves = planMoves(`UNITS IN
+STOCK D1
+TOOL RECT R0 L0.1 H0.1
+DEPTH CUT0.025 FINISH0.004
+MODE TURN
+L1 D0.5`, 10);
+
+    expect(moves.every(move => move instanceof PixelMove)).toBe(true);
+    for (const move of moves as PixelMove[]) {
+      expect(Number.isInteger(move.xStart)).toBe(true);
+      expect(Number.isInteger(move.yStart)).toBe(true);
+      expect(Number.isInteger(move.xDelta)).toBe(true);
+      expect(Number.isInteger(move.yDelta)).toBe(true);
+    }
+  });
+
+  it('simplifies tiny pixel roughing stair moves', () => {
+    const text = `STOCK D32
+TOOL ROUND R3
+DEPTH CUT0.45 FINISH0.1
+FEED MOVE180 PASS36 PART9
+MODE TURN
+
+L3 D10
+L24 DS10 DE22 BSPLINE D14 D26 D18 D28
+L4 D28 CH0.5`;
+    const withoutSimplification = planMoves(text, {
+      pxPerMm: 100,
+      plannerEngine: 'pixel',
+      pixelRoughStairToleranceMm: 0,
+    }).filter((move): move is PixelMove => move instanceof PixelMove);
+    const withSimplification = planMoves(text, {
+      pxPerMm: 100,
+      plannerEngine: 'pixel',
+      pixelRoughStairToleranceMm: 0.025,
+    }).filter((move): move is PixelMove => move instanceof PixelMove);
+
+    const tinyCutMoveCountWithoutSimplification = countTinyCutMoves(withoutSimplification, 10);
+    const tinyCutMoveCountWithSimplification = countTinyCutMoves(withSimplification, 10);
+
+    expect(tinyCutMoveCountWithoutSimplification).toBeGreaterThan(0);
+    expect(tinyCutMoveCountWithSimplification).toBeLessThan(tinyCutMoveCountWithoutSimplification);
+    expect(withSimplification.some(move => move.cutArea > 0)).toBe(true);
+  });
+
+  it('does not change vector-generated moves when pxPerMm changes', () => {
+    const text = 'STOCK D6\nTOOL RECT R0 L1 H1\nDEPTH CUT0.75 FINISH0.15\nL3 R2\nL2 R1.5';
+
+    expect(planMoves(text, {pxPerMm: 10, plannerEngine: 'vector'}))
+      .toEqual(planMoves(text, {pxPerMm: 1000, plannerEngine: 'vector'}));
+  });
+
+  it('sends bounded previews for large pixel planner bitmaps', () => {
+    const messages: PlannerMessage[] = [];
+    const canvas = new PlannerBitmap(2001, 1000);
+    const tool = new PlannerBitmap(1, 1, PlannerCell.Tool);
+
+    new PlannerWorker(new LatheCode('STOCK D2\nTOOL RECT R0 L1 H1\nDEPTH CUT5000 FINISH0\nL1 R1'), 1, {
+      rasterizer: {
+        createPartBitmap: () => canvas,
+        createToolBitmap: () => tool,
+      },
+      postMessage: message => messages.push(message),
+      optimizeMoves: moves => moves,
+    });
+
+    const preview = messages.find(message => message.canvas)?.canvas as PlannerMessageImage | undefined;
+    const toolPreview = messages.find(message => message.tool)?.tool as PlannerMessageImage | undefined;
+    const previewMessages = messages.filter(message => message.canvas || message.tool);
+
+    expect(preview).toBeTruthy();
+    expect(toolPreview).toBeTruthy();
+    expect(previewMessages).toHaveLength(2);
+    expect(preview!.scale).toBeGreaterThan(1);
+    expect(toolPreview!.scale).toBe(preview!.scale);
+    expect(preview!.width * preview!.height).toBeLessThanOrEqual(PLANNER_PREVIEW_MAX_PIXELS);
+    expect(preview!.data.length).toBe(preview!.width * preview!.height * 4);
+  });
+
+  it('skips preview generation when the source bitmap exceeds the configured preview limit', () => {
+    const messages: PlannerMessage[] = [];
+    const canvas = new PlannerBitmap(2001, 1000);
+    const tool = new PlannerBitmap(1, 1, PlannerCell.Tool);
+
+    new PlannerWorker(
+      new LatheCode('STOCK D2\nTOOL RECT R0 L1 H1\nDEPTH CUT5000 FINISH0\nL1 R1'),
+      {pxPerMm: 1, plannerPreviewSourcePixelLimit: 2000000},
+      {
+        rasterizer: {
+          createPartBitmap: () => canvas,
+          createToolBitmap: () => tool,
+        },
+        postMessage: message => messages.push(message),
+        optimizeMoves: moves => moves,
+      },
+    );
+
+    expect(messages.some(message => message.canvas || message.tool)).toBe(false);
+    expect(messages.some(message => message.moves)).toBe(true);
+  });
+});
+
+type PlannerMessage = {
+  progressMessage?: string,
+  moves?: (Move | PixelMove)[],
+  canvas?: unknown,
+  tool?: unknown,
+};
+
+type PlannerMessageImage = {
+  width: number,
+  height: number,
+  data: Uint8ClampedArray,
+  scale: number,
+};
+
+function planMoves(text: string, settings: number | Partial<AppSettings>): (Move | PixelMove)[] {
+  return planMessages(text, settings).find(message => message.moves)?.moves ?? [];
+}
+
+function planMessages(text: string, settings: number | Partial<AppSettings>): PlannerMessage[] {
+  const messages: PlannerMessage[] = [];
+  new PlannerWorker(new LatheCode(text), settings, {
+    postMessage: message => messages.push(message),
+  });
+  return messages;
+}
+
+function countTinyCutMoves(moves: PixelMove[], maxCutAreaPx: number): number {
+  return moves.filter(move => move.cutArea > 0 && move.cutArea <= maxCutAreaPx).length;
+}

@@ -1,8 +1,8 @@
 use strict; use warnings;
 binmode STDOUT;
 
-my $in  = 'C:/Users/Admin/Documents/Qoder/2026-10-30/dfa27f31/nanoels-h5/screen-it/h5_it.HMI';
-my $out = 'C:/Users/Admin/Documents/Qoder/2026-10-30/dfa27f31/nanoels-h5/screen-it/h5_it_patched.HMI';
+my $in  = '../screen-it/h5_it.HMI';
+my $out = '../screen-it/h5_it_patched.HMI';
 
 open my $fh, '<:raw', $in or die "open: $!";
 local $/; my $d = <$fh>; close $fh;

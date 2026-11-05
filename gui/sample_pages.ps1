@@ -1,5 +1,5 @@
 Add-Type -AssemblyName System.Drawing
-$base = "C:/Users/Admin/Documents/Qoder/2026-10-30/dfa27f31/nanoels-h5/gui/"
+$base = "$PSScriptRoot\"
 $files = @("sim_wifi_open.png","sim_comando_open.png","sim_setup_open.png","sim_scanalatura_open.png","sim_info_open.png","sim_gcode2_open.png")
 $points = @{
   "sim_wifi_open.png" = @(@(300,150),@(300,230),@(200,290),@(360,290),@(300,350),@(600,300),@(300,120));

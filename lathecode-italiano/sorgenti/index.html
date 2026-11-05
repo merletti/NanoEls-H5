@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Editor lathecode</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg transform='rotate(-40 32 32)'%3E%3Crect x='14' y='14' width='36' height='42' rx='8' fill='%23c9f3b8'/%3E%3Cellipse cx='32' cy='14' rx='21' ry='8' fill='%23858585'/%3E%3Cellipse cx='32' cy='17' rx='16' ry='5' fill='%23c9f3b8'/%3E%3Cpath d='M19 17h26v9H19z' fill='%23101814'/%3E%3Cpath d='M21 25h22v10H21z' fill='%23303934'/%3E%3Cpath d='M24 34h16v7H24z' fill='%23171d19'/%3E%3Cpath d='M27 40h18v12H27z' fill='%23343d37'/%3E%3Cellipse cx='32' cy='17' rx='13' ry='5' fill='%2307100b'/%3E%3Cellipse cx='32' cy='25' rx='13' ry='4' fill='%231c241f'/%3E%3Cellipse cx='32' cy='35' rx='8' ry='3.5' fill='%234a534d'/%3E%3Cpath d='M27 52h18l-9 10z' fill='%23ff120a'/%3E%3C/g%3E%3C/svg%3E">
+</head>
+
+<body>
+  <div class="vcont">
+    <div id="startContainer">
+      <section class="startSection">
+        <h2>Crea un lathecode</h2>
+        <p>Progetta pezzi torniti partendo da campioni, quote, lavori salvati o mesh STL, visualizza l'anteprima ed esporta STL o G-code per la lavorazione.</p>
+        <div class="startGrid">
+          <button class="startCard sampleCatalogButton" title="Scegli tra forme base e pezzi di esempio">
+            <strong>Campioni</strong>
+            <span>Apri forme base, esempi di fori, coni, archi e campioni di troncatura.</span>
+          </button>
+          <button class="startCard startDimensionsButton" title="Disegna un profilo dalle quote del pezzo">
+            <strong>Disegno profilo</strong>
+            <span>Imposta diametro e lunghezza, disegna il profilo della metà superiore e convertilo in lathecode.</span>
+          </button>
+          <button class="startCard startStlButton" title="Genera lathecode da un file STL">
+            <strong>Importa STL</strong>
+            <span>Proietta una mesh in lathecode con l'importatore STL.</span>
+          </button>
+          <button class="startCard startPromptButton" title="Sperimentale: genera lathecode da un prompt testuale">
+            <div class="startCardTitle">
+              <strong>Da prompt</strong>
+              <span class="startCardBadge">Sperimentale</span>
+            </div>
+            <span>Chiedi a OpenRouter di creare lathecode modificabile da quote e descrizione del pezzo.</span>
+          </button>
+          <button class="startCard startDrawingButton" title="Sperimentale: genera lathecode da immagini di disegni tecnici">
+            <div class="startCardTitle">
+              <strong>Da disegno</strong>
+              <span class="startCardBadge">Sperimentale</span>
+            </div>
+            <span>Carica immagini di disegni tecnici e converti il profilo tornito visibile in lathecode.</span>
+          </button>
+        </div>
+        <div class="startPanel">
+          <h3>Salvati in questo browser</h3>
+          <div class="load-group">
+            <select class="loadSelect"></select>
+            <button class="loadButton" title="Carica dalla memoria locale">Apri</button>
+            <button class="deleteButton" title="Elimina dalla memoria locale">Elimina</button>
+          </div>
+        </div>
+        <p class="privacyDisclosure">Nessun server lathecode memorizza il tuo lavoro. Bozze, lathecode salvati, impostazioni e chiavi OpenRouter restano nella memoria del browser; le azioni LLM inviano solo i dati necessari per quell'azione da questo browser a OpenRouter.</p>
+        <div class="startActions toolbar">
+          <button class="settingsButton" title="Regola pianificatore e impostazioni di importazione">Impostazioni</button>
+          <div class="overflowContainer">
+            <button class="overflowButton" type="button" title="Altre opzioni iniziali">...</button>
+            <div class="overflowMenu" hidden>
+              <button class="exportButton" title="Esporta lathecode salvati e impostazioni in JSON" hidden>Esporta backup</button>
+              <input type="file" id="importFile" accept="application/json,.json" style="display: none;" />
+              <label for="importFile" class="importButton button-like"
+                title="Importa lathecode salvati e impostazioni da un backup JSON">Importa backup</label>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div id="editorContainer" hidden>
+      <h2>Editor</h2>
+      <p>Visualizza il lathecode e genera GCode - altro su <a
+          href="https://github.com/kachurovskiy/lathecode">GitHub</a></p>
+      <div class="inputContainer">
+        <textarea class="latheCodeInput">; Le righe che iniziano con ";" sono commenti
+
+; UNITS IN ; puoi usare i pollici
+STOCK D5
+; STOCK R2.5 ; si può usare diametro o raggio
+; STOCK D5 ID2 ; ID o IR specificano un foro passante esistente
+
+TOOL RECT R0.2 L2
+; TOOL ROUND R8 ; è supportato anche l'utensile tondo
+; TOOL ANG R0.2 L7.75 A30 NA55 ; L - lunghezza tagliente, NA - angolo punta, A - rotazione utensile
+
+DEPTH CUT1 ; profondità di taglio predefinita 0.5mm
+; FEED MOVE200 PASS50 PART10 ; velocità in mm/min
+; MODE TURN ; per lo stile classico di asportazione
+; AXES RIGHT DOWN ; per controller non NanoEls
+
+L1 D2
+L3 D3
+L4 DS3 DE5
+L3</textarea>
+        <div class="statusContainer"></div>
+        <div class="errorContainer"></div>
+      </div>
+      <div class="toolbar editorToolbar" aria-label="Azioni editor">
+        <div class="editorToolbarGroup" aria-label="Impostazione tornitura">
+          <button class="unitsButton" title="Scegli le unità del lathecode">Unità</button>
+          <button class="stockButton" title="Imposta diametro barra, foro e sovrametallo">Barra</button>
+          <button class="depthButton" title="Imposta profondità di sgrossatura e sovrametallo di finitura">Profondità</button>
+          <button class="feedButton" title="Imposta avanzamenti di spostamento, taglio e troncatura">Avanzamento</button>
+          <button class="modeButton" title="Scegli la modalità di sgrossatura">Modo</button>
+          <button class="axesButton" title="Imposta le direzioni degli assi del controller">Assi</button>
+          <button class="toolButton" title="Scegli un inserto utensile">Utensile</button>
+        </div>
+        <div class="editorToolbarGroup historyToolbarGroup" aria-label="Annulla e ripeti" hidden>
+          <button class="undoButton" title="Torna al lathecode valido precedente" hidden>Annulla</button>
+          <button class="redoButton" title="Vai al lathecode valido successivo" hidden>Ripeti</button>
+        </div>
+        <div class="editorToolbarGroup" aria-label="Modifiche forma">
+          <button class="flipButton" title="Ruota il pezzo di 180 gradi">Ribalta</button>
+          <button class="scaleButton" title="Scala barra e quote del profilo">Scala</button>
+          <button class="llmModifyButton" title="Chiedi a OpenRouter di modificare il lathecode attuale">Chiedi all'LLM</button>
+          <button class="partingButton" title="Aggiungi o rimuovi una linea di troncatura larga come l'utensile alla fine" hidden>Aggiungi troncatura</button>
+        </div>
+        <div class="editorToolbarGroup" aria-label="File">
+          <button class="saveButton" title="Salva solo nella memoria locale del browser">Salva</button>
+          <button class="stlButton" title="Scarica file STL">In STL</button>
+        </div>
+        <div class="editorToolbarGroup" aria-label="GCode">
+          <button class="planButton" title="Genera GCode dal lathecode attuale">In GCode</button>
+          <button class="outsidePlanButton" title="Genera GCode del profilo esterno" hidden>GCode esterno</button>
+          <button class="insidePlanButton" title="Genera GCode del profilo interno" hidden>GCode interno</button>
+        </div>
+      </div>
+    </div>
+    <div id="crossSectionContainer">
+      <h2>Rendering 2D</h2>
+    </div>
+    <div id="sceneContainer">
+      <h2>Rendering 3D</h2>
+    </div>
+    <div id="plannerContainer"></div>
+    <div id="gcodeContainer">
+      <h2>GCode</h2>
+      <textarea id="gcodeTextarea"></textarea>
+      <div class="senderError" style="display: none;"></div>
+      <progress max="1" style="display: none;"></progress>
+      <div class="gcodeActions">
+        <button class="copyGcodeButton">Copia</button>
+        <a class="whatLink nanoElsH5Link" href="https://github.com/kachurovskiy/nanoels/tree/main/h5" target="_blank" rel="noopener noreferrer">Esegui su NanoEls H5</a>
+        <span class="h4Controls" hidden>
+          <button class="sendButton">Esegui su H4</button>
+          <button class="saveGcodeButton">Salva su H4</button>
+          <button class="stopButton" style="display: none;">Arresta</button>
+          <a class="whatLink" href="https://github.com/kachurovskiy/nanoels/tree/main/h4" target="_blank" rel="noopener noreferrer">Cos'è NanoEls
+            H4?</a>
+        </span>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>

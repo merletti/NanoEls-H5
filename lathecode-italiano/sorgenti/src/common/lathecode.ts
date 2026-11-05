@@ -1,0 +1,1507 @@
+import * as THREE from "three";
+import {
+  parseLatheCode,
+  type AxesDirective,
+  type CommentList,
+  type CurvedLine,
+  type DepthDirective,
+  type EdgeFeature,
+  type FeedDirective,
+  type InsideDirective,
+  type LatheEntry,
+  type LatheLine,
+  type ModeDirective,
+  type ModeType,
+  type NumericParam,
+  type ParserData,
+  type SegmentAnchorType,
+  type SplineLine,
+  type StockDirective,
+  type StraightLine,
+  type ToolDirective,
+  type UnitType,
+  type UnitsDirective,
+  type XDirection,
+  type ZDirection,
+} from './latheparser.ts';
+import {
+  EDGE_FEATURE_EPSILON,
+  getEndpointFeatureContext,
+  getEndpointFeatureConnectorTrimDistance,
+  getEndpointFeatureNeighborPoint,
+  getEndpointFeatureNeighborTrimDistance,
+  getEndpointFeatureSegmentPoint,
+  getEndpointFeatureTangentDistance,
+  getEndpointFilletGeometry,
+  horizontalSpan as edgeFeatureHorizontalSpan,
+  type EdgeFeatureKind,
+  type EdgeFeaturePoint,
+  type EdgeFeatureSegment,
+  type EndpointFeatureContext,
+} from './edgefeatures.ts';
+
+export class Point {
+  constructor(readonly x: number, readonly z: number) {}
+
+  isEqual(other: Point) {
+    return this.x === other.x && this.z === other.z;
+  }
+
+  toString() {
+    return `${this.x},${this.z}`;
+  }
+
+  offsetBy(xDelta: number, zDelta: number = 0): Point {
+    return new Point(this.x + xDelta, this.z + zDelta);
+  }
+}
+
+export class Segment {
+  constructor(readonly type: string, readonly start: Point, public end: Point, readonly controlPoints: readonly Point[] = []) {}
+
+  isEqual(other: Segment) {
+    return this.type === other.type
+      && this.start.isEqual(other.start)
+      && this.end.isEqual(other.end)
+      && pointsEqual(this.controlPoints, other.controlPoints);
+  }
+
+  isColinear(other: Segment) {
+    if (this.type !== 'LINE' || this.type !== other.type) return;
+    const thisXDelta = this.end.x - this.start.x;
+    const otherXDelta = other.end.x - other.start.x;
+    const slope1 = (this.end.z - this.start.z) / thisXDelta;
+    const slope2 = (other.end.z - other.start.z) / otherXDelta;
+    if (!(thisXDelta === 0 && otherXDelta === 0) && Math.abs(slope1 - slope2) > 0.00001) return false;
+    return (this.start.x - other.start.x) * (this.end.z - this.start.z) === thisXDelta * (this.start.z - other.start.z);
+  }
+
+  isEmpty() {
+    return this.start.isEqual(this.end);
+  }
+
+  toString() {
+    const controls = this.controlPoints.length ? `[${this.controlPoints.join('|')}]` : '';
+    return `${this.type}:${this.start}-${this.end}${controls}`;
+  }
+
+  offsetBy(xDelta: number, zDelta: number): Segment {
+    return new Segment(
+      this.type,
+      this.start.offsetBy(xDelta, zDelta),
+      this.end.offsetBy(xDelta, zDelta),
+      this.controlPoints.map(point => point.offsetBy(xDelta, zDelta)),
+    );
+  }
+}
+
+export type ProfileSide = 'outside' | 'inside';
+
+export class Profile {
+  constructor(readonly side: ProfileSide, readonly segments: Segment[]) {}
+}
+
+export type ProfileSegmentDefinition = {
+  readonly segment: Segment;
+  readonly startFeature: EdgeFeature | null;
+  readonly endFeature: EdgeFeature | null;
+};
+
+export class Stock {
+  readonly innerDiameter: number;
+
+  constructor(readonly diameter: number, readonly length: number, innerDiameter = 0) {
+    if (innerDiameter < 0) throw new Error('Errore: il foro interno del grezzo non può essere negativo');
+    if (innerDiameter >= diameter) throw new Error('Errore: il foro interno del grezzo deve essere più piccolo del diametro del grezzo');
+    this.innerDiameter = innerDiameter;
+  }
+
+  get radius(): number {
+    return this.diameter / 2;
+  }
+
+  get innerRadius(): number {
+    return this.innerDiameter / 2;
+  }
+
+  getSegments(): Segment[] {
+    return [
+      new Segment('LINE', new Point(this.innerRadius, 0), new Point(this.radius, 0)),
+      new Segment('LINE', new Point(this.radius, 0), new Point(this.radius, this.length)),
+      new Segment('LINE', new Point(this.radius, this.length), new Point(this.innerRadius, this.length)),
+      new Segment('LINE', new Point(this.innerRadius, this.length), new Point(this.innerRadius, 0)),
+    ];
+  }
+}
+
+export class PartDimensions {
+  constructor(readonly diameter: number, readonly length: number) {}
+}
+
+export class Tool {
+  constructor(
+    readonly type: 'RECT'|'ROUND'|'ANG',
+    readonly widthMm: number,
+    readonly heightMm: number,
+    readonly cornerRadiusMm: number,
+    readonly angleDeg?: number,
+    readonly noseAngleDeg?: number) {}
+}
+
+export class Feed {
+  constructor(readonly moveMmMin: number, readonly passMmMin: number, readonly partMmMin: number) {}
+}
+
+export class Depth {
+  constructor(readonly cutMm: number, readonly finishMm: number) {}
+}
+
+const UNITS: {
+  [key: string]: number,
+ } = {
+  "MM": 1,
+  "CM": 10,
+  "M": 1000,
+  "FT": 304.8,
+  "IN": 25.4,
+};
+const SCALE_DECIMAL_PLACES = 4;
+const UNIT_CONVERSION_DECIMAL_PLACES = 6;
+const FILLET_ARC_CHORD_MM = 0.1;
+
+type ProfileSegmentSpec = ProfileSegmentDefinition & {
+  line: LatheLine;
+};
+
+type EndpointFeatureGeometry = {
+  radialPoint: Point;
+  segmentPoint: Point;
+  trimDistance: number;
+  neighborSegmentIndex: number | null;
+  neighborTrimDistance: number;
+  segments: Segment[];
+};
+
+type ProfileSizeType = 'D' | 'R';
+
+export class LatheCode {
+  private data: ParserData;
+  private unitsMultiplier = 1;
+  private outsideMaxRadius = 0;
+  private commonMaterialEndZ = 0;
+  private outside: Segment[];
+  private outsideSegments: Segment[];
+  private inside: Segment[];
+  private insideSegments: Segment[];
+
+  constructor(private text: string) {
+    this.data = parseLatheCode(text + '\n');
+    this.unitsMultiplier = this.data.units ? UNITS[this.data.units.unit] : 1;
+    // console.log('this.data', this.data);
+    const stockInnerRadius = this.getStockInnerDiameter() / 2;
+    const outside = this.getSegmentsForSide(this.data.outside, stockInnerRadius);
+    this.outsideMaxRadius = outside.length ? Math.max(...outside.flatMap(segmentRadii)) : 0;
+    const inside = this.data.inside ? this.getSegmentsForSide(this.data.inside.entries, this.getStockDiameter() / 2) : [];
+    const outsideMaterialEndZ = getProfileMaterialEndZ(this.data.outside, this.unitsMultiplier);
+    const insideMaterialEndZ = this.data.inside ? getProfileMaterialEndZ(this.data.inside.entries, this.unitsMultiplier) : 0;
+    this.commonMaterialEndZ = Math.max(outsideMaterialEndZ, insideMaterialEndZ);
+    [this.outside, this.inside] = extendMixedProfilesToCommonEnd(outside, inside, this.commonMaterialEndZ, stockInnerRadius);
+    this.outsideSegments = this.closeLoop(this.outside, stockInnerRadius);
+    this.insideSegments = this.getStockDiameter() > 0 ? this.closeLoop(this.inside, this.getStockDiameter() / 2) : [];
+    this.getStock(); // validate the stock
+    this.getTool(); // validate the tool
+  }
+
+  getText(): string {
+    return this.text;
+  }
+
+  getTitle(): string {
+    return this.data.leadingComments[1] || '';
+  }
+
+  getStock(): Stock|null {
+    const d = this.getStockDiameter();
+    const l = this.getStockLength();
+    const id = this.getStockInnerDiameter();
+    return d > 0 && l > 0 ? new Stock(d, l, id) : null;
+  }
+
+  getPartDimensions(): PartDimensions | null {
+    const dimensions = this.getPartDimensionsInLatheUnits();
+    return dimensions
+      ? new PartDimensions(dimensions.diameter * this.unitsMultiplier, dimensions.length * this.unitsMultiplier)
+      : null;
+  }
+
+  getBoundingBox(): THREE.Vector3 {
+    const stock = this.getStock();
+    if (!stock) return new THREE.Vector3();
+    if (stock.diameter > stock.length) return new THREE.Vector3(stock.diameter, stock.diameter, stock.length);
+    return new THREE.Vector3(stock.length, stock.diameter, stock.diameter);
+  }
+
+  getTool(): Tool {
+    const directive = this.data.tool;
+    if (!directive) return new Tool('RECT', 3, 3, 0.4);
+    const type = directive.type;
+    const radius = directive.radius ? directive.radius.value * this.unitsMultiplier : 0;
+    const length = directive.length ? directive.length.value * this.unitsMultiplier : 0;
+    const height = directive.height ? directive.height.value * this.unitsMultiplier : 0;
+    const angle = directive.angle ? directive.angle.value : 0;
+    const noseAngle = directive.noseAngle ? directive.noseAngle.value : 0;
+    if (type === 'RECT') {
+      if (angle) throw new Error('A non è implementato per TOOL RECT');
+      if (noseAngle) throw new Error('NA non è supportato per TOOL RECT');
+      // Rectangular tools in fact have sloping sides incapable of cutting.
+      // Modelling these inserts as having small height fixes right-and-back cuts.
+      return new Tool('RECT', length || 3, height || length || 3, radius);
+    } else if (type === 'ROUND') {
+      if (length) throw new Error('TOOL ROUND L è già definito da R');
+      if (height) throw new Error('TOOL ROUND H è già definito da R');
+      return new Tool('ROUND', radius * 2, radius * 2, radius);
+    } else if (type === 'ANG') {
+      if (noseAngle <= 0) throw new Error('Specifica un angolo punta utensile NA positivo');
+      if (height) throw new Error('TOOL ANG H è ignorato, usa L');
+      return new Tool('ANG', length || 10, height || 10, radius, angle, noseAngle);
+    }
+    throw new Error('Utensile sconosciuto ' + type);
+  }
+
+  getFeed(): Feed {
+    return new Feed(
+      ((this.data.feed?.move?.value || 0) * this.unitsMultiplier) || 200,
+      ((this.data.feed?.pass?.value || 0) * this.unitsMultiplier) || 50,
+      ((this.data.feed?.part?.value || 0) * this.unitsMultiplier) || 10);
+  }
+
+  getDepth(): Depth {
+    return new Depth(
+      ((this.data.depth?.cut?.value || 0) * this.unitsMultiplier) || 0.5,
+      ((this.data.depth?.finish?.value || 0) * this.unitsMultiplier) || 0.1
+    );
+  }
+
+  getMode(): ModeType {
+    if (!this.data.mode) return 'FACE';
+    return this.data.mode.mode;
+  }
+
+  getZDirection(): ZDirection {
+    if (!this.data.axes) return 'LEFT';
+    return this.data.axes.zDirection;
+  }
+
+  getXDirection(): XDirection {
+    if (!this.data.axes) return 'UP';
+    return this.data.axes.xDirection;
+  }
+
+  isNanoElsCompatible(): boolean {
+    return this.getZDirection() === 'LEFT' && this.getXDirection() === 'UP';
+  }
+
+  /** Segments forming the part after outside cuts. */
+  getOutsideSegments(): Segment[] {
+    return this.outsideSegments.concat();
+  }
+
+  /** Open outside profile path before it is closed to the stock inner radius or centerline. */
+  getOutsideProfileSegments(): Segment[] {
+    return this.outside.concat();
+  }
+
+  /** Open outside part boundary, excluding trailing cutoff/parting moves. */
+  getOutsidePartProfileSegments(): Segment[] {
+    return truncateProfileToZ(this.outside, this.commonMaterialEndZ);
+  }
+
+  /** Open outside profile lines before chamfers and fillets are expanded into geometry. */
+  getOutsidePartProfileSegmentDefinitions(): ProfileSegmentDefinition[] {
+    const definitions = truncateProfileSegmentDefinitionsToZ(
+      this.getProfileSegmentDefinitionsForSide(this.data.outside, this.getStockInnerDiameter() / 2),
+      this.commonMaterialEndZ,
+    );
+    return this.data.outside.length && this.data.inside?.entries.length
+      ? extendProfileSegmentDefinitionsToZ(definitions, this.commonMaterialEndZ)
+      : definitions;
+  }
+
+  /** Segments forming the part after inside cuts. */
+  getInsideSegments(): Segment[] {
+    return this.insideSegments.concat();
+  }
+
+  /** Open inside profile path before it is closed to the stock outer radius. */
+  getInsideProfileSegments(): Segment[] {
+    return this.inside.concat();
+  }
+
+  /** Open inside part boundary, excluding trailing cutoff/parting moves. */
+  getInsidePartProfileSegments(): Segment[] {
+    return truncateProfileToZ(this.inside, this.commonMaterialEndZ);
+  }
+
+  /** Open inside profile lines before chamfers and fillets are expanded into geometry. */
+  getInsidePartProfileSegmentDefinitions(): ProfileSegmentDefinition[] {
+    const definitions = truncateProfileSegmentDefinitionsToZ(
+      this.getProfileSegmentDefinitionsForSide(this.data.inside?.entries ?? [], this.getStockDiameter() / 2),
+      this.commonMaterialEndZ,
+    );
+    return this.data.outside.length && this.data.inside?.entries.length
+      ? extendInsideProfileSegmentDefinitionsToZ(definitions, this.commonMaterialEndZ, this.getStockInnerDiameter() / 2)
+      : definitions;
+  }
+
+  /** Explicitly named profiles present in this lathe code. */
+  getProfiles(): Profile[] {
+    const profiles: Profile[] = [];
+    if (this.outsideSegments.length) profiles.push(new Profile('outside', this.getOutsideSegments()));
+    if (this.insideSegments.length) profiles.push(new Profile('inside', this.getInsideSegments()));
+    return profiles;
+  }
+
+  /** Single active profile, or null when there are none or both inside and outside profiles. */
+  getSingleProfile(): Profile | null {
+    const profiles = this.getProfiles();
+    return profiles.length === 1 ? profiles[0] : null;
+  }
+
+  /** LatheCode containing only the selected profile and shared setup directives. */
+  getLatheCodeForProfile(side: ProfileSide): LatheCode | null {
+    const entries = side === 'outside' ? this.data.outside : this.data.inside?.entries || [];
+    if (!entries.length) return null;
+
+    const lines = this.getSetupLines(side);
+    if (side === 'inside') {
+      const insideBlock = this.data.inside;
+      lines.push(`INSIDE${formatComment(insideBlock?.directive.comment || '')}`);
+    }
+    lines.push(...entries.map(entry => latheLineToString(entry.line)));
+    const extensionLine = this.getProfileExtensionLine(side);
+    if (extensionLine) lines.push(extensionLine);
+    return new LatheCode(lines.join('\n'));
+  }
+
+  /** Z coordinates of vertical lines where each part ends and cutoff area starts. */
+  getCutoffStarts(): number[] {
+    const result: number[] = [];
+    let seenPart = false;
+    let z = 0;
+    for (let entry of this.data.outside) {
+      let line = entry.line;
+      if (isPartingLine(line) && seenPart) {
+        result.push(z);
+      } else {
+        seenPart = true;
+      }
+      z += line.length * this.unitsMultiplier;
+    }
+    return result;
+  }
+
+  private getStockLength() {
+    let minZ = Infinity;
+    let maxZ = -Infinity;
+    for (let segment of [...this.outside, ...this.inside]) {
+      if (segment.start.z < minZ) minZ = segment.start.z;
+      if (segment.end.z < minZ) minZ = segment.end.z;
+      if (segment.start.z > maxZ) maxZ = segment.start.z;
+      if (segment.end.z > maxZ) maxZ = segment.end.z;
+    }
+    return maxZ - minZ;
+  }
+
+  private getStockDiameter(): number {
+    const stock = this.data.stock;
+    if (!stock) return this.outsideMaxRadius * 2;
+    return stock.size * (stock.sizeType == 'D' ? 1 : 2) * this.unitsMultiplier;
+  }
+
+  private getStockInnerDiameter(): number {
+    if (!this.data.stock) return 0;
+    const stockHole = this.data.stock.hole;
+    if (!stockHole) return 0;
+    return stockHole.value * (stockHole.name == 'ID' ? 1 : 2) * this.unitsMultiplier;
+  }
+
+  private getPartDimensionsInLatheUnits(): PartDimensions | null {
+    const outside = getProfileLineDimensions(this.data.outside);
+    const inside = this.data.inside ? getProfileLineDimensions(this.data.inside.entries) : null;
+    const stockDiameter = this.data.stock ? getStockDirectiveDiameterInLatheUnits(this.data.stock) : 0;
+    const diameter = outside?.maxRadius
+      ? outside.maxRadius * 2
+      : inside?.maxRadius && stockDiameter
+        ? stockDiameter
+        : (inside?.maxRadius || 0) * 2;
+    const length = Math.max(outside?.materialLength || 0, inside?.materialLength || 0);
+    return diameter > 0 && length > 0 ? new PartDimensions(diameter, length) : null;
+  }
+
+  private getSetupLines(side: ProfileSide): string[] {
+    const lines: string[] = [];
+    const pushComments = (comments: CommentList) => lines.push(...comments.map(commentToString));
+    pushComments(this.data.leadingComments);
+    if (this.data.units) lines.push(unitsDirectiveToString(this.data.units));
+    pushComments(this.data.afterUnitsComments);
+    if (this.data.stock) {
+      lines.push(stockDirectiveToString(this.data.stock, {includeHole: side !== 'outside'}));
+    } else if (side === 'inside') {
+      const stock = this.getStock();
+      if (stock) lines.push(`STOCK D${numberToString(stock.diameter)}`);
+    }
+    pushComments(this.data.afterStockComments);
+    if (this.data.tool) lines.push(toolDirectiveToString(this.data.tool));
+    pushComments(this.data.afterToolComments);
+    if (this.data.depth) lines.push(depthDirectiveToString(this.data.depth));
+    pushComments(this.data.afterDepthComments);
+    if (this.data.feed) lines.push(feedDirectiveToString(this.data.feed));
+    pushComments(this.data.afterFeedComments);
+    if (this.data.mode) lines.push(modeDirectiveToString(this.data.mode));
+    pushComments(this.data.afterModeComments);
+    if (this.data.axes) lines.push(axesDirectiveToString(this.data.axes));
+    return lines;
+  }
+
+  private getProfileExtensionLine(side: ProfileSide): string | null {
+    if (!this.data.outside.length || !this.data.inside?.entries.length) return null;
+    const entries = side === 'outside' ? this.data.outside : this.data.inside.entries;
+    const otherEntries = side === 'outside' ? this.data.inside.entries : this.data.outside;
+    const materialEndZ = getProfileMaterialEndZ(entries, this.unitsMultiplier);
+    const extraLengthMm = getProfileMaterialEndZ(otherEntries, this.unitsMultiplier)
+      - materialEndZ;
+    if (extraLengthMm <= EDGE_FEATURE_EPSILON) return null;
+
+    if (side === 'inside') {
+      const stockInnerDiameter = this.getStockInnerDiameter() / this.unitsMultiplier;
+      return `L${numberToString(extraLengthMm / this.unitsMultiplier)} D${numberToString(stockInnerDiameter)}`;
+    }
+
+    const sizeType = getProfileEndSizeType(entries);
+    if (!sizeType) return null;
+
+    const profile = side === 'outside' ? this.outside : this.inside;
+    const materialProfile = truncateProfileToZ(profile, materialEndZ);
+    const last = materialProfile.at(-1);
+    if (!last) return null;
+    const radius = last.end.x / this.unitsMultiplier;
+    const size = sizeType === 'D' ? radius * 2 : radius;
+    return `L${numberToString(extraLengthMm / this.unitsMultiplier)} ${sizeType}${numberToString(size)}`;
+  }
+
+  private closeLoop(mainSequence: Segment[], x: number): Segment[] {
+    if (!mainSequence.length) {
+      return [];
+    }
+    const first = mainSequence.at(0)!;
+    const last = mainSequence.at(-1)!;
+    let result = removeEmptySegments(removeColinearSegments(removeEmptySegments([
+      new Segment('LINE', new Point(x, first.start.z), first.start),
+      ...mainSequence,
+      new Segment('LINE', last.end, new Point(x, last.end.z)),
+      new Segment('LINE', new Point(x, last.end.z), new Point(x, first.start.z)),
+    ])));
+    if (result.length) {
+      result.unshift(result.pop()!);
+      result = removeColinearSegments(result);
+    }
+    return hasClosedProfileArea(result) ? result : [];
+  }
+
+  private getProfileSegmentDefinitionsForSide(side: readonly LatheEntry[], zeroX: number): ProfileSegmentDefinition[] {
+    return this.getSegmentSpecsForSide(side, zeroX).map(spec => ({
+      segment: spec.segment,
+      startFeature: scaleEdgeFeatureToUnits(spec.startFeature, this.unitsMultiplier),
+      endFeature: scaleEdgeFeatureToUnits(spec.endFeature, this.unitsMultiplier),
+    }));
+  }
+
+  private getSegmentsForSide(side: readonly LatheEntry[], zeroX: number): Segment[] {
+    return this.applyEdgeFeatures(this.getSegmentSpecsForSide(side, zeroX), zeroX);
+  }
+
+  private getSegmentSpecsForSide(side: readonly LatheEntry[], zeroX: number): ProfileSegmentSpec[] {
+    const specs: ProfileSegmentSpec[] = [];
+    let z = 0;
+    for (let entry of side) {
+      let line = entry.line;
+      let startX: number;
+      let endX: number;
+      if (isStraightLine(line)) {
+        startX = endX = line.size / (line.sizeType === 'D' ? 2 : 1) * this.unitsMultiplier;
+      } else if (isCurvedLine(line)) {
+        startX = line.start / (line.startType === 'DS' ? 2 : 1) * this.unitsMultiplier;
+        endX = line.end / (line.endType === 'DE' ? 2 : 1) * this.unitsMultiplier;
+      } else if (isSplineLine(line)) {
+        startX = line.start / (line.startType === 'DS' ? 2 : 1) * this.unitsMultiplier;
+        endX = line.end / (line.endType === 'DE' ? 2 : 1) * this.unitsMultiplier;
+      } else if (isPartingLine(line)) {
+        startX = zeroX;
+        endX = zeroX;
+      } else {
+        throw new Error('non implementato: ' + line);
+      }
+      const start = new Point(startX, z);
+      const end = new Point(endX, z += line.length * this.unitsMultiplier);
+      const controlPoints = isSplineLine(line)
+        ? getSplineControlPoints(line, start, end, this.unitsMultiplier)
+        : [];
+      specs.push({
+        line,
+        segment: new Segment(getLineSegmentType(line), start, end, controlPoints),
+        startFeature: getLineStartFeature(line),
+        endFeature: getLineEndFeature(line),
+      });
+    }
+    return specs;
+  }
+
+  private applyEdgeFeatures(specs: ProfileSegmentSpec[], zeroX: number): Segment[] {
+    const edgeFeatureSegments = specs.map(spec => segmentToEdgeFeatureSegment(spec.segment));
+    const features = specs.map((_, index) => {
+      const start = this.createEndpointFeature(specs, edgeFeatureSegments, index, 'start', zeroX);
+      const end = this.createEndpointFeature(specs, edgeFeatureSegments, index, 'end', zeroX);
+      return {start, end};
+    });
+    this.validateSegmentFeatureFits(specs, features);
+    this.validateContinuousCornerFeatureOwnership(specs, features);
+
+    const result: Segment[] = [];
+    let currentEnd: Point | null = null;
+
+    for (let index = 0; index < specs.length; index++) {
+      const spec = specs[index];
+      const startFeature = features[index].start;
+      const endFeature = features[index].end;
+      const previousEndFeature = features[index - 1]?.end ?? null;
+      const nextStartFeature = features[index + 1]?.start ?? null;
+      const segmentStart = startFeature?.segmentPoint
+        ?? (previousEndFeature?.neighborSegmentIndex === index ? previousEndFeature.radialPoint : spec.segment.start);
+      const segmentEnd = endFeature?.segmentPoint
+        ?? (nextStartFeature?.neighborSegmentIndex === index ? nextStartFeature.radialPoint : spec.segment.end);
+      const entryStart = startFeature?.radialPoint ?? segmentStart;
+
+      if (currentEnd) {
+        this.validateConnectorFeatureFit(specs[index - 1].segment.end, spec.segment.start, currentEnd, entryStart);
+        appendSegment(result, new Segment('LINE', currentEnd, entryStart));
+      } else {
+        currentEnd = entryStart;
+      }
+
+      if (startFeature) {
+        appendSegments(result, startFeature.segments);
+      }
+      const controlPoints = segmentStart.isEqual(spec.segment.start) && segmentEnd.isEqual(spec.segment.end)
+        ? spec.segment.controlPoints
+        : [];
+      appendSegment(result, new Segment(spec.segment.type, segmentStart, segmentEnd, controlPoints));
+      if (endFeature) {
+        appendSegments(result, endFeature.segments);
+      }
+
+      currentEnd = endFeature?.radialPoint ?? segmentEnd;
+    }
+
+    return result;
+  }
+
+  private createEndpointFeature(
+    specs: ProfileSegmentSpec[],
+    edgeFeatureSegments: EdgeFeatureSegment[],
+    index: number,
+    endpoint: 'start' | 'end',
+    zeroX: number,
+  ): EndpointFeatureGeometry | null {
+    const spec = specs[index];
+    const feature = normalizeEdgeFeature(endpoint === 'start' ? spec.startFeature : spec.endFeature);
+    if (!feature) return null;
+    if (spec.segment.type !== 'LINE') {
+      throw new Error('Errore: smussi e raccordi non sono supportati per i segmenti CONV o CONC');
+    }
+
+    const size = feature.value * this.unitsMultiplier;
+    const edgeFeature = {kind: latheFeatureKind(feature), size};
+    const edgeFeatureSegment = edgeFeatureSegments[index];
+    const context = getEndpointFeatureContext(edgeFeatureSegments, index, endpoint, zeroX);
+    if (context.kind === 'invalid') {
+      throwEndpointFeatureContextError(context);
+    }
+
+    if (edgeFeatureHorizontalSpan(edgeFeatureSegment) <= EDGE_FEATURE_EPSILON) {
+      throw new Error('Errore: lo smusso o il raccordo è troppo grande per il segmento');
+    }
+
+    if (feature.name === 'CH') {
+      validateEndpointConnectorFeatureFit(edgeFeatureSegment, context, edgeFeature);
+      const segmentPoint = edgeFeaturePointToPoint(getEndpointFeatureSegmentPoint(edgeFeatureSegment, endpoint, edgeFeature));
+      const neighborPoint = getRequiredEndpointFeatureNeighborPoint(edgeFeatureSegment, context, edgeFeature);
+      return {
+        radialPoint: neighborPoint,
+        segmentPoint,
+        trimDistance: size,
+        neighborSegmentIndex: context.kind === 'continuous' ? context.neighborIndex : null,
+        neighborTrimDistance: getEndpointFeatureNeighborTrimDistance(edgeFeatureSegment, context, edgeFeature),
+        segments: endpoint === 'start'
+          ? [new Segment('LINE', neighborPoint, segmentPoint)]
+          : [new Segment('LINE', segmentPoint, neighborPoint)],
+      };
+    }
+
+    const radialDirection = context.kind === 'connector' && Math.abs(context.direction.z) <= EDGE_FEATURE_EPSILON
+      ? Math.sign(context.direction.radius)
+      : 0;
+    const fullSegmentCurveType = getFullSegmentFilletCurveType(spec.segment, endpoint, radialDirection, size);
+    if (fullSegmentCurveType) {
+      return endpoint === 'start'
+        ? {
+          radialPoint: spec.segment.start,
+          segmentPoint: spec.segment.end,
+          trimDistance: size,
+          neighborSegmentIndex: null,
+          neighborTrimDistance: 0,
+          segments: [new Segment(fullSegmentCurveType, spec.segment.start, spec.segment.end)],
+        }
+        : {
+          radialPoint: spec.segment.end,
+          segmentPoint: spec.segment.start,
+          trimDistance: size,
+          neighborSegmentIndex: null,
+          neighborTrimDistance: 0,
+          segments: [new Segment(fullSegmentCurveType, spec.segment.start, spec.segment.end)],
+        };
+    }
+
+    const tangentDistance = getEndpointFeatureTangentDistance(edgeFeatureSegment, edgeFeature);
+    if (tangentDistance === Number.POSITIVE_INFINITY) {
+      throw new Error('Errore: lo smusso o il raccordo richiede la lunghezza orizzontale del segmento');
+    }
+    validateEndpointConnectorFeatureFit(edgeFeatureSegment, context, edgeFeature);
+
+    const fillet = getEndpointFilletGeometry(edgeFeatureSegment, context, endpoint, edgeFeature);
+    if (!fillet) throw new Error('Errore: lo smusso o il raccordo richiede un angolo tra segmenti');
+    const neighborPoint = edgeFeaturePointToPoint(fillet.neighborPoint);
+    const segmentPoint = edgeFeaturePointToPoint(fillet.segmentPoint);
+    const center = edgeFeaturePointToPoint(fillet.center);
+    return {
+      radialPoint: neighborPoint,
+      segmentPoint,
+      trimDistance: size,
+      neighborSegmentIndex: context.kind === 'continuous' ? context.neighborIndex : null,
+      neighborTrimDistance: getEndpointFeatureNeighborTrimDistance(edgeFeatureSegment, context, edgeFeature),
+      segments: endpoint === 'start'
+        ? filletArcSegments(center, fillet.radius, neighborPoint, segmentPoint)
+        : filletArcSegments(center, fillet.radius, segmentPoint, neighborPoint),
+    };
+  }
+
+  private validateSegmentFeatureFits(
+    specs: ProfileSegmentSpec[],
+    features: {start: EndpointFeatureGeometry | null, end: EndpointFeatureGeometry | null}[],
+  ): void {
+    const trimDistances = specs.map(() => 0);
+    features.forEach((featurePair, index) => {
+      for (const feature of [featurePair.start, featurePair.end]) {
+        if (!feature) continue;
+        trimDistances[index] += feature.trimDistance;
+        if (feature.neighborSegmentIndex !== null) {
+          trimDistances[feature.neighborSegmentIndex] += feature.neighborTrimDistance;
+        }
+      }
+    });
+
+    for (let index = 0; index < specs.length; index++) {
+      if (trimDistances[index] - horizontalSpan(specs[index].segment) > EDGE_FEATURE_EPSILON) {
+        throw new Error('Errore: lo smusso o il raccordo è troppo grande per il segmento');
+      }
+    }
+  }
+
+  private validateContinuousCornerFeatureOwnership(
+    specs: ProfileSegmentSpec[],
+    features: {start: EndpointFeatureGeometry | null, end: EndpointFeatureGeometry | null}[],
+  ): void {
+    for (let index = 0; index < specs.length - 1; index++) {
+      if (!specs[index].segment.end.isEqual(specs[index + 1].segment.start)) continue;
+      if (features[index].end?.neighborSegmentIndex === index + 1
+        && features[index + 1].start?.neighborSegmentIndex === index) {
+        throw new Error('Errore: lo smusso o il raccordo può essere specificato una sola volta su un angolo continuo');
+      }
+    }
+  }
+
+  private validateConnectorFeatureFit(originalStart: Point, originalEnd: Point, start: Point, end: Point): void {
+    const radialDirection = Math.sign(originalEnd.x - originalStart.x);
+    if (!radialDirection) return;
+    if (Math.abs(start.z - end.z) > EDGE_FEATURE_EPSILON) return;
+    if (radialDirection * (end.x - start.x) < -EDGE_FEATURE_EPSILON) {
+      throw new Error('Errore: smussi o raccordi sono troppo grandi per il bordo radiale adiacente');
+    }
+  }
+
+  reverse(): string {
+    const insideBlock = this.data.inside;
+    const firstLLine = this.data.outside.length
+      ? findLineStart(this.text, 'L')
+      : findLineStart(this.text, 'L', findLineStart(this.text, 'INSIDE'));
+    if (firstLLine === -1) return this.text;
+    const preambula = this.text.substring(0, firstLLine);
+    const result: string[] = [];
+    result.push(...reverseEntries(this.data.outside));
+    if (insideBlock) {
+      if (this.data.outside.length) {
+        result.push(...insideBlock.comments.map(commentToString));
+        result.push(insideDirectiveToString(insideBlock.directive));
+      }
+      result.push(...reverseEntries(insideBlock.entries));
+    }
+    return (preambula ? preambula + '\n' : '') + result.join('\n');
+  }
+
+  scale(xScale: number, zScale = xScale): string {
+    if (!isPositiveFiniteNumber(xScale) || !isPositiveFiniteNumber(zScale)) {
+      throw new Error('I fattori di scala devono essere numeri positivi');
+    }
+
+    const partDimensions = this.getPartDimensionsInLatheUnits();
+    const scaledPartDiameter = partDimensions ? scaleNumber(partDimensions.diameter, xScale) : null;
+    const lines: string[] = [];
+    const pushComments = (comments: CommentList) => lines.push(...comments.map(commentToString));
+    const pushEntries = (entries: readonly LatheEntry[]) => {
+      for (const entry of entries) {
+        pushComments(entry.comments);
+        lines.push(scaleLatheLine(entry.line, xScale, zScale));
+      }
+    };
+
+    pushComments(this.data.leadingComments);
+    if (this.data.units) lines.push(unitsDirectiveToString(this.data.units));
+    pushComments(this.data.afterUnitsComments);
+    if (this.data.stock) lines.push(stockDirectiveToString(scaleStockDirective(this.data.stock, xScale, scaledPartDiameter)));
+    pushComments(this.data.afterStockComments);
+    if (this.data.tool) lines.push(toolDirectiveToString(this.data.tool));
+    pushComments(this.data.afterToolComments);
+    if (this.data.depth) lines.push(depthDirectiveToString(this.data.depth));
+    pushComments(this.data.afterDepthComments);
+    if (this.data.feed) lines.push(feedDirectiveToString(this.data.feed));
+    pushComments(this.data.afterFeedComments);
+    if (this.data.mode) lines.push(modeDirectiveToString(this.data.mode));
+    pushComments(this.data.afterModeComments);
+    if (this.data.axes) lines.push(axesDirectiveToString(this.data.axes));
+    pushEntries(this.data.outside);
+
+    const insideBlock = this.data.inside;
+    if (insideBlock) {
+      pushComments(insideBlock.comments);
+      lines.push(insideDirectiveToString(insideBlock.directive));
+      pushEntries(insideBlock.entries);
+    }
+
+    pushComments(this.data.trailingComments);
+    return lines.join('\n');
+  }
+
+  convertUnits(unit: UnitType): string {
+    const targetMultiplier = UNITS[unit];
+    const unitScale = this.unitsMultiplier / targetMultiplier;
+    const lines: string[] = [];
+    const pushComments = (comments: CommentList) => lines.push(...comments.map(commentToString));
+    const pushEntries = (entries: readonly LatheEntry[]) => {
+      for (const entry of entries) {
+        pushComments(entry.comments);
+        lines.push(scaleLatheLine(entry.line, unitScale, unitScale, {
+          decimalPlaces: UNIT_CONVERSION_DECIMAL_PLACES,
+          scaleConeAngle: false,
+          scaleParting: true,
+        }));
+      }
+    };
+
+    pushComments(this.data.leadingComments);
+    lines.push(unitsDirectiveToString({
+      keyword: 'UNITS',
+      unit,
+      comment: this.data.units?.comment ?? '',
+    }));
+    pushComments(this.data.afterUnitsComments);
+    if (this.data.stock) lines.push(stockDirectiveToString(scaleStockDirectiveForUnits(this.data.stock, unitScale)));
+    pushComments(this.data.afterStockComments);
+    if (this.data.tool) lines.push(toolDirectiveToString(scaleToolDirectiveForUnits(this.data.tool, unitScale)));
+    pushComments(this.data.afterToolComments);
+    if (this.data.depth) lines.push(depthDirectiveToString(scaleDepthDirectiveForUnits(this.data.depth, unitScale)));
+    pushComments(this.data.afterDepthComments);
+    if (this.data.feed) lines.push(feedDirectiveToString(scaleFeedDirectiveForUnits(this.data.feed, unitScale)));
+    pushComments(this.data.afterFeedComments);
+    if (this.data.mode) lines.push(modeDirectiveToString(this.data.mode));
+    pushComments(this.data.afterModeComments);
+    if (this.data.axes) lines.push(axesDirectiveToString(this.data.axes));
+    pushEntries(this.data.outside);
+
+    const insideBlock = this.data.inside;
+    if (insideBlock) {
+      pushComments(insideBlock.comments);
+      lines.push(insideDirectiveToString(insideBlock.directive));
+      pushEntries(insideBlock.entries);
+    }
+
+    pushComments(this.data.trailingComments);
+    return lines.join('\n');
+  }
+}
+
+function reverseEntries(entries: readonly LatheEntry[]): string[] {
+  return entries.map(entry => reverseLine(entry.line)).reverse();
+}
+
+function getProfileEndSizeType(entries: readonly LatheEntry[]): ProfileSizeType | null {
+  for (const entry of [...entries].reverse()) {
+    const line = entry.line;
+    if (isPartingLine(line)) continue;
+    if (isStraightLine(line)) return line.sizeType;
+    if (isCurvedLine(line)) return line.endType === 'DE' ? 'D' : 'R';
+    if (isSplineLine(line)) return line.endType === 'DE' ? 'D' : 'R';
+  }
+  return null;
+}
+
+function insideDirectiveToString(directive: InsideDirective): string {
+  return `INSIDE${formatComment(directive.comment)}`;
+}
+
+function findLineStart(text: string, lineStart: string, fromIndex = 0): number {
+  if (fromIndex < 0) return -1;
+  if (text.startsWith(lineStart, fromIndex)) return fromIndex;
+  return text.indexOf('\n' + lineStart, fromIndex);
+}
+
+function reverseLine(line: LatheLine): string {
+  if (isCurvedLine(line)) {
+    return latheLineToString({
+      ...line,
+      start: line.end,
+      end: line.start,
+      angle: line.angle ? {...line.angle, value: -line.angle.value} : null,
+      angleAnchorType: line.angleAnchorType ? reverseAngleAnchorType(line.angleAnchorType) : null,
+      startFeature: line.endFeature,
+      endFeature: line.startFeature,
+    });
+  }
+  if (isSplineLine(line)) {
+    return latheLineToString({
+      ...line,
+      start: line.end,
+      end: line.start,
+      controls: [...line.controls].reverse(),
+    });
+  }
+  return latheLineToString(line);
+}
+
+function getProfileLineDimensions(entries: readonly LatheEntry[]): {maxRadius: number, materialLength: number} | null {
+  let maxRadius = 0;
+  let materialLength = 0;
+  for (const entry of entries) {
+    const line = entry.line;
+    if (isPartingLine(line)) continue;
+    materialLength += line.length;
+    if (isStraightLine(line)) {
+      maxRadius = Math.max(maxRadius, line.size / (line.sizeType === 'D' ? 2 : 1));
+    } else if (isCurvedLine(line)) {
+      maxRadius = Math.max(
+        maxRadius,
+        line.start / (line.startType === 'DS' ? 2 : 1),
+        line.end / (line.endType === 'DE' ? 2 : 1),
+      );
+    } else if (isSplineLine(line)) {
+      maxRadius = Math.max(
+        maxRadius,
+        line.start / (line.startType === 'DS' ? 2 : 1),
+        line.end / (line.endType === 'DE' ? 2 : 1),
+        ...line.controls.map(control => control.size / (control.sizeType === 'D' ? 2 : 1)),
+      );
+    }
+  }
+  return maxRadius > 0 && materialLength > 0 ? {maxRadius, materialLength} : null;
+}
+
+function getProfileMaterialEndZ(entries: readonly LatheEntry[], unitsMultiplier: number): number {
+  let z = 0;
+  let endZ = 0;
+  for (const entry of entries) {
+    z += entry.line.length * unitsMultiplier;
+    if (!isPartingLine(entry.line)) endZ = z;
+  }
+  return endZ;
+}
+
+function getStockDirectiveDiameterInLatheUnits(directive: StockDirective): number {
+  return directive.size * (directive.sizeType === 'D' ? 1 : 2);
+}
+
+function extendMixedProfilesToCommonEnd(
+  outside: Segment[],
+  inside: Segment[],
+  targetZ: number,
+  insideExtensionX: number,
+): [Segment[], Segment[]] {
+  if (!outside.length || !inside.length) return [outside, inside];
+  return [extendProfileToZ(outside, targetZ), extendInsideProfileToZ(inside, targetZ, insideExtensionX)];
+}
+
+function extendProfileToZ(profile: Segment[], targetZ: number): Segment[] {
+  const last = profile.at(-1);
+  if (!last || targetZ - last.end.z <= EDGE_FEATURE_EPSILON) return profile;
+  return removeColinearSegments([
+    ...profile,
+    new Segment('LINE', last.end, new Point(last.end.x, targetZ)),
+  ]);
+}
+
+function extendInsideProfileToZ(profile: Segment[], targetZ: number, extensionX: number): Segment[] {
+  const last = profile.at(-1);
+  if (!last || targetZ - last.end.z <= EDGE_FEATURE_EPSILON) return profile;
+  const extension = Math.abs(last.end.x - extensionX) <= EDGE_FEATURE_EPSILON
+    ? [new Segment('LINE', last.end, new Point(extensionX, targetZ))]
+    : [
+        new Segment('LINE', last.end, new Point(extensionX, last.end.z)),
+        new Segment('LINE', new Point(extensionX, last.end.z), new Point(extensionX, targetZ)),
+      ];
+  return removeColinearSegments([
+    ...profile,
+    ...extension,
+  ]);
+}
+
+function hasClosedProfileArea(segments: readonly Segment[]): boolean {
+  const points = segments.flatMap(segment => [segment.start, segment.end, ...segment.controlPoints]);
+  if (!points.length) return false;
+  const minX = Math.min(...points.map(point => point.x));
+  const maxX = Math.max(...points.map(point => point.x));
+  const minZ = Math.min(...points.map(point => point.z));
+  const maxZ = Math.max(...points.map(point => point.z));
+  return maxX - minX > EDGE_FEATURE_EPSILON && maxZ - minZ > EDGE_FEATURE_EPSILON;
+}
+
+function truncateProfileToZ(profile: Segment[], targetZ: number): Segment[] {
+  const result: Segment[] = [];
+  for (const segment of profile) {
+    if (segment.start.z > targetZ + EDGE_FEATURE_EPSILON) break;
+    if (segment.end.z > targetZ + EDGE_FEATURE_EPSILON) {
+      const trimmed = trimSegmentEndToZ(segment, targetZ);
+      if (trimmed) result.push(trimmed);
+      break;
+    }
+    if (Math.abs(segment.end.z - segment.start.z) <= EDGE_FEATURE_EPSILON
+      && segment.start.z >= targetZ - EDGE_FEATURE_EPSILON) break;
+    result.push(segment);
+  }
+  return result;
+}
+
+function truncateProfileSegmentDefinitionsToZ(
+  definitions: ProfileSegmentDefinition[],
+  targetZ: number,
+): ProfileSegmentDefinition[] {
+  const result: ProfileSegmentDefinition[] = [];
+  for (const definition of definitions) {
+    const segment = definition.segment;
+    if (segment.start.z > targetZ + EDGE_FEATURE_EPSILON) break;
+    if (segment.end.z > targetZ + EDGE_FEATURE_EPSILON) {
+      const trimmed = trimSegmentEndToZ(segment, targetZ);
+      if (trimmed) {
+        result.push({
+          segment: trimmed,
+          startFeature: definition.startFeature,
+          endFeature: null,
+        });
+      }
+      break;
+    }
+    if (Math.abs(segment.end.z - segment.start.z) <= EDGE_FEATURE_EPSILON
+      && segment.start.z >= targetZ - EDGE_FEATURE_EPSILON) break;
+    result.push(definition);
+  }
+  return result;
+}
+
+function extendProfileSegmentDefinitionsToZ(
+  definitions: ProfileSegmentDefinition[],
+  targetZ: number,
+): ProfileSegmentDefinition[] {
+  const last = definitions.at(-1);
+  if (!last || targetZ - last.segment.end.z <= EDGE_FEATURE_EPSILON) return definitions;
+  return mergeColinearSegmentDefinitions([
+    ...definitions,
+    createLineSegmentDefinition(last.segment.end, new Point(last.segment.end.x, targetZ)),
+  ]);
+}
+
+function extendInsideProfileSegmentDefinitionsToZ(
+  definitions: ProfileSegmentDefinition[],
+  targetZ: number,
+  extensionX: number,
+): ProfileSegmentDefinition[] {
+  const last = definitions.at(-1);
+  if (!last || targetZ - last.segment.end.z <= EDGE_FEATURE_EPSILON) return definitions;
+  const extension = Math.abs(last.segment.end.x - extensionX) <= EDGE_FEATURE_EPSILON
+    ? [createLineSegmentDefinition(last.segment.end, new Point(extensionX, targetZ))]
+    : [
+        createLineSegmentDefinition(last.segment.end, new Point(extensionX, last.segment.end.z)),
+        createLineSegmentDefinition(new Point(extensionX, last.segment.end.z), new Point(extensionX, targetZ)),
+      ];
+  return mergeColinearSegmentDefinitions([
+    ...definitions,
+    ...extension,
+  ]);
+}
+
+function createLineSegmentDefinition(start: Point, end: Point): ProfileSegmentDefinition {
+  return {
+    segment: new Segment('LINE', start, end),
+    startFeature: null,
+    endFeature: null,
+  };
+}
+
+function mergeColinearSegmentDefinitions(definitions: ProfileSegmentDefinition[]): ProfileSegmentDefinition[] {
+  const result: ProfileSegmentDefinition[] = [];
+  for (const definition of definitions) {
+    const previous = result.at(-1);
+    if (previous && canMergeSegmentDefinitions(previous, definition)) {
+      result[result.length - 1] = {
+        segment: new Segment('LINE', previous.segment.start, definition.segment.end),
+        startFeature: previous.startFeature,
+        endFeature: definition.endFeature,
+      };
+      continue;
+    }
+    result.push(definition);
+  }
+  return result;
+}
+
+function canMergeSegmentDefinitions(previous: ProfileSegmentDefinition, next: ProfileSegmentDefinition): boolean {
+  return previous.segment.type === 'LINE'
+    && next.segment.type === 'LINE'
+    && !previous.endFeature
+    && !next.startFeature
+    && previous.segment.end.isEqual(next.segment.start)
+    && previous.segment.isColinear(next.segment) === true;
+}
+
+function trimSegmentEndToZ(segment: Segment, targetZ: number): Segment | null {
+  if (segment.type !== 'LINE') return null;
+  const span = segment.end.z - segment.start.z;
+  if (span <= EDGE_FEATURE_EPSILON) return null;
+  const ratio = (targetZ - segment.start.z) / span;
+  if (ratio <= EDGE_FEATURE_EPSILON || ratio >= 1) return null;
+  return new Segment('LINE', segment.start, new Point(
+    segment.start.x + (segment.end.x - segment.start.x) * ratio,
+    targetZ,
+  ));
+}
+
+function segmentRadii(segment: Segment): number[] {
+  return [segment.start.x, segment.end.x, ...segment.controlPoints.map(point => point.x)];
+}
+
+function scaleStockDirective(directive: StockDirective, xScale: number, scaledPartDiameter: number | null): StockDirective {
+  const stockHole = scaleNumericParam(directive.hole, xScale);
+  const scaledStockDiameter = scaleNumber(getStockDirectiveDiameterInLatheUnits(directive), xScale);
+  const stockHoleDiameter = stockHole ? stockHole.value * (stockHole.name === 'ID' ? 1 : 2) : 0;
+  const stockDiameter = scaledPartDiameter !== null && scaledPartDiameter > stockHoleDiameter
+    ? scaledPartDiameter
+    : scaledStockDiameter;
+  return {
+    ...directive,
+    size: directive.sizeType === 'D' ? stockDiameter : scaleNumber(stockDiameter / 2, 1),
+    hole: stockHole,
+  };
+}
+
+function scaleStockDirectiveForUnits(directive: StockDirective, scale: number): StockDirective {
+  return {
+    ...directive,
+    size: scaleNumber(directive.size, scale, UNIT_CONVERSION_DECIMAL_PLACES),
+    hole: scaleNumericParam(directive.hole, scale, UNIT_CONVERSION_DECIMAL_PLACES),
+    allowance: scaleNumericParam(directive.allowance, scale, UNIT_CONVERSION_DECIMAL_PLACES),
+  };
+}
+
+function scaleToolDirectiveForUnits(directive: ToolDirective, scale: number): ToolDirective {
+  return {
+    ...directive,
+    radius: scaleNumericParam(directive.radius, scale, UNIT_CONVERSION_DECIMAL_PLACES),
+    length: scaleNumericParam(directive.length, scale, UNIT_CONVERSION_DECIMAL_PLACES),
+    height: scaleNumericParam(directive.height, scale, UNIT_CONVERSION_DECIMAL_PLACES),
+  };
+}
+
+function scaleDepthDirectiveForUnits(directive: DepthDirective, scale: number): DepthDirective {
+  return {
+    ...directive,
+    cut: scaleNumericParam(directive.cut, scale, UNIT_CONVERSION_DECIMAL_PLACES),
+    finish: scaleNumericParam(directive.finish, scale, UNIT_CONVERSION_DECIMAL_PLACES),
+  };
+}
+
+function scaleFeedDirectiveForUnits(directive: FeedDirective, scale: number): FeedDirective {
+  return {
+    ...directive,
+    move: scaleNumericParam(directive.move, scale, UNIT_CONVERSION_DECIMAL_PLACES),
+    pass: scaleNumericParam(directive.pass, scale, UNIT_CONVERSION_DECIMAL_PLACES),
+    part: scaleNumericParam(directive.part, scale, UNIT_CONVERSION_DECIMAL_PLACES),
+  };
+}
+
+type LatheLineScaleOptions = {
+  readonly decimalPlaces?: number;
+  readonly scaleConeAngle?: boolean;
+  readonly scaleParting?: boolean;
+};
+
+function scaleLatheLine(line: LatheLine, xScale: number, zScale: number, options: LatheLineScaleOptions = {}): string {
+  const decimalPlaces = options.decimalPlaces ?? SCALE_DECIMAL_PLACES;
+  if (isCurvedLine(line)) {
+    return latheLineToString({
+      ...line,
+      length: scaleNumber(line.length, zScale, decimalPlaces),
+      start: scaleNumber(line.start, xScale, decimalPlaces),
+      end: scaleNumber(line.end, xScale, decimalPlaces),
+      angle: line.angle && (options.scaleConeAngle ?? true)
+        ? {...line.angle, value: scaleConeAngle(line.angle.value, xScale, zScale)}
+        : line.angle,
+      startFeature: scaleEdgeFeature(line.startFeature, xScale, decimalPlaces),
+      endFeature: scaleEdgeFeature(line.endFeature, xScale, decimalPlaces),
+    });
+  }
+  if (isSplineLine(line)) {
+    return latheLineToString({
+      ...line,
+      length: scaleNumber(line.length, zScale, decimalPlaces),
+      start: scaleNumber(line.start, xScale, decimalPlaces),
+      end: scaleNumber(line.end, xScale, decimalPlaces),
+      controls: line.controls.map(control => ({
+        ...control,
+        size: scaleNumber(control.size, xScale, decimalPlaces),
+      })),
+    });
+  }
+  if (isStraightLine(line)) {
+    return latheLineToString({
+      ...line,
+      length: scaleNumber(line.length, zScale, decimalPlaces),
+      size: scaleNumber(line.size, xScale, decimalPlaces),
+      startFeature: scaleEdgeFeature(line.startFeature, xScale, decimalPlaces),
+      endFeature: scaleEdgeFeature(line.endFeature, xScale, decimalPlaces),
+    });
+  }
+  if (options.scaleParting) {
+    return latheLineToString({
+      ...line,
+      length: scaleNumber(line.length, zScale, decimalPlaces),
+    });
+  }
+  return latheLineToString(line);
+}
+
+function scaleNumericParam<Name extends string>(
+    param: NumericParam<Name> | null,
+    scale: number,
+    decimalPlaces = SCALE_DECIMAL_PLACES): NumericParam<Name> | null {
+  return param ? {...param, value: scaleNumber(param.value, scale, decimalPlaces)} : null;
+}
+
+function scaleEdgeFeature(
+    feature: EdgeFeature | null,
+    scale: number,
+    decimalPlaces = SCALE_DECIMAL_PLACES): EdgeFeature | null {
+  return feature ? {...feature, value: scaleNumber(feature.value, scale, decimalPlaces)} : null;
+}
+
+function scaleEdgeFeatureToUnits(feature: EdgeFeature | null, unitsMultiplier: number): EdgeFeature | null {
+  return feature ? {...feature, value: feature.value * unitsMultiplier} : null;
+}
+
+function scaleNumber(value: number, scale: number, decimalPlaces = SCALE_DECIMAL_PLACES): number {
+  const multiplier = 10 ** decimalPlaces;
+  const rounded = Math.round(value * scale * multiplier) / multiplier;
+  const integer = Math.round(rounded);
+  return integer !== 0 && Math.abs(rounded - integer) <= 1 / multiplier ? integer : rounded;
+}
+
+function scaleConeAngle(angleDeg: number, xScale: number, zScale: number): number {
+  return scaleNumber(Math.atan(Math.tan(angleDeg * Math.PI / 180) * xScale / zScale) * 180 / Math.PI, 1);
+}
+
+function isPositiveFiniteNumber(value: number): boolean {
+  return Number.isFinite(value) && value > 0;
+}
+
+function commentToString(comment: string): string {
+  return comment ? `; ${comment}` : '';
+}
+
+function formatComment(comment: string): string {
+  if (!comment) return '';
+  return comment.startsWith(';') ? ` ${comment}` : ` ; ${comment}`;
+}
+
+function unitsDirectiveToString(directive: UnitsDirective): string {
+  return `UNITS ${directive.unit}${formatComment(directive.comment)}`;
+}
+
+function stockDirectiveToString(directive: StockDirective, options: {includeHole?: boolean} = {}): string {
+  const includeHole = options.includeHole ?? true;
+  const stockHole = includeHole && directive.hole ? ` ${directive.hole.name}${numberToString(directive.hole.value)}` : '';
+  const allowance = directive.allowance ? ` ${directive.allowance.name}${numberToString(directive.allowance.value)}` : '';
+  return `STOCK ${directive.sizeType}${numberToString(directive.size)}${stockHole}${allowance}${formatComment(directive.comment)}`;
+}
+
+function toolDirectiveToString(directive: ToolDirective): string {
+  const params = numericParamsToString([directive.radius, directive.length, directive.height, directive.angle, directive.noseAngle]);
+  return `TOOL ${directive.type}${params.length ? ' ' + params.join(' ') : ''}${formatComment(directive.comment)}`;
+}
+
+function depthDirectiveToString(directive: DepthDirective): string {
+  const params = numericParamsToString([directive.cut, directive.finish]);
+  return `DEPTH ${params.join(' ')}${formatComment(directive.comment)}`;
+}
+
+function feedDirectiveToString(directive: FeedDirective): string {
+  const params = numericParamsToString([directive.move, directive.pass, directive.part]);
+  return `FEED ${params.join(' ')}${formatComment(directive.comment)}`;
+}
+
+function numericParamsToString(params: readonly (NumericParam<string> | null)[]): string[] {
+  return params.flatMap(param => param ? [`${param.name}${numberToString(param.value)}`] : []);
+}
+
+function edgeFeatureToString(feature: EdgeFeature | null): string {
+  return feature ? ` ${feature.name}${numberToString(feature.value)}` : '';
+}
+
+function edgeFeaturesEqual(a: EdgeFeature | null, b: EdgeFeature | null): boolean {
+  if (!a || !b) return a === b;
+  return a.name === b.name && a.value === b.value;
+}
+
+function modeDirectiveToString(directive: ModeDirective): string {
+  return `MODE ${directive.mode}${formatComment(directive.comment)}`;
+}
+
+function axesDirectiveToString(directive: AxesDirective): string {
+  return `AXES ${directive.zDirection} ${directive.xDirection}${formatComment(directive.comment)}`;
+}
+
+function latheLineToString(line: LatheLine): string {
+  if (isCurvedLine(line)) {
+    if (line.angle && line.angleAnchorType) {
+      const isStartAnchor = line.angleAnchorType === 'DS' || line.angleAnchorType === 'RS';
+      const anchor = isStartAnchor ? line.start : line.end;
+      const feature = isStartAnchor ? line.startFeature : line.endFeature;
+      return `L${numberToString(line.length)} ${line.angleAnchorType}${numberToString(anchor)}${edgeFeatureToString(feature)} A${numberToString(line.angle.value)}${formatComment(line.comment)}`;
+    }
+    return `L${numberToString(line.length)} ${line.startType}${numberToString(line.start)}${edgeFeatureToString(line.startFeature)} ${line.endType}${numberToString(line.end)}${edgeFeatureToString(line.endFeature)}${line.curveType ? ' ' + line.curveType : ''}${formatComment(line.comment)}`;
+  }
+  if (isSplineLine(line)) {
+    const controls = line.controls.map(control => `${control.sizeType}${numberToString(control.size)}`).join(' ');
+    return `L${numberToString(line.length)} ${line.startType}${numberToString(line.start)} ${line.endType}${numberToString(line.end)} BSPLINE ${controls}${formatComment(line.comment)}`;
+  }
+  if (isStraightLine(line)) {
+    if (!edgeFeaturesEqual(line.startFeature, line.endFeature)) {
+      const startType = line.sizeType === 'D' ? 'DS' : 'RS';
+      const endType = line.sizeType === 'D' ? 'DE' : 'RE';
+      return `L${numberToString(line.length)} ${startType}${numberToString(line.size)}${edgeFeatureToString(line.startFeature)} ${endType}${numberToString(line.size)}${edgeFeatureToString(line.endFeature)}${formatComment(line.comment)}`;
+    }
+    return `L${numberToString(line.length)} ${line.sizeType}${numberToString(line.size)}${edgeFeatureToString(line.startFeature)}${formatComment(line.comment)}`;
+  }
+  return `L${numberToString(line.length)}${formatComment(line.comment)}`;
+}
+
+function numberToString(value: number): string {
+  const rounded = Math.round(value * 1e12) / 1e12;
+  if (Number.isInteger(rounded)) return rounded.toFixed(0);
+  return rounded.toFixed(12).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+function reverseAngleAnchorType(anchorType: SegmentAnchorType): SegmentAnchorType {
+  if (anchorType === 'DS') return 'DE';
+  if (anchorType === 'DE') return 'DS';
+  if (anchorType === 'RS') return 'RE';
+  return 'RS';
+}
+
+export function removeColinearSegments(segments: Segment[]): Segment[] {
+  for (let i = 0; i < segments.length - 1; i++) {
+    const a = segments[i];
+    const b = segments[i + 1];
+    if (a.isColinear(b)) {
+      const copy = segments.concat();
+      copy.splice(i, 2, new Segment(a.type, a.start, b.end));
+      return removeColinearSegments(copy);
+    }
+  }
+  return segments;
+}
+
+export function removeEmptySegments(segments: Segment[]): Segment[] {
+  const result: Segment[] = [];
+  for (let s of segments) {
+    if (!s.isEmpty()) result.push(s);
+  }
+  return result;
+}
+
+function getLineSegmentType(line: LatheLine): string {
+  if (isSplineLine(line)) return 'BSPLINE';
+  return isCurvedLine(line) ? line.curveType || 'LINE' : 'LINE';
+}
+
+function getLineStartFeature(line: LatheLine): EdgeFeature | null {
+  if (isStraightLine(line)) return line.startFeature;
+  if (isCurvedLine(line)) return line.startFeature;
+  return null;
+}
+
+function getLineEndFeature(line: LatheLine): EdgeFeature | null {
+  if (isStraightLine(line)) return line.endFeature;
+  if (isCurvedLine(line)) return line.endFeature;
+  return null;
+}
+
+function getSplineControlPoints(line: SplineLine, start: Point, end: Point, unitsMultiplier: number): Point[] {
+  const radii = [
+    start.x,
+    ...line.controls.map(control => control.size / (control.sizeType === 'D' ? 2 : 1) * unitsMultiplier),
+    end.x,
+  ];
+  const length = end.z - start.z;
+  return radii.map((radius, index) => new Point(
+    radius,
+    start.z + length * index / (radii.length - 1),
+  ));
+}
+
+function normalizeEdgeFeature(feature: EdgeFeature | null): EdgeFeature | null {
+  return feature && feature.value > 0 ? feature : null;
+}
+
+function latheFeatureKind(feature: EdgeFeature): EdgeFeatureKind {
+  return feature.name === 'CH' ? 'chamfer' : 'fillet';
+}
+
+function segmentToEdgeFeatureSegment(segment: Segment): EdgeFeatureSegment {
+  return {
+    type: segment.type === 'LINE' ? 'line' : segment.type === 'BSPLINE' ? 'spline' : 'curve',
+    start: {radius: segment.start.x, z: segment.start.z},
+    end: {radius: segment.end.x, z: segment.end.z},
+  };
+}
+
+function edgeFeaturePointToPoint(point: EdgeFeaturePoint): Point {
+  return new Point(point.radius, point.z);
+}
+
+function getRequiredEndpointFeatureNeighborPoint(
+  segment: EdgeFeatureSegment,
+  context: EndpointFeatureContext,
+  feature: {kind: EdgeFeatureKind, size: number},
+): Point {
+  const point = getEndpointFeatureNeighborPoint(segment, context, feature);
+  if (!point) throwEndpointFeatureContextError(context);
+  return edgeFeaturePointToPoint(point);
+}
+
+function throwEndpointFeatureContextError(context: EndpointFeatureContext): never {
+  if (context.kind !== 'invalid') throw new Error('Errore: lo smusso o il raccordo richiede un angolo tra segmenti');
+  if (context.reason === 'no-edge') throw new Error('Errore: lo smusso o il raccordo richiede un bordo radiale');
+  if (context.reason === 'unsupported-neighbor') {
+    throw new Error('Errore: smussi e raccordi non sono supportati accanto a segmenti CONV, CONC o BSPLINE');
+  }
+  throw new Error('Errore: lo smusso o il raccordo richiede un angolo tra segmenti');
+}
+
+function validateEndpointConnectorFeatureFit(
+  segment: EdgeFeatureSegment,
+  context: EndpointFeatureContext,
+  feature: {kind: EdgeFeatureKind, size: number},
+): void {
+  if (context.kind !== 'connector') return;
+  if (getEndpointFeatureConnectorTrimDistance(segment, context, feature) - context.trimLimit > EDGE_FEATURE_EPSILON) {
+    throw new Error('Errore: lo smusso o il raccordo è troppo grande per il bordo radiale adiacente');
+  }
+}
+
+function appendSegments(result: Segment[], segments: Segment[]): void {
+  for (const segment of segments) appendSegment(result, segment);
+}
+
+function appendSegment(result: Segment[], segment: Segment): void {
+  if (distance(segment.start, segment.end) <= EDGE_FEATURE_EPSILON) return;
+  result.push(segment);
+}
+
+function horizontalSpan(segment: Segment): number {
+  return Math.abs(segment.end.z - segment.start.z);
+}
+
+function getFullSegmentFilletCurveType(segment: Segment, endpoint: 'start' | 'end', radialDirection: number, trimDistance: number): 'CONV' | 'CONC' | null {
+  if (Math.abs(trimDistance - horizontalSpan(segment)) > EDGE_FEATURE_EPSILON) return null;
+
+  const radialDelta = segment.end.x - segment.start.x;
+  const segmentRadialDirection = Math.sign(radialDelta);
+  if (!segmentRadialDirection || radialDirection !== segmentRadialDirection) return null;
+
+  if (endpoint === 'start') return segmentRadialDirection > 0 ? 'CONV' : 'CONC';
+  return segmentRadialDirection > 0 ? 'CONC' : 'CONV';
+}
+
+function filletArcSegments(center: Point, radius: number, start: Point, end: Point): Segment[] {
+  const startAngle = Math.atan2(start.z - center.z, start.x - center.x);
+  const endAngle = Math.atan2(end.z - center.z, end.x - center.x);
+  const delta = normalizeAngle(endAngle - startAngle);
+  const steps = Math.max(2, Math.ceil(Math.abs(delta) * radius / FILLET_ARC_CHORD_MM));
+  const segments: Segment[] = [];
+  let previous = start;
+  for (let i = 1; i <= steps; i++) {
+    const point = i === steps
+      ? end
+      : new Point(
+        center.x + radius * Math.cos(startAngle + delta * i / steps),
+        center.z + radius * Math.sin(startAngle + delta * i / steps),
+      );
+    appendSegment(segments, new Segment('LINE', previous, point));
+    previous = point;
+  }
+  return segments;
+}
+
+function normalizeAngle(angle: number): number {
+  while (angle <= -Math.PI) angle += Math.PI * 2;
+  while (angle > Math.PI) angle -= Math.PI * 2;
+  return angle;
+}
+
+function distance(a: Point, b: Point): number {
+  return Math.hypot(b.x - a.x, b.z - a.z);
+}
+
+function pointsEqual(left: readonly Point[], right: readonly Point[]): boolean {
+  return left.length === right.length && left.every((point, index) => point.isEqual(right[index]));
+}
+
+function isStraightLine(line: LatheLine): line is StraightLine {
+  return line.kind === 'straight';
+}
+
+function isCurvedLine(line: LatheLine): line is CurvedLine {
+  return line.kind === 'curved';
+}
+
+function isSplineLine(line: LatheLine): line is SplineLine {
+  return line.kind === 'spline';
+}
+
+function isPartingLine(line: LatheLine) {
+  return line.kind === 'parting' || line.kind === 'straight' && line.sizeType === 'D' && !line.size;
+}

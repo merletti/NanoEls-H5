@@ -6,8 +6,8 @@
 use strict; use warnings;
 no warnings 'portable';
 
-my $SRC = shift // "C:/Users/Admin/Desktop/h5/screen/h5.tft";
-my $OUT = shift // "C:/Users/Admin/Documents/Qoder/2026-10-28/9b591104/screen-it/h5_it_colori.tft";
+my $SRC = shift // "h5.tft";
+my $OUT = shift // "h5_it_colori.tft";
 
 open(my $fh, "<:raw", $SRC) or die "src: $!";
 local $/; my $buf = <$fh>; close $fh;

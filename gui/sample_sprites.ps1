@@ -1,8 +1,8 @@
 Add-Type -AssemblyName System.Drawing
 $files = @(
-  'C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5\screen-it\sprite_values.png',
-  'C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5\screen-it\sprite_values2.png',
-  'C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5\screen-it\sprite_values_card.png'
+  "$PSScriptRoot\..\screen-it\sprite_values.png",
+  "$PSScriptRoot\..\screen-it\sprite_values2.png",
+  "$PSScriptRoot\..\screen-it\sprite_values_card.png"
 )
 foreach ($f in $files) {
   if (!(Test-Path $f)) { Write-Output "MISSING $f"; continue }

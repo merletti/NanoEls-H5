@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
-$base = 'C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5\screen-it'
+$base = Join-Path (Split-Path $PSScriptRoot -Parent) 'screen-it'
 $imp  = Join-Path $base 'import_card49'
 $bak  = Join-Path $base 'backup-20261102\bg_before_card49'
 New-Item -ItemType Directory -Force -Path $imp,$bak | Out-Null

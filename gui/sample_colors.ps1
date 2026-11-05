@@ -1,5 +1,5 @@
 Add-Type -AssemblyName System.Drawing
-$img = [System.Drawing.Bitmap]::FromFile('C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5\gui\pages\page21.png')
+$img = [System.Drawing.Bitmap]::FromFile("$PSScriptRoot\pages\page21.png")
 $pts = @(
   @{n='bg-footer'; x=400; y=465},
   @{n='bg-left-giri'; x=180; y=340},

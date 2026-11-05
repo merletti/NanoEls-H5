@@ -39,7 +39,7 @@ open(my $out, '>', 'clean/screens_clean.html') or die $!;
 print $out $doc;
 close $out;
 
-my $chrome = 'C:\Program Files\Google\Chrome\Application\chrome.exe';
+my $chrome = $ENV{CHROME_EXE} // "$ENV{ProgramFiles}\\Google\\Chrome\\Application\\chrome.exe";
 my $here = getcwd;
 $here =~ s{^/([a-z])/}{uc($1) . ':/'}ie;
 for my $id (@ids) {

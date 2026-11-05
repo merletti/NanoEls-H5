@@ -1,0 +1,110 @@
+; UNITS MM
+; STOCK D10
+; TOOL RECT R0 L1
+; DEPTH CUT0.25 FINISH0.05
+; MODE TURN
+;
+; Fillet at a continuous cone valley without a radial shoulder.
+; L0.5 D8
+; L1 DS8 DE4 FI0.15
+; L1 DS4 DE8
+; L0.5 D8
+
+; Run time 0.6 min, cutting 73% of time
+; Working area 3.00 by 2.00 mm
+; Axes expected: Z+ points left, X+ points up
+
+G21 ; metric
+G18 ; ZX plane
+G90 ; absolute positioning
+F200
+X-5 ; zero your tool X on centerline
+Z0 ; zero your tool Z at the right edge of the stock
+G91 ; relative positioning
+X0.25
+
+F50
+Z3 ; cut 0.75 mm2
+
+F200
+X-0.25
+Z-3
+X0.5
+
+F50
+Z3 ; cut 0.75 mm2
+
+F200
+X-0.5
+Z-3
+X0.75
+
+F50
+Z3 ; cut 0.75 mm2
+
+F200
+X-0.75
+Z-3
+X0.96
+
+F50
+Z1.49 X-0.01 ; cut 0.298 mm2 at -89.62°
+Z0.03 X0.05 ; cut 0.0564 mm2 at 30.96°
+Z0.96 ; cut 0.24 mm2
+Z0.03 X-0.05 ; cut 0.0064 mm2 at -30.96°
+Z0.49 ; cut 0.098 mm2
+
+F200
+X-0.95
+Z-1.48
+X1
+
+F50
+Z0.13 X0.25 ; cut 0.2656 mm2 at 27.47°
+Z0.7 ; cut 0.175 mm2
+Z0.16 X-0.3 ; cut 0.0156 mm2 at -28.07°
+
+F200
+X-0.95
+Z-0.86
+X1.25
+
+F50
+Z0.12 X0.25 ; cut 0.2644 mm2 at 25.64°
+Z0.46 ; cut 0.115 mm2
+Z0.28 X-0.55 ; cut 0.0144 mm2 at -26.98°
+
+F200
+X-0.95
+Z-0.74
+X1.5
+
+F50
+Z0.13 X0.25 ; cut 0.2656 mm2 at 27.47°
+Z0.2 ; cut 0.05 mm2
+Z0.41 X-0.8 ; cut 0.0156 mm2 at -27.14°
+
+F200
+X-0.95
+Z-0.61
+X1.75
+
+F50
+Z0.1 X0.21 ; cut 0.22 mm2 at 25.46°
+Z0.49 X-0.99 ; cut 0.01 mm2 at -26.33°
+
+F200
+X-0.97
+Z-2.49
+X1.01
+Z0.01 X-0.01 ; cut 0.0005 mm2
+
+F50
+Z1.48 ; cut 0.0348 mm2
+Z0.51 X1 ; cut 0.0745 mm2 at 27.02°
+Z0.51 X-1 ; cut 0.0304 mm2 at -27.02°
+Z0.49 ; cut 0.0245 mm2
+X-1 ; cut 0.01 mm2
+
+F200
+Z-3

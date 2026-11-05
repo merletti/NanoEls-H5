@@ -1,4 +1,4 @@
-param([string]$dir = "C:/Users/Admin/Documents/Qoder/2026-10-30/dfa27f31/nanoels-h5/screen-it")
+param([string]$dir = (Join-Path (Split-Path $PSScriptRoot -Parent) 'screen-it'))
 Add-Type -AssemblyName System.Drawing
 $files = @("ingranaggi_bg.png","filetto_bg.png","tornitura_bg.png","spianatura_bg.png","cono_bg.png","troncatura_bg.png","ellisse_bg.png","asincrono_bg.png","gcode_bg.png","assey_bg.png","joystick_bg.png","xgear_bg.png")
 foreach($f in $files){

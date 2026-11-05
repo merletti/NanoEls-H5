@@ -1,6 +1,6 @@
 Add-Type -AssemblyName System.Drawing
-$src = "C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5\screen-it\sprite_values.png"
-$out = "C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5\screen-it\sprite_values2.png"
+$src = "$PSScriptRoot\..\screen-it\sprite_values.png"
+$out = "$PSScriptRoot\..\screen-it\sprite_values2.png"
 $bmp = New-Object System.Drawing.Bitmap $src
 $fg = [System.Drawing.Color]::FromArgb(255,242,242,242)
 $bg = [System.Drawing.Color]::FromArgb(255,16,17,20)

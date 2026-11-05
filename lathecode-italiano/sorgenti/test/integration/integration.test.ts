@@ -1,0 +1,155 @@
+import { afterAll, beforeAll, test, expect } from 'vitest';
+import { readFileSync, readdirSync, writeFileSync, rmSync } from 'fs';
+import { resolve } from 'path';
+import puppeteer, { type Page } from 'puppeteer';
+import { createServer, type ViteDevServer } from 'vite';
+
+const SUFFIX = '.gcode.txt';
+const PUPPETEER_LAUNCH_OPTIONS = {
+  args: ['--disable-gpu', '--no-sandbox', '--disable-setuid-sandbox'],
+  // headless: false, // for debugging
+};
+const STL_INTEGRATION_CASE = 'cylinder';
+const GCODE_INTEGRATION_CASE = 'cylinder';
+let server: ViteDevServer;
+let baseUrl = '';
+
+beforeAll(async () => {
+  server = await createServer({
+    server: {
+      host: '127.0.0.1',
+      port: 0,
+    },
+    logLevel: 'error',
+  });
+  await server.listen();
+
+  baseUrl = server.resolvedUrls?.local[0] || '';
+  if (!baseUrl) throw new Error('Unable to start Vite dev server for integration tests');
+}, 30000);
+
+afterAll(async () => {
+  await server?.close();
+});
+
+function getAppUrl() {
+  return new URL('?moveTimeout=0', baseUrl).toString();
+}
+
+function getInput(name: string) {
+  return normalize(readFileSync(resolve(__dirname, name + '.txt'), 'utf-8'));
+}
+
+function saveInput(name: string, input: string) {
+  writeFileSync(resolve(__dirname, name + '.txt'), input + '\n');
+  const gcodePath = resolve(__dirname, name + SUFFIX);
+  if (!readdirSync(__dirname).includes(name + SUFFIX)) writeFileSync(gcodePath, '');
+}
+
+function saveGCode(name: string, gcode: string) {
+  writeFileSync(resolve(__dirname, name + '.gcode.txt'), gcode + '\n');
+}
+
+function normalize(text: string) {
+  return text.replace(/\r\n/g, '\n').replace(/[ \t]+$/gm, '').trim();
+}
+
+async function screenshot(page: Page, name: string, selector: string) {
+  const path = resolve(__dirname, name + '.png');
+  const dataUrl = await page.$eval(selector, el => {
+    if (!(el instanceof HTMLCanvasElement)) throw new Error('Selected element is not a canvas');
+    return el.toDataURL('image/png');
+  }).catch(() => null);
+  if (dataUrl) writeFileSync(path, Buffer.from(dataUrl.split(',')[1], 'base64'));
+  else rmSync(path, {force: true});
+}
+
+async function setLatheCodeInput(page: Page, value: string) {
+  await page.$eval('.latheCodeInput', (el, text) => {
+    const input = el as HTMLTextAreaElement;
+    input.value = text as string;
+    input.dispatchEvent(new Event('input', {bubbles: true}));
+  }, value);
+}
+
+async function openStarterLatheCode(page: Page) {
+  const starterSampleSelector = '.sampleButton[data-sample="hello-cylinder"]';
+  await page.click('.sampleCatalogButton');
+  await page.waitForSelector(starterSampleSelector, { visible: true });
+  await page.click(starterSampleSelector);
+  await page.waitForSelector('#editorContainer:not([hidden])', { visible: true });
+}
+
+async function waitForImportedStl(page: Page, fileName: string) {
+  await page.waitForFunction(expectedHeader => {
+    const errorText = document.querySelector<HTMLDivElement>('.errorContainer')?.innerText;
+    if (errorText) return true;
+
+    const input = document.querySelector<HTMLTextAreaElement>('.latheCodeInput');
+    return input?.value.startsWith(expectedHeader) ?? false;
+  }, {timeout: 60000}, `; ${fileName}`);
+}
+
+test('stl to lathecode', async () => {
+  const name = STL_INTEGRATION_CASE;
+  const fileName = `${name}.stl`;
+  const browser = await puppeteer.launch(PUPPETEER_LAUNCH_OPTIONS);
+  try {
+    const page = await browser.newPage();
+    await page.goto(getAppUrl(), {waitUntil: 'domcontentloaded'});
+    await openStarterLatheCode(page);
+
+    // Empty the lathecode input
+    await setLatheCodeInput(page, '');
+
+    // Pick the STL file from the Start UI.
+    const [fileChooser] = await Promise.all([page.waitForFileChooser(), page.click('.startStlButton')]);
+    await fileChooser.accept([resolve(__dirname, fileName)]);
+
+    await waitForImportedStl(page, fileName);
+
+    // Ensure there's no error reported parsing lathecode
+    expect(await page.$eval('.errorContainer', el => (el as HTMLDivElement).innerText), `Error in file ${name}`).toBe('');
+
+    let latheCode = await page.$eval('.latheCodeInput', el => (el as HTMLTextAreaElement).value);
+    saveInput(name, normalize(latheCode));
+  } finally {
+    await browser.close();
+  }
+}, {timeout: 120000});
+
+test('lathecode inputs to gcode', async () => {
+  const name = GCODE_INTEGRATION_CASE;
+  const browser = await puppeteer.launch(PUPPETEER_LAUNCH_OPTIONS);
+  try {
+    const page = await browser.newPage();
+    await page.goto(getAppUrl(), {waitUntil: 'domcontentloaded'});
+    await openStarterLatheCode(page);
+
+    // Set the lathecode
+    await setLatheCodeInput(page, getInput(name));
+
+    // Ensure there's no error reported parsing lathecode
+    expect(await page.$eval('.errorContainer', el => (el as HTMLDivElement).innerText)).toBe('');
+
+    // Start GCode calculation
+    await page.click('.planButton');
+
+    // Save GCode so that developer would notice effects on GCode in `git diff`
+    try {
+      await page.waitForSelector('#gcodeTextarea', { visible: true, timeout: 60000 });
+    } catch (error) {
+      const editorError = await page.$eval('.errorContainer', el => (el as HTMLDivElement).innerText);
+      throw new Error(`GCode was not generated for ${name}: ${error instanceof Error ? error.message : String(error)}${editorError ? `\nEditor error: ${editorError}` : ''}`);
+    }
+    let result = await page.$eval('#gcodeTextarea', (el) => (el as HTMLTextAreaElement).value);
+    saveGCode(name, normalize(result));
+
+    // Take screenshot of the tool path to easier understand the difference
+    await screenshot(page, name + '.part', '#plannerContainer canvas.part');
+    await screenshot(page, name + '.tool', '#plannerContainer canvas.tool');
+    await screenshot(page, name + '.moves', '#plannerContainer canvas.moves');
+  } finally {
+    await browser.close();
+  }
+}, {timeout: 120000});

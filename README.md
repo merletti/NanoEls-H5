@@ -67,6 +67,7 @@ mockup-tft/              mockup e sorgenti grafiche delle schermate
 gui/                     script di supporto (generazione asset, prove)
 collaudo/                procedure di collaudo sicurezza (STOP, ESTOP, reset)
 targhetta/, cablaggio/   targhetta e schema dei connettori
+lathecode-italiano/      editor lathecode tradotto (app offline + sorgenti)
 ```
 
 ## Compilare il firmware
@@ -116,6 +117,8 @@ sotto. In alternativa si apre `firmware-it/h5/h5.ino` con l'Arduino IDE (scheda
 - [Mappa delle pagine](screen-it/TABELLA_PAGINE_MENU.md) — pagine, ID, script.
 - [Componenti e zone touch](screen-it/TABELLA_COMPONENTI.md).
 - [Guida a Nextion Editor](screen-it/GUIDA_NEXTION_EDITOR.md).
+- [Editor lathecode in italiano](lathecode-italiano/README.md) — app offline per
+  creare il G-code da un profilo tornito (`lathecode-italiano/index.html`).
 
 ## Stato del progetto
 

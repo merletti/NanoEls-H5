@@ -1,0 +1,652 @@
+import { LatheCode, ProfileSide } from '../common/lathecode.ts';
+import { createFullScreenDialog } from '../common/dialog.ts';
+import { openToolDialog } from './tooldialog.ts';
+import { openSetupDialog, type SetupDialogKind } from './setupdialog.ts';
+import StlImportWorker from './stlimportworker?worker&inline';
+import { FromStlWorkerMessage } from './stlimportworker.ts';
+import { AppSettings, loadAppSettings } from '../common/settings.ts';
+import { modifyLatheCodeWithPrompt } from '../llm/openrouter.ts';
+import { hasOpenRouterApiKey, openOpenRouterKeyDialog } from '../llm/openrouterkeydialog.ts';
+import { createPrivacyDisclosure, openRouterActionPrivacyText } from '../llm/privacy.ts';
+
+export class PlanEvent extends Event {
+  constructor(readonly latheCode: LatheCode, readonly settings: AppSettings) {
+    super('plan');
+  }
+
+  get pxPerMm() {
+    return this.settings.pxPerMm;
+  }
+}
+
+export class Editor extends EventTarget {
+  private errorContainer: HTMLDivElement;
+  private statusContainer: HTMLDivElement;
+  private latheCodeInput: HTMLTextAreaElement;
+  private defaultLatheCodeText: string;
+  private planButton: HTMLButtonElement;
+  private outsidePlanButton: HTMLButtonElement;
+  private insidePlanButton: HTMLButtonElement;
+  private historyToolbarGroup: HTMLElement | null;
+  private undoButton: HTMLButtonElement;
+  private redoButton: HTMLButtonElement;
+  private saveButton: HTMLButtonElement;
+  private toolButton: HTMLButtonElement;
+  private flipButton: HTMLButtonElement;
+  private scaleButton: HTMLButtonElement;
+  private partingButton: HTMLButtonElement;
+  private llmModifyButton: HTMLButtonElement;
+  private latheCode: LatheCode | null = null;
+  private worker: Worker | null = null;
+  private validTextHistory: string[] = [];
+  private validTextHistoryIndex = -1;
+
+  constructor(container: HTMLElement, options: {deferInitialUpdate?: boolean} = {}) {
+    super();
+
+    this.planButton = container.querySelector<HTMLButtonElement>('.planButton')!;
+    this.outsidePlanButton = container.querySelector<HTMLButtonElement>('.outsidePlanButton')!;
+    this.insidePlanButton = container.querySelector<HTMLButtonElement>('.insidePlanButton')!;
+    this.historyToolbarGroup = container.querySelector<HTMLElement>('.historyToolbarGroup');
+    this.undoButton = container.querySelector<HTMLButtonElement>('.undoButton')!;
+    this.redoButton = container.querySelector<HTMLButtonElement>('.redoButton')!;
+    this.errorContainer = container.querySelector('.errorContainer')!;
+    this.statusContainer = container.querySelector('.statusContainer')!;
+    this.latheCodeInput = container.querySelector<HTMLTextAreaElement>('.latheCodeInput')!;
+    this.defaultLatheCodeText = this.latheCodeInput.value;
+    this.latheCodeInput.addEventListener('input', () => this.update());
+
+    for (const button of [
+      {selector: '.unitsButton', kind: 'units' as const},
+      {selector: '.stockButton', kind: 'stock' as const},
+      {selector: '.depthButton', kind: 'depth' as const},
+      {selector: '.feedButton', kind: 'feed' as const},
+      {selector: '.modeButton', kind: 'mode' as const},
+      {selector: '.axesButton', kind: 'axes' as const},
+    ]) {
+      container
+        .querySelector<HTMLButtonElement>(button.selector)!
+        .addEventListener('click', () => this.openSetupDialog(button.kind));
+    }
+
+    container.querySelector<HTMLButtonElement>('.stlButton')!.addEventListener('click', () => {
+      this.dispatchEvent(new Event('stl'));
+    });
+
+    this.planButton.addEventListener('click', () => this.planLatheCode());
+    this.outsidePlanButton.addEventListener('click', () => this.planLatheCode('outside'));
+    this.insidePlanButton.addEventListener('click', () => this.planLatheCode('inside'));
+    this.undoButton.addEventListener('click', () => this.undoValidText());
+    this.redoButton.addEventListener('click', () => this.redoValidText());
+
+    this.toolButton = container.querySelector<HTMLButtonElement>('.toolButton')!;
+    this.toolButton.addEventListener('click', () => this.openToolDialog());
+
+    this.flipButton = container.querySelector<HTMLButtonElement>('.flipButton')!;
+    this.flipButton.addEventListener('click', () => {
+      if (!this.latheCode) return;
+      this.latheCodeInput.value = this.latheCode.reverse();
+      this.update();
+    });
+
+    this.saveButton = container.querySelector<HTMLButtonElement>('.saveButton')!;
+    this.scaleButton = container.querySelector<HTMLButtonElement>('.scaleButton')!;
+    this.partingButton = container.querySelector<HTMLButtonElement>('.partingButton')!;
+    this.llmModifyButton = container.querySelector<HTMLButtonElement>('.llmModifyButton')!;
+
+    this.saveButton.addEventListener('click', () => this.saveLatheCode());
+    this.scaleButton.addEventListener('click', () => this.openScaleDialog());
+    this.partingButton.addEventListener('click', () => this.togglePartingLine());
+    this.llmModifyButton.addEventListener('click', () => this.openLlmEntryDialog(() => this.openLlmModifyDialog()));
+
+    const savedDraft = localStorage.getItem('latheCode');
+    if (savedDraft?.trim()) {
+      this.latheCodeInput.value = savedDraft;
+      this.update();
+    } else if (options.deferInitialUpdate) {
+      this.updatePlanningButtons(null);
+      this.updateHistoryButtons();
+    } else {
+      this.update();
+    }
+  }
+
+  // Save current LatheCode
+  saveLatheCode() {
+    let saveValue = this.latheCodeInput.value;
+    // At least 2 lines required to be recognized in local storage.
+    if (saveValue.indexOf('\n') === -1) saveValue += '\n';
+
+    const saveName = prompt('Inserisci il nome per questo file lathecode', new Date().toLocaleString());
+    if (!saveName) return; // Handle empty name case
+
+    localStorage.setItem(saveName, saveValue);
+    this.dispatchEvent(new Event('saved'));
+  }
+
+  getLatheCode() {
+    return this.latheCode;
+  }
+
+  getDefaultText() {
+    return this.defaultLatheCodeText;
+  }
+
+  getText() {
+    return this.latheCodeInput.value;
+  }
+
+  setText(text: string) {
+    this.latheCodeInput.value = text;
+    this.update();
+  }
+
+  getPxPerMm() {
+    return this.getAppSettings().pxPerMm;
+  }
+
+  getAppSettings() {
+    return loadAppSettings();
+  }
+
+  private update(options: {recordHistory?: boolean} = {}) {
+    const recordHistory = options.recordHistory ?? true;
+    try {
+      localStorage.setItem('latheCode', this.latheCodeInput.value);
+      this.latheCode = new LatheCode(this.latheCodeInput.value);
+      if (recordHistory) this.recordValidText(this.latheCodeInput.value);
+      this.updatePlanningButtons(this.latheCode);
+      this.errorContainer.textContent = '';
+    } catch (error: any) {
+      this.latheCode = null;
+      this.updatePlanningButtons(null);
+      this.errorContainer.textContent = error.message;
+    }
+    this.updateHistoryButtons();
+    this.dispatchEvent(new Event('change'));
+  }
+
+  private recordValidText(text: string) {
+    if (this.validTextHistory[this.validTextHistoryIndex] === text) return;
+
+    this.validTextHistory.splice(this.validTextHistoryIndex + 1);
+    const lastText = this.validTextHistory[this.validTextHistory.length - 1];
+    if (lastText !== text) this.validTextHistory.push(text);
+    this.validTextHistoryIndex = this.validTextHistory.length - 1;
+  }
+
+  private updateHistoryButtons() {
+    const textIsCurrentHistoryEntry = this.latheCodeInput.value === this.validTextHistory[this.validTextHistoryIndex];
+    const canUndo = this.validTextHistoryIndex >= 0
+      && (!textIsCurrentHistoryEntry || this.validTextHistoryIndex > 0);
+    const canRedo = this.validTextHistoryIndex < this.validTextHistory.length - 1;
+    this.undoButton.hidden = !canUndo;
+    this.redoButton.hidden = !canRedo;
+    if (this.historyToolbarGroup) this.historyToolbarGroup.hidden = !canUndo && !canRedo;
+  }
+
+  private undoValidText() {
+    const textIsCurrentHistoryEntry = this.latheCodeInput.value === this.validTextHistory[this.validTextHistoryIndex];
+    const targetIndex = textIsCurrentHistoryEntry
+      ? this.validTextHistoryIndex - 1
+      : this.validTextHistoryIndex;
+    this.restoreValidText(targetIndex);
+  }
+
+  private redoValidText() {
+    this.restoreValidText(this.validTextHistoryIndex + 1);
+  }
+
+  private restoreValidText(index: number) {
+    if (index < 0 || index >= this.validTextHistory.length) return;
+    this.validTextHistoryIndex = index;
+    this.latheCodeInput.value = this.validTextHistory[index];
+    this.update({recordHistory: false});
+  }
+
+  private updatePlanningButtons(latheCode: LatheCode | null) {
+    const profiles = latheCode?.getProfiles() ?? [];
+    const hasMultipleProfiles = profiles.length > 1;
+    this.planButton.hidden = !profiles.length || hasMultipleProfiles;
+    this.outsidePlanButton.hidden = !hasMultipleProfiles;
+    this.insidePlanButton.hidden = !hasMultipleProfiles;
+    this.updatePartingButton(latheCode);
+  }
+
+  private updatePartingButton(latheCode: LatheCode | null) {
+    const canPart = latheCode?.getTool().type === 'RECT';
+    this.partingButton.hidden = !canPart;
+    if (!canPart || !latheCode) return;
+    this.partingButton.textContent = this.hasTrailingPartingLine(latheCode)
+      ? 'Rimuovi troncatura'
+      : 'Aggiungi troncatura';
+  }
+
+  private togglePartingLine() {
+    if (!this.latheCode || this.latheCode.getTool().type !== 'RECT') return;
+    this.latheCodeInput.value = this.hasTrailingPartingLine(this.latheCode)
+      ? removeTrailingPartingLine(this.latheCodeInput.value, this.latheCode)
+      : addTrailingPartingLine(this.latheCodeInput.value, this.latheCode);
+    this.update();
+  }
+
+  private hasTrailingPartingLine(latheCode: LatheCode): boolean {
+    return trailingPartingLineIndex(this.latheCodeInput.value, latheCode) !== -1;
+  }
+
+  private planLatheCode(side?: ProfileSide) {
+    const latheCode = this.getLatheCodeForPlanning(side);
+    if (latheCode) this.dispatchEvent(new PlanEvent(latheCode, this.getAppSettings()));
+  }
+
+  private getLatheCodeForPlanning(side?: ProfileSide): LatheCode | null {
+    if (!this.latheCode) return null;
+    const profiles = this.latheCode.getProfiles();
+    if (profiles.length <= 1) return this.latheCode;
+    return side ? this.latheCode.getLatheCodeForProfile(side) : null;
+  }
+
+  private openToolDialog() {
+    openToolDialog(
+      () => this.latheCodeInput.value,
+      text => {
+        this.latheCodeInput.value = text;
+        this.update();
+      });
+  }
+
+  private openSetupDialog(kind: SetupDialogKind) {
+    openSetupDialog(
+      kind,
+      () => this.latheCodeInput.value,
+      text => {
+        this.latheCodeInput.value = text;
+        this.update();
+      });
+  }
+
+  private openScaleDialog() {
+    if (!this.latheCode) return;
+
+    const partDimensions = this.latheCode.getPartDimensions();
+    const form = document.createElement('form');
+    form.className = 'scaleDialog settingsDialog';
+
+    const grid = document.createElement('div');
+    grid.className = 'settingsGrid';
+    form.appendChild(grid);
+
+    const factorInput = this.createScaleNumberInput('scaleFactor', '1');
+    const targetDiameterInput = this.createScaleNumberInput('targetDiameter', partDimensions ? formatScaleValue(partDimensions.diameter) : '');
+    const targetLengthInput = this.createScaleNumberInput('targetLength', partDimensions ? formatScaleValue(partDimensions.length) : '');
+
+    grid.appendChild(this.createScaleField(
+      'Fattore di scala',
+      factorInput,
+      'Usato quando diametro e lunghezza target sono vuoti.'));
+    grid.appendChild(this.createScaleField(
+      'Diametro target',
+      targetDiameterInput,
+      partDimensions ? `Il diametro attuale del pezzo è ${formatScaleValue(partDimensions.diameter)} mm.` : 'Il diametro attuale del pezzo non è disponibile.'));
+    grid.appendChild(this.createScaleField(
+      'Lunghezza target',
+      targetLengthInput,
+      partDimensions ? `La lunghezza attuale del pezzo è ${formatScaleValue(partDimensions.length)} mm.` : 'La lunghezza attuale del pezzo non è disponibile.'));
+
+    const error = document.createElement('div');
+    error.className = 'toolDialogError';
+    form.appendChild(error);
+
+    const actions = document.createElement('div');
+    actions.className = 'settingsActions';
+    const applyButton = document.createElement('button');
+    applyButton.type = 'submit';
+    applyButton.textContent = 'Scala lathecode';
+    actions.appendChild(applyButton);
+    form.appendChild(actions);
+
+    let dialog: HTMLDivElement;
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      try {
+        const {xScale, zScale} = this.readScaleFactors(factorInput, targetDiameterInput, targetLengthInput);
+        if (!this.latheCode) throw new Error('Il lathecode non è valido');
+        this.latheCodeInput.value = this.latheCode.scale(xScale, zScale);
+        this.update();
+        dialog.remove();
+      } catch (e) {
+        error.textContent = e instanceof Error ? e.message : String(e);
+      }
+    });
+
+    dialog = createFullScreenDialog(form, 'Scala');
+    factorInput.focus();
+  }
+
+  private openLlmEntryDialog(openDialog: () => void) {
+    if (hasOpenRouterApiKey()) {
+      openDialog();
+      return;
+    }
+    openOpenRouterKeyDialog(openDialog);
+  }
+
+  private openLlmModifyDialog() {
+    const form = document.createElement('form');
+    form.className = 'llmDialog settingsDialog';
+
+    const grid = document.createElement('div');
+    grid.className = 'settingsGrid';
+    form.appendChild(grid);
+
+    const field = document.createElement('label');
+    field.className = 'settingField llmTextAreaField';
+    const heading = document.createElement('span');
+    heading.className = 'settingHeading';
+    heading.textContent = 'Modifica';
+    field.appendChild(heading);
+
+    const input = document.createElement('textarea');
+    input.className = 'settingInput llmTextArea';
+    input.placeholder = 'Esempio: arrotonda la faccia frontale e aggiungi un foro passante da 6 mm...';
+    field.appendChild(input);
+
+    const guide = document.createElement('span');
+    guide.className = 'settingGuide';
+    guide.textContent = 'Descrivi la modifica da applicare al contenuto attuale dell\'editor.';
+    field.appendChild(guide);
+    grid.appendChild(field);
+    form.appendChild(createPrivacyDisclosure(openRouterActionPrivacyText(
+      'Questo invia la richiesta di modifica e il lathecode attuale dell\'editor da questo browser a OpenRouter.')));
+
+    const error = document.createElement('div');
+    error.className = 'toolDialogError';
+    form.appendChild(error);
+
+    const actions = document.createElement('div');
+    actions.className = 'settingsActions';
+    const applyButton = document.createElement('button');
+    applyButton.type = 'submit';
+    applyButton.textContent = 'Modifica lathecode';
+    actions.appendChild(applyButton);
+    form.appendChild(actions);
+
+    let dialog: HTMLDivElement;
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const modification = input.value.trim();
+      if (!modification) {
+        error.textContent = 'Inserisci una richiesta di modifica';
+        return;
+      }
+      runLlmEditorAction(applyButton, error, async () => {
+        const text = await modifyLatheCodeWithPrompt(this.latheCodeInput.value, modification);
+        this.latheCodeInput.value = text;
+        this.update();
+        dialog.remove();
+      });
+    });
+
+    dialog = createFullScreenDialog(form, 'Chiedi all\'LLM');
+    input.focus();
+  }
+
+  private createScaleNumberInput(name: string, placeholder: string): HTMLInputElement {
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.step = 'any';
+    input.min = '0';
+    input.name = name;
+    input.placeholder = placeholder;
+    input.className = 'settingInput';
+    return input;
+  }
+
+  private createScaleField(labelText: string, input: HTMLInputElement, guideText: string): HTMLLabelElement {
+    const field = document.createElement('label');
+    field.className = 'settingField';
+
+    const heading = document.createElement('span');
+    heading.className = 'settingHeading';
+    heading.textContent = labelText;
+    field.appendChild(heading);
+
+    field.appendChild(input);
+
+    const guide = document.createElement('span');
+    guide.className = 'settingGuide';
+    guide.textContent = guideText;
+    field.appendChild(guide);
+
+    return field;
+  }
+
+  private readScaleFactors(
+    factorInput: HTMLInputElement,
+    targetDiameterInput: HTMLInputElement,
+    targetLengthInput: HTMLInputElement,
+  ): {xScale: number, zScale: number} {
+    const factor = this.readOptionalPositiveNumber(factorInput, 'Fattore di scala');
+    const targetDiameter = this.readOptionalPositiveNumber(targetDiameterInput, 'Diametro target');
+    const targetLength = this.readOptionalPositiveNumber(targetLengthInput, 'Lunghezza target');
+    const partDimensions = this.latheCode?.getPartDimensions();
+
+    if (targetDiameter === null && targetLength === null) {
+      if (factor === null) throw new Error('Inserisci un fattore di scala, un diametro target o una lunghezza target');
+      return {xScale: factor, zScale: factor};
+    }
+
+    if (targetDiameter !== null && (!partDimensions || partDimensions.diameter <= 0)) throw new Error('Il diametro attuale del pezzo non è disponibile');
+    if (targetLength !== null && (!partDimensions || partDimensions.length <= 0)) throw new Error('La lunghezza attuale del pezzo non è disponibile');
+
+    if (targetDiameter !== null && targetLength !== null) {
+      return {xScale: targetDiameter / partDimensions!.diameter, zScale: targetLength / partDimensions!.length};
+    }
+
+    const uniformScale = targetDiameter !== null
+      ? targetDiameter / partDimensions!.diameter
+      : targetLength! / partDimensions!.length;
+    return {xScale: uniformScale, zScale: uniformScale};
+  }
+
+  private readOptionalPositiveNumber(input: HTMLInputElement, label: string): number | null {
+    const rawValue = input.value.trim();
+    if (!rawValue) return null;
+    const value = Number(rawValue);
+    if (!Number.isFinite(value) || value <= 0) throw new Error(`Il campo ${label} deve essere un numero positivo`);
+    return value;
+  }
+
+  async importStlFile(file: File) {
+    this.errorContainer.textContent = '';
+    document.body.style.cursor = 'wait';
+    try {
+      await this.importStl(file);
+    } catch (error) {
+      this.errorContainer.textContent = error instanceof Error ? error.message : String(error);
+    } finally {
+      document.body.style.cursor = 'default';
+    }
+  }
+
+  private async importStl(file: File) {
+    return new Promise<void>((resolve, reject) => {
+      const textBeforeImport = this.latheCodeInput.value;
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const stl = reader.result as ArrayBuffer;
+        if (this.worker) {
+          this.worker.onmessage = null;
+          this.worker.terminate();
+        }
+        this.worker = new StlImportWorker();
+        this.worker.onmessage = (event: MessageEvent<any>) => {
+          const m = event.data as FromStlWorkerMessage;
+          if (m.error) {
+            this.errorContainer.textContent = m.error;
+            this.statusContainer.textContent = '';
+            resolve();
+          } else if (m.latheCodeText) {
+            this.latheCodeInput.value = wrapStlText(file.name, m.latheCodeText, textBeforeImport);
+            this.statusContainer.textContent = '';
+            this.update();
+            resolve();
+          } else if (m.progressMessage) {
+            this.statusContainer.textContent = m.progressMessage;
+          }
+        };
+        this.worker.postMessage({ stl, settings: this.getAppSettings() });
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+}
+
+function addTrailingPartingLine(text: string, latheCode: LatheCode): string {
+  const lines = normalizeEditorLines(text);
+  const insertionIndex = getOutsideInsertionIndex(lines);
+  const partingLine = `L${formatEditorNumber(getPartingLengthInCurrentUnits(text, latheCode))}`;
+  lines.splice(insertionIndex, 0, partingLine);
+  return lines.join('\n');
+}
+
+function removeTrailingPartingLine(text: string, latheCode: LatheCode): string {
+  const lines = normalizeEditorLines(text);
+  const index = trailingPartingLineIndex(text, latheCode);
+  if (index === -1) return text;
+  lines.splice(index, 1);
+  return lines.join('\n');
+}
+
+function trailingPartingLineIndex(text: string, latheCode: LatheCode): number {
+  const lines = normalizeEditorLines(text);
+  const outsideEnd = findInsideLineIndex(lines);
+  let index = (outsideEnd === -1 ? lines.length : outsideEnd) - 1;
+  while (index >= 0 && isSkippableProfileTailLine(lines[index])) index--;
+  if (index < 0) return -1;
+
+  const match = lines[index].trim().match(/^L([0-9.]+)(?:\s*;.*)?$/);
+  if (!match) return -1;
+
+  const lineLengthMm = Number(match[1]) * getUnitsMultiplier(text);
+  return Math.abs(lineLengthMm - latheCode.getTool().widthMm) <= 0.001 ? index : -1;
+}
+
+function normalizeEditorLines(text: string): string[] {
+  return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+}
+
+function findInsideLineIndex(lines: string[]): number {
+  return lines.findIndex(line => /^\s*INSIDE\b/.test(line));
+}
+
+function getOutsideInsertionIndex(lines: string[]): number {
+  let insertionIndex = findInsideLineIndex(lines);
+  if (insertionIndex === -1) insertionIndex = lines.length;
+  while (insertionIndex > 0 && !lines[insertionIndex - 1].trim()) insertionIndex--;
+  return insertionIndex;
+}
+
+function isSkippableProfileTailLine(line: string): boolean {
+  return !line.trim() || /^\s*;/.test(line);
+}
+
+function getPartingLengthInCurrentUnits(text: string, latheCode: LatheCode): number {
+  return latheCode.getTool().widthMm / getUnitsMultiplier(text);
+}
+
+function getUnitsMultiplier(text: string): number {
+  const units = text.match(/^UNITS\s+([A-Z]+)/m)?.[1] ?? 'MM';
+  if (units === 'IN') return 25.4;
+  if (units === 'CM') return 10;
+  if (units === 'M') return 1000;
+  if (units === 'FT') return 304.8;
+  return 1;
+}
+
+function formatEditorNumber(value: number): string {
+  const rounded = Math.round(value * 1_000_000) / 1_000_000;
+  if (Number.isInteger(rounded)) return rounded.toFixed(0);
+  return rounded.toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+export function wrapStlText(name:string, stlText: string, previousText = '') {
+  const preservedToolLine = findToolLine(previousText);
+  return `; ${name}
+
+; Decommenta e modifica le righe sottostanti secondo necessità
+; STOCK D5
+; TOOL RECT R0.2 L2
+; DEPTH CUT1 FINISH0.1
+; FEED MOVE200 PASS50 PART10 ; velocità in mm/min
+; MODE TURN ; per lo stile classico di asportazione
+; AXES RIGHT DOWN ; per controller non NanoEls
+
+` + insertToolLine(stlText, preservedToolLine);
+}
+
+function findToolLine(text: string): string | undefined {
+  return text
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .find(line => line.trimStart().startsWith('TOOL '))
+    ?.trim();
+}
+
+function insertToolLine(stlText: string, toolLine: string | undefined): string {
+  if (!toolLine) return stlText;
+
+  const lines = stlText.replace(/\r\n/g, '\n').split('\n');
+  const existingToolIndex = lines.findIndex(line => line.trimStart().startsWith('TOOL '));
+  if (existingToolIndex >= 0) {
+    lines[existingToolIndex] = toolLine;
+    return lines.join('\n');
+  }
+
+  const stockIndex = lines.findIndex(line => line.trimStart().startsWith('STOCK '));
+  if (stockIndex >= 0) {
+    lines.splice(stockIndex + 1, 0, toolLine);
+    return lines.join('\n');
+  }
+
+  const unitsIndex = lines.findIndex(line => line.trimStart().startsWith('UNITS '));
+  if (unitsIndex >= 0) {
+    lines.splice(unitsIndex + 1, 0, toolLine);
+    return lines.join('\n');
+  }
+
+  const firstCodeIndex = lines.findIndex(line => {
+    const trimmed = line.trim();
+    return trimmed && !trimmed.startsWith(';');
+  });
+  lines.splice(firstCodeIndex >= 0 ? firstCodeIndex : lines.length, 0, toolLine);
+  return lines.join('\n');
+}
+
+function formatScaleValue(value: number): string {
+  const rounded = Math.round(value * 1e6) / 1e6;
+  if (Number.isInteger(rounded)) return rounded.toFixed(0);
+  return rounded.toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+async function runLlmEditorAction(
+  button: HTMLButtonElement,
+  error: HTMLElement,
+  action: () => Promise<void>,
+) {
+  const originalText = button.textContent || '';
+  error.textContent = '';
+  button.disabled = true;
+  button.textContent = 'Modifica in corso...';
+  document.body.style.cursor = 'wait';
+  try {
+    await action();
+  } catch (e) {
+    error.textContent = e instanceof Error ? e.message : String(e);
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText;
+    document.body.style.cursor = 'default';
+  }
+}

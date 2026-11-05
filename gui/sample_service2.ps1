@@ -1,6 +1,6 @@
 Add-Type -AssemblyName System.Drawing
 foreach ($n in @('page13','page14','page15','page18','page19')) {
-  $p = 'C:\Users\Admin\Documents\Qoder\2026-10-30\dfa27f31\nanoels-h5\gui\pages\' + $n + '.png'
+  $p = "$PSScriptRoot\pages\$n.png"
   if (!(Test-Path $p)) { Write-Output "$n missing"; continue }
   $i = [System.Drawing.Bitmap]::FromFile($p)
   $c = $i.GetPixel(400,465)
