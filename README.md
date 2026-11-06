@@ -70,7 +70,7 @@ screen-it/TABELLA_COMPONENTI.md   componenti e zone touch
 screen-it/GUIDA_NEXTION_EDITOR.md guida alla modifica dell'interfaccia
 mockup-tft/              mockup e sorgenti grafiche delle schermate
 gui/                     script di supporto (generazione asset, prove)
-collaudo/                procedure di collaudo sicurezza (STOP, ESTOP, reset)
+collaudo/                collaudo sicurezza: checklist macchina + prove STOP, ESTOP, reset
 targhetta/, cablaggio/   targhetta e schema dei connettori
 lathecode-italiano/      editor lathecode tradotto (app offline + sorgenti)
 ```

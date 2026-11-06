@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>NanoEls H5 — Collaudo sicurezza: checklist macchina</title>
+<style>
+  @page { size: A4; margin: 11mm 12mm 10mm 12mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    color: #111;
+    font-size: 8.6pt;
+    line-height: 1.2;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1 { font-size: 14pt; margin: 0 0 0.6mm 0; letter-spacing: 0.2pt; }
+  .sub { font-size: 9pt; color: #444; margin: 0 0 1.5mm 0; }
+  h2 {
+    font-size: 9.6pt;
+    margin: 2.3mm 0 0.8mm 0;
+    padding-bottom: 0.6mm;
+    border-bottom: 0.7pt solid #111;
+    text-transform: uppercase;
+    letter-spacing: 0.4pt;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 0.9mm 0; }
+  th, td {
+    border: 0.4pt solid #999;
+    padding: 0.9mm 1.4mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #ebebeb; font-weight: 600; font-size: 8.2pt; }
+  td.c, th.c { text-align: center; }
+  td.n { font-weight: 700; text-align: center; width: 7mm; }
+  .cb {
+    display: inline-block;
+    width: 3.6mm;
+    height: 3.6mm;
+    border: 0.6pt solid #333;
+    vertical-align: -0.6mm;
+  }
+  .sig { font-family: Consolas, "Courier New", monospace; font-weight: 700; }
+  .muted { color: #555; }
+  .warn {
+    border: 0.8pt solid #111;
+    padding: 1.2mm 2.2mm;
+    margin: 0 0 0.9mm 0;
+    font-size: 8.3pt;
+    background: #f4f4f4;
+  }
+  .warn b { text-transform: uppercase; letter-spacing: 0.3pt; }
+  .stop {
+    border: 0.8pt solid #111;
+    border-left-width: 2.4mm;
+    padding: 1.2mm 2.2mm;
+    margin: 1mm 0 0 0;
+    font-size: 8.3pt;
+  }
+  .stop ul, .warn ul { margin: 0.4mm 0 0 0; padding-left: 4.4mm; }
+  .stop li, .warn li { margin-bottom: 0.3mm; }
+  .meta td { padding: 1.3mm 1.8mm; }
+  .meta .fill { border-bottom: 0.5pt solid #666; min-width: 34mm; display: inline-block; height: 4mm; }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1.6pt solid #111;
+    padding-bottom: 1.2mm;
+    margin-bottom: 1mm;
+  }
+  .head .right { text-align: right; font-size: 8.2pt; color: #444; }
+  .foot {
+    margin-top: 1.6mm;
+    border-top: 0.5pt solid #999;
+    padding-top: 0.9mm;
+    font-size: 7.4pt;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+  }
+  .modes td { padding: 0.7mm 1.2mm; }
+  .modes .cb { width: 3.2mm; height: 3.2mm; }
+  .anom td { height: 7.5mm; }
+  .esito .big { font-size: 9.6pt; font-weight: 600; }
+  .esito td { padding: 1.6mm 2mm; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1>NanoEls H5 — Collaudo sicurezza: checklist macchina</h1>
+    <div class="sub">Da compilare con il controller montato sul tornio (firmware in prova: <b>H5V65</b>) — rev. 1, 6 novembre 2026</div>
+  </div>
+  <div class="right">
+    Foglio A4 — stampa al 100%<br>
+    Spuntare ogni riga solo se il<br>risultato è quello scritto
+  </div>
+</div>
+
+<table class="meta">
+  <tr>
+    <td>Data <span class="fill"></span></td>
+    <td>Operatore <span class="fill"></span></td>
+    <td>Tornio / macchina <span class="fill"></span></td>
+    <td>Versione in prova <span class="fill"></span></td>
+  </tr>
+</table>
+
+<div class="warn">
+  <b>Prima di ogni prova.</b> Utensile smontato o arretrato, mandrino fermo, nessun pezzo in lavorazione, area attorno al tornio libera, STOP a portata di mano.
+  <b>Se un controllo non dà il risultato scritto: fermarsi</b>, annotare l'anomalia nella sezione 4 e non proseguire finché non è risolta.
+</div>
+
+<h2>0. Prima di dare alimentazione</h2>
+<table>
+  <tr>
+    <th class="c" style="width:9mm">&#10003;</th>
+    <th>Controllo</th>
+    <th class="c" style="width:9mm">&#10003;</th>
+    <th>Controllo</th>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Quadro del tornio in sicurezza, controller spento prima di collegare</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Messa a terra presente, cabinet chiusi, nessun conduttore scoperto</td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Driver Z e X impostati sulla corrente dei motori montati</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Finecorsa Z e X fissati e raggiunti <b>prima</b> della battuta meccanica</td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Corse massime Z e X configurate nella UI web e coerenti con la macchina</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>STOP fisico (o fungo esterno) a portata e funzionante</td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Mandrino spento, chiave autocentrante <b>non</b> inserita</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Mani, vestiti e oggetti lontani da viti, mandrino e trasmissioni</td>
+  </tr>
+</table>
+
+<h2>1. Controlli a vuoto (senza pezzo e senza utensile)</h2>
+<table>
+  <tr>
+    <th class="c" style="width:7mm">#</th>
+    <th style="width:40%">Azione</th>
+    <th>Risultato atteso</th>
+    <th class="c" style="width:9mm">&#10003;</th>
+  </tr>
+  <tr>
+    <td class="n">1</td>
+    <td>Tieni premuto il <b>jog Z</b>, poi il <b>jog X</b></td>
+    <td>Il carro e la slitta si muovono nel senso indicato, la posizione si aggiorna</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">2</td>
+    <td>Rilascia il jog</td>
+    <td>Arresto immediato, nessuna corsa residua</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">3</td>
+    <td>Porta il carro sul <b>finecorsa Z</b> e poi la slitta sul <b>finecorsa X</b></td>
+    <td>Il movimento si ferma al limite configurato, senza urtare la battuta</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">4</td>
+    <td>ELS acceso in modalità <b>ASINCRONO</b>, PASSO minimo, a vuoto</td>
+    <td>Il carro avanza lentamente e si ferma subito con STOP</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">5</td>
+    <td>STOP normale dal TFT, dalla UI web e col tasto fisico (<b>prova 1</b>)</td>
+    <td>Fermata immediata, STATO <span class="sig">OFF</span>, tasto su <span class="sig">AVVIA</span>, <b>nessun</b> ESTOP</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">6</td>
+    <td>Tasto fisico <b>OFF</b> durante un jog (<b>prova 2</b>)</td>
+    <td>ESTOP con causa <span class="sig">Spento in manuale</span>; comandi ignorati finché non si ridà alimentazione</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">7</td>
+    <td>Piccolo programma <b>G-CODE</b> a vuoto, poi <b>pausa</b></td>
+    <td>Mandrino e avanzamento si fermano, la ripresa riparte dal punto corretto</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">8</td>
+    <td>STOP durante il programma G-CODE</td>
+    <td>Il programma si interrompe e <b>non</b> riparte da solo; STATO <span class="sig">OFF</span></td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">9</td>
+    <td>Porta il carro oltre la corsa configurata (a vuoto, a mano)</td>
+    <td>Compare <span class="sig">Posizione fuori macchina</span> e il controller rifiuta i comandi</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+</table>
+
+<h2>2. Le 13 modalità (sempre senza pezzo, utensile smontato)</h2>
+<table class="modes">
+  <tr>
+    <th style="width:38%">Modalità</th>
+    <th class="c" style="width:19%">Avvia (ON)</th>
+    <th class="c" style="width:19%">Lavoro a vuoto</th>
+    <th class="c" style="width:16%">STOP</th>
+    <th>Note / anomalie</th>
+  </tr>
+  <tr><td>INGRANAGGI</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>X-INGRANAGGI</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>TORNITURA</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>SPIANATURA</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>CONO</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>TRONCATURA</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>FILETTATURA DX</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>FILETTATURA SX</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>FILETTATURA a più principi</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>FILETTATURA conica</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>ELLISSE</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>ASINCRONO</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+  <tr><td>ASSE Y / JOYSTICK / SCANALATURA</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
+</table>
+
+<h2>3. Fine collaudo</h2>
+<table>
+  <tr>
+    <th class="c" style="width:9mm">&#10003;</th>
+    <th>Controllo</th>
+    <th class="c" style="width:9mm">&#10003;</th>
+    <th>Controllo</th>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>Reset generale (<b>prova 3</b>) solo se si riparte da zero, con i valori già annotati</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Dopo il riavvio: impostazioni conservate (finecorsa, quote, WiFi)</td>
+  </tr>
+  <tr>
+    <td class="c"><span class="cb"></span></td>
+    <td>All'accensione l'ELS è sempre <b>spento</b> e nessun asse si muove</td>
+    <td class="c"><span class="cb"></span></td>
+    <td>Nessun messaggio di emergenza residuo a schermo</td>
+  </tr>
+</table>
+
+<h2>4. Anomalie riscontrate</h2>
+<table class="anom">
+  <tr>
+    <th style="width:14mm">Punto</th>
+    <th>Descrizione</th>
+    <th style="width:26mm">Gravità</th>
+  </tr>
+  <tr><td></td><td></td><td></td></tr>
+  <tr><td></td><td></td><td></td></tr>
+  <tr><td></td><td></td><td></td></tr>
+</table>
+
+<h2>5. Esito</h2>
+<table class="esito">
+  <tr>
+    <td><span class="cb"></span> <span class="big">Conforme</span></td>
+    <td><span class="cb"></span> <span class="big">Conforme con annotazioni</span></td>
+    <td><span class="cb"></span> <span class="big">Non conforme</span></td>
+  </tr>
+  <tr>
+    <td colspan="2">Firma operatore <span class="fill" style="min-width:60mm"></span></td>
+    <td>Data <span class="fill" style="min-width:26mm"></span></td>
+  </tr>
+</table>
+
+<div class="stop">
+  <b>Da ricordare.</b>
+  <ul>
+    <li>Il tasto fisico premuto <b>oltre 3 secondi</b> fa il reset generale: usarlo solo alla fine (prova 3).</li>
+    <li>Dopo un ESTOP il controller resta bloccato: si esce solo togliendo e ridando alimentazione.</li>
+    <li>La UI web non ha login: usarla solo sulla rete locale di casa.</li>
+  </ul>
+</div>
+
+<div class="foot">
+  <span>NanoEls H5 — collaudo sicurezza, checklist macchina — rev. 1 (6 novembre 2026)</span>
+  <span>Fogli collegati: prova 1 (STOP), prova 2 (ESTOP), prova 3 (reset)</span>
+</div>
+
+</body>
+</html>
