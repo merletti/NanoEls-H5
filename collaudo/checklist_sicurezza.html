@@ -94,7 +94,7 @@
 <div class="head">
   <div>
     <h1>NanoEls H5 — Collaudo sicurezza: checklist macchina</h1>
-    <div class="sub">Da compilare con il controller montato sul tornio (firmware in prova: <b>H5V65</b>) — rev. 1, 6 novembre 2026</div>
+    <div class="sub">Da compilare con il controller montato sul tornio (firmware in prova: <b>H5V65</b>) — rev. 2, 6 novembre 2026</div>
   </div>
   <div class="right">
     Foglio A4 — stampa al 100%<br>
@@ -238,7 +238,7 @@
   <tr><td>ASSE Y / JOYSTICK / SCANALATURA</td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td class="c"><span class="cb"></span></td><td></td></tr>
 </table>
 
-<h2>3. Fine collaudo</h2>
+<h2 class="page-break">3. Fine collaudo</h2>
 <table>
   <tr>
     <th class="c" style="width:9mm">&#10003;</th>
@@ -285,6 +285,87 @@
   </tr>
 </table>
 
+<h2>A. Prove a banco (senza macchina)</h2>
+<div class="warn">
+  <b>Quando.</b> Prima di montare il controller sul tornio e dopo ogni aggiornamento di firmware o TFT: sono prove di <b>interfaccia</b>, non di sicurezza.
+  Non si spunta niente della sezione 0, 1 e 2 finché la macchina non è montata. Non muovere gli assi: niente jog, niente avvio di modalità o programmi.
+</div>
+<table>
+  <tr>
+    <th class="c" style="width:7mm">#</th>
+    <th style="width:31%">Dove guardare</th>
+    <th>Risultato atteso</th>
+    <th class="c" style="width:9mm">&#10003;</th>
+  </tr>
+  <tr>
+    <td class="n">1</td>
+    <td>UI web, testata e casella di stato</td>
+    <td>Versione <b>H5V65</b>, controller online, STATO <span class="sig">OFF</span>, tasto <span class="sig">AVVIA</span>, riga <span class="sig">&lt;MODALIT&Agrave;&gt; OFF</span></td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">2</td>
+    <td>TFT, pagina <b>MENU</b> dopo l'accensione</td>
+    <td>13 card F1…F13 pi&ugrave; MERLINO e riga servizi (COMANDO, G-CODE, SETUP, WIFI, INFO); nessuna zona vuota o sovrapposta</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">3</td>
+    <td>TFT, card <b>F2 FILETTATURA</b></td>
+    <td>Nome in alto, chip PASSO, campi SENSO/PRINCIPI/PASSATE, card valori senza esempi; pill MENU che torna alla griglia</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">4</td>
+    <td>TFT, tastierino (tocco sul chip PASSO)</td>
+    <td>Le cifre compaiono a destra, il tasto di cancellazione toglie l'ultima, <b>annulla</b> chiude senza cambiare il valore. <b>Non</b> premere OK: salva</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">5</td>
+    <td>TFT, <b>COMANDO</b></td>
+    <td>La pagina si apre e i campi si leggono; il pill MENU riporta indietro</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">6</td>
+    <td>TFT, <b>G-CODE</b></td>
+    <td>Elenco programmi visibile con seleziona/elimina. <b>Non</b> eseguire nessun programma</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">7</td>
+    <td>TFT, <b>SETUP</b></td>
+    <td>Le sei sezioni si aprono e i valori si leggono. <b>Non</b> salvare e <b>non</b> ripristinare</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">8</td>
+    <td>TFT, <b>WIFI</b></td>
+    <td>Rete e stato visibili; i campi password <b>mascherati o vuoti</b>, mai in chiaro</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">9</td>
+    <td>TFT, <b>INFO</b></td>
+    <td>Versione <b>H5V65</b>, indirizzo IP e MAC del controller</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+  <tr>
+    <td class="n">10</td>
+    <td>UI web, pulsante di <b>riavvio</b> controller</td>
+    <td>Torna online in circa 2 s, ELS <span class="sig">OFF</span>, finecorsa e impostazioni conservati, TFT sul MENU</td>
+    <td class="c"><span class="cb"></span></td>
+  </tr>
+</table>
+<table class="meta">
+  <tr>
+    <td>Prove a banco eseguite il <span class="fill"></span></td>
+    <td>da <span class="fill"></span></td>
+    <td>Esito: <span class="cb"></span> superate &nbsp; <span class="cb"></span> con anomalie</td>
+  </tr>
+</table>
+
 <div class="stop">
   <b>Da ricordare.</b>
   <ul>
@@ -295,7 +376,7 @@
 </div>
 
 <div class="foot">
-  <span>NanoEls H5 — collaudo sicurezza, checklist macchina — rev. 1 (6 novembre 2026)</span>
+  <span>NanoEls H5 — collaudo sicurezza, checklist macchina — rev. 2 (6 novembre 2026)</span>
   <span>Fogli collegati: prova 1 (STOP), prova 2 (ESTOP), prova 3 (reset)</span>
 </div>
 
