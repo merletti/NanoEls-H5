@@ -9,6 +9,9 @@ Kachurovskiy (licenza MIT); questa variante aggiunge l'interfaccia H5, la grafic
 TFT a card, l'avvio della lavorazione in un tocco e la gestione OTA di firmware e
 display.
 
+Sito del progetto: **[merletti.github.io/NanoEls-H5](https://merletti.github.io/NanoEls-H5/)** —
+schermate, modalità e file da scaricare.
+
 > **Avvertenza**: il progetto è fornito **così com'è, senza alcuna garanzia**. Chi
 > lo costruisce, lo modifica o lo usa se ne assume ogni rischio e responsabilità:
 > il controller comanda motori e organi in movimento. Vedi
