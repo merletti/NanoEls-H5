@@ -229,7 +229,7 @@ nell'ordine: **28** `lGear` … **40** `lSlot`, **41** `bBack`.
 **Prima il firmware, poi il TFT.**
 
 1. **Firmware**: Web UI del controller (`http://<ip-del-controller>`) →
-   *Aggiorna firmware ESP32* → `firmware-it\h5-IT-20261028c.bin`.
+   *Aggiorna firmware ESP32* → `firmware-it/h5-IT-20261105-v65.bin` (H5V65).
    Questo firmware funziona anche con il TFT vecchio (gli ID vecchi sono ancora
    mappati), quindi è sicuro caricarlo per primo.
 2. **TFT** (due strade):
@@ -273,7 +273,7 @@ di fabbrica vuole 9600 la prima volta).
 | `ß` invece di `°` | font nuovo senza il grado Nextion (`0xDF`) | rimetti il font originale su `tAngleVal` |
 | Tocco sbagliato / tasto morto | un ID è scalato (cancellazione o creazione fuori ordine) | non toccare altro: mandami il `.tft`, correggo la mappa |
 | Pagina 1 ancora in inglese | etichette vecchie non nascoste | ripeti il punto 7.2 |
-| Schermo bloccato all'avvio | non è il TFT: è il firmware (PSRAM) | usa solo il bin `h5-IT-20261028c.bin` |
+| Schermo bloccato all'avvio | non è il TFT: è il firmware (PSRAM) | usa solo il bin `firmware-it/h5-IT-20261105-v65.bin` |
 
 **Prima di caricare il TFT sull'hardware**, se vuoi: mandami `h5_it.tft` e verifico
 con lo script che gli ID dei nuovi componenti siano davvero 51…60 e 28…41 e che

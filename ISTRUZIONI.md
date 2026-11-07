@@ -1,61 +1,38 @@
 # Istruzioni per la pubblicazione — NanoEls H5
 
-Questa cartella contiene una copia completa del progetto al **4 novembre 2026** (firmware
-**H5V65**), già pronta come repository git con la sua cronologia: niente cartelle
-di build, backup o screenshot di prova. **Non è stato pubblicato nulla online.**
+Questa cartella contiene il progetto NanoEls H5 (firmware **H5V65**), pubblicato su
+GitHub il **6 novembre 2026**:
+
+<https://github.com/merletti/NanoEls-H5>
+
+Il repository è pubblico, il branch di lavoro è `main` e il remote `origin` è già
+configurato. In `gui/` sono versionati anche materiali di lavoro e schermate del
+pannello; build e backup locali sono esclusi da `.gitignore`.
 
 File principali: [README.md](README.md) (presentazione), [LICENSE](LICENSE)
 (MIT), [PUBBLICAZIONE.md](PUBBLICAZIONE.md) (checklist dettagliata),
 [collaudo/](collaudo/) (procedure di collaudo sicurezza).
 
-## A. Prima di pubblicare
+## A. Prima di ogni aggiornamento pubblico
 
 1. **Completare i test sul tornio** elencati in PUBBLICAZIONE.md, sezione 3.
 2. **Link del progetto originale e donazioni**: il link al progetto originale è
    in [README.md](README.md), sezione *Progetto originale*
    ([kachurovskiy/nanoels — h5](https://github.com/kachurovskiy/nanoels/tree/main/h5));
    il link «offri un caffè» (PayPal) è nella sezione *Sostieni il progetto*.
-   Per cambiarlo basta modificare quell'indirizzo e fare un commit (sezione D).
-3. **Firma**:
-   - la licenza riporta `NanoEls H5 contributors`; se si vuole nome e cognome,
-     modificare [LICENSE](LICENSE);
-   - se si vuole che i commit risultino collegati al proprio account GitHub,
-     comunicare l'email GitHub **prima** del primo push (dopo diventa più
-     complicato correggerli).
+   Per cambiarlo basta modificare quell'indirizzo e fare un commit.
+3. **Licenza**: la licenza riporta `NanoEls H5 contributors`; se si vuole nome e
+   cognome, modificare [LICENSE](LICENSE).
 
-Se nel frattempo il progetto cambia ancora, chiedere di riallineare questa
-cartella prima di pubblicarla.
+## B. Pubblicare una modifica (GitHub Desktop)
 
-## B. Metodo semplice: GitHub Desktop
+1. Aprire GitHub Desktop e scegliere il repository `NanoEls-H5` (se non c'è,
+   **File → Add local repository** su questa cartella).
+2. Scrivere il messaggio di commit, premere **Commit to main**, poi **Push origin**.
 
-1. Installare **GitHub Desktop** (desktop.github.com) e accedere con il proprio
-   account GitHub.
-2. Menu **File → Add local repository**, scegliere questa cartella (quella che
-   contiene `README.md` e la cartella `.git`).
-3. In alto compare **Publish repository**: nome `nanoels-h5`, togliere la spunta
-   **Keep this code private**, premere **Publish repository**.
-4. Il repository è online; da quel momento le modifiche si pubblicano con
-   **Commit to main** + **Push origin**.
+## C. Pubblicare una modifica (Git Bash)
 
-## C. Metodo con i comandi (Git Bash)
-
-1. Su github.com: **New repository**, nome `nanoels-h5`, visibilità **Public**,
-   senza aggiungere README, licenza o .gitignore (sono già nel progetto).
-2. Aprire Git Bash nella cartella e digitare:
-
-   ```sh
-   git remote add origin https://github.com/merletti/nanoels-h5.git
-   git push -u origin main
-   ```
-
-3. Se viene chiesta la password, GitHub richiede un **token**: impostazioni
-   account → *Developer settings* → *Personal access tokens* → *Fine-grained
-   token* con permesso di lettura/scrittura sui contenuti del repository. Il token
-   si incolla al posto della password.
-
-## D. Aggiornare il progetto dopo la pubblicazione
-
-Modificare i file nella cartella, poi:
+Aprire Git Bash nella cartella e digitare:
 
 ```sh
 git add -A
@@ -63,7 +40,26 @@ git commit -m "Descrizione della modifica"
 git push
 ```
 
-Con GitHub Desktop: scrivere il messaggio, **Commit to main**, poi **Push origin**.
+Se viene chiesta la password, GitHub richiede un **token**: impostazioni account →
+*Developer settings* → *Personal access tokens* → *Fine-grained token* con permesso
+di lettura/scrittura sui contenuti del repository. Il token si incolla al posto
+della password. Se compare la finestra **Git Credential Manager**, non chiuderla:
+completare l'accesso.
+
+## D. Se il repository va ricreato da zero
+
+Solo in caso di perdita del repository online:
+
+1. Su github.com: **New repository**, nome `NanoEls-H5`, visibilità **Public**,
+   senza aggiungere README, licenza o .gitignore (sono già nel progetto).
+2. Aprire Git Bash nella cartella e digitare:
+
+   ```sh
+   git remote add origin https://github.com/merletti/NanoEls-H5.git
+   git push -u origin main
+   ```
+
+3. Controllare che il branch remoto sia `main` e che i file siano tutti presenti.
 
 ## E. Prima release (file pronti all'uso)
 

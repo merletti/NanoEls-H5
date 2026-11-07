@@ -1934,6 +1934,16 @@ const char indexhtml[] PROGMEM = R"rawliteral(
   </div>
 
   <script>
+    // All mutating requests carry a custom header: cross-origin pages cannot
+    // set it without a CORS preflight, which the controller never approves.
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = (url, options = {}) => {
+      const method = (options.method || 'GET').toUpperCase();
+      if (method !== 'GET' && method !== 'HEAD') {
+        options.headers = Object.assign({}, options.headers, { 'X-NanoEls-Request': '1' });
+      }
+      return nativeFetch(url, options);
+    };
     const defaultSection = 'home';
     const controllerVersion = ")rawliteral" CONTROLLER_VERSION_TEXT R"rawliteral(";
     const sectionLinks = Array.from(document.querySelectorAll('[data-section-link]'));
@@ -3972,6 +3982,7 @@ const char indexhtml[] PROGMEM = R"rawliteral(
         updateButtonStates();
       };
       request.open('POST', `/tft/upload?size=${file.size}&baud=${nextionBaud}`);
+      request.setRequestHeader('X-NanoEls-Request', '1');
       request.send(formData);
     }
 
@@ -4027,6 +4038,7 @@ const char indexhtml[] PROGMEM = R"rawliteral(
         updateButtonStates();
       };
       request.open('POST', `/firmware/upload?size=${file.size}`);
+      request.setRequestHeader('X-NanoEls-Request', '1');
       request.send(formData);
     }
 
@@ -4041,28 +4053,32 @@ const char indexhtml[] PROGMEM = R"rawliteral(
               const row = document.createElement('div');
               row.className = 'gcode-row';
               row.dataset.name = gcode;
-              row.innerHTML = `
-                <span class="gcode-item" data-name="${gcode}">${gcode}</span>
-                <span class="gcode-size"></span>
-                <span class="remove-icon" data-name="${gcode}">&times;</span>
-              `;
-              row.addEventListener('click', (event) => {
-                loadGcode(event.target.dataset.name);
-              });
               row.title = 'Clicca per caricare il G-code';
+
+              const item = document.createElement('span');
+              item.className = 'gcode-item';
+              item.textContent = gcode;
+
+              const size = document.createElement('span');
+              size.className = 'gcode-size';
+
+              const remove = document.createElement('span');
+              remove.className = 'remove-icon';
+              remove.title = 'Clicca per rimuovere il G-code';
+              remove.textContent = '\u00d7';
+              remove.addEventListener('click', (event) => {
+                event.stopPropagation();
+                removeGcode(gcode);
+              });
+
+              row.append(item, size, remove);
+              row.addEventListener('click', () => loadGcode(gcode));
               gcodeList.appendChild(row);
               fetch(`/gcode/get?name=${encodeURIComponent(gcode)}`)
                 .then(response => response.text())
                 .then(text => {
-                  row.querySelector('.gcode-size').textContent = `${(text.length / 1024).toFixed(1)} KB`;
+                  size.textContent = `${(text.length / 1024).toFixed(1)} KB`;
                 })
-            });
-            document.querySelectorAll('.remove-icon').forEach(icon => {
-              icon.title = 'Clicca per rimuovere il G-code';
-              icon.addEventListener('click', (event) => {
-                const name = event.target.getAttribute('data-name');
-                removeGcode(name);
-              });
             });
           } else {
             gcodeList.innerHTML = 'Nessun G-code salvato';
@@ -5649,9 +5665,22 @@ int getGcodeProgramCount() {
   return count;
 }
 
+// G-code names become LittleFS file names and are shown by the web UI:
+// keep them to a conservative ASCII set to avoid path tricks and injection.
+bool isValidGcodeName(const String& name) {
+  if (name.length() < 2 || name.length() > 32) return false;
+  for (size_t i = 0; i < name.length(); i++) {
+    char c = name[i];
+    bool allowed = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+                   (c >= '0' && c <= '9') || c == '.' || c == '_' || c == '-';
+    if (!allowed) return false;
+  }
+  return name != "..";
+}
+
 bool saveGcode() {
-  if (gcodeSaveName.length() < 2) {
-    writeBuffer(&outBuffer, "error: name must be at least 2 chars\n");
+  if (!isValidGcodeName(gcodeSaveName)) {
+    writeBuffer(&outBuffer, "error: name must be 2-32 chars, letters, digits, dot, dash or underscore\n");
     return false;
   }
   if (gcodeSaveValue.length() < 2) {
@@ -5675,7 +5704,10 @@ bool saveGcode() {
 }
 
 bool removeGcodeByName(const String& name) {
-  if (name.length() == 0) return false;
+  if (!isValidGcodeName(name)) {
+    writeBuffer(&outBuffer, "error: invalid name\n");
+    return false;
+  }
 
   String filename = "/" + name + ".gcode";
   if (!LittleFS.exists(filename)) {
@@ -5694,6 +5726,8 @@ bool removeGcodeByName(const String& name) {
 }
 
 String readGcodeProgram(const String& name) {
+  if (!isValidGcodeName(name)) return "";
+
   String filename = "/" + name + ".gcode";
   File file = LittleFS.open(filename, "r");
   if (!file) {
@@ -5711,8 +5745,21 @@ String readGcodeProgram(const String& name) {
   return result;
 }
 
+// Cross-site requests cannot set custom headers without a CORS preflight,
+// which this server never approves; requiring one blocks CSRF on POSTs.
+bool requireTrustedRequest() {
+  if (server.hasHeader("X-NanoEls-Request")) return true;
+  server.send(403, "text/plain", "Richiesta non autorizzata");
+  return false;
+}
+
 void handleGcodeAdd() {
+  if (!requireTrustedRequest()) return;
   if (server.hasArg("name") && server.hasArg("gcode")) {
+    if (!isValidGcodeName(server.arg("name"))) {
+      server.send(400, "text/plain", "Nome G-code non valido: 2-32 caratteri tra lettere, numeri, punto, trattino e underscore");
+      return;
+    }
     gcodeSaveName = server.arg("name");
     gcodeSaveValue = server.arg("gcode");
     if (saveGcode()) {
@@ -5756,7 +5803,12 @@ void handleGcodeGet() {
 }
 
 void handleGcodeRemove() {
+  if (!requireTrustedRequest()) return;
   if (server.hasArg("name")) {
+    if (!isValidGcodeName(server.arg("name"))) {
+      server.send(400, "text/plain", "Nome G-code non valido: 2-32 caratteri tra lettere, numeri, punto, trattino e underscore");
+      return;
+    }
     if (removeGcodeByName(server.arg("name"))) {
       server.send(200, "text/plain", "G-code rimosso correttamente");
     } else {
@@ -5777,6 +5829,7 @@ void handleConfigGet() {
 }
 
 void handleConfigSave() {
+  if (!requireTrustedRequest()) return;
   if (machineConfigChangeBlocked()) {
     server.send(409, "text/plain", "Spegni il controller e attendi la fine degli upload prima di modificare la configurazione macchina");
     return;
@@ -5795,6 +5848,7 @@ void handleConfigSave() {
 }
 
 void handleConfigReset() {
+  if (!requireTrustedRequest()) return;
   if (machineConfigChangeBlocked()) {
     server.send(409, "text/plain", "Spegni il controller e attendi la fine degli upload prima di ripristinare la configurazione macchina");
     return;
@@ -5807,6 +5861,7 @@ void handleConfigReset() {
 }
 
 void handleReboot() {
+  if (!requireTrustedRequest()) return;
   if (machineConfigChangeBlocked()) {
     server.send(409, "text/plain", "Spegni il controller e attendi la fine degli upload prima di riavviare");
     return;
@@ -5823,6 +5878,7 @@ void handleKeyboardConfigGet() {
 }
 
 void handleKeyboardConfigSave() {
+  if (!requireTrustedRequest()) return;
   if (machineConfigChangeBlocked()) {
     server.send(409, "text/plain", "Spegni il controller e attendi la fine degli upload prima di modificare la configurazione tastiera");
     return;
@@ -5840,6 +5896,7 @@ void handleKeyboardConfigSave() {
 }
 
 void handleKeyboardConfigReset() {
+  if (!requireTrustedRequest()) return;
   if (machineConfigChangeBlocked()) {
     server.send(409, "text/plain", "Spegni il controller e attendi la fine degli upload prima di ripristinare la configurazione tastiera");
     return;
@@ -5851,6 +5908,7 @@ void handleKeyboardConfigReset() {
 }
 
 void handleKeyboardCapture() {
+  if (!requireTrustedRequest()) return;
   bool enabled = false;
   String error = "";
   if (!readBoolConfigArg("enabled", &enabled, &error)) {
@@ -5877,6 +5935,7 @@ void handleWifiGet() {
 }
 
 void handleWifiSave() {
+  if (!requireTrustedRequest()) return;
   if (machineConfigChangeBlocked()) {
     server.send(409, "text/plain", "Spegni il controller e attendi la fine degli upload prima di modificare la configurazione WiFi");
     return;
@@ -5895,6 +5954,7 @@ void handleWifiSave() {
 }
 
 void handleWifiReset() {
+  if (!requireTrustedRequest()) return;
   if (machineConfigChangeBlocked()) {
     server.send(409, "text/plain", "Spegni il controller e attendi la fine degli upload prima di ripristinare la configurazione WiFi");
     return;
@@ -6102,6 +6162,14 @@ void finishTftUpload() {
 }
 
 void handleTftUpload() {
+  if (!server.hasHeader("X-NanoEls-Request")) {
+    bool starting = server.hasRaw() ? server.raw().status == RAW_START : server.upload().status == UPLOAD_FILE_START;
+    if (starting) {
+      setTftUploadError("errore: richiesta non autorizzata", 403);
+    }
+    return;
+  }
+
   // Raw (non-multipart) bodies carry no filename, so the .tft check
   // only applies to the multipart path below.
   if (server.hasRaw()) {
@@ -6230,6 +6298,14 @@ void finishFirmwareUpload() {
 }
 
 void handleFirmwareUpload() {
+  if (!server.hasHeader("X-NanoEls-Request")) {
+    bool starting = server.hasRaw() ? server.raw().status == RAW_START : server.upload().status == UPLOAD_FILE_START;
+    if (starting) {
+      setFirmwareUploadError("errore: richiesta non autorizzata", 403);
+    }
+    return;
+  }
+
   // Raw (non-multipart) bodies carry no filename, so the .bin check
   // only applies to the multipart path below.
   if (server.hasRaw()) {
