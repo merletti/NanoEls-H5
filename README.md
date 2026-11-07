@@ -18,6 +18,21 @@ display.
 > l'interfaccia è verificata; restano da completare le prove fisiche sul tornio
 > (vedi [Stato del progetto](#stato-del-progetto)) prima della pubblicazione.
 
+## Scarica
+
+Non serve compilare nulla: firmware, interfaccia e manuale sono pronti
+nell'**[ultima release](https://github.com/merletti/NanoEls-H5/releases/latest)**.
+
+| Cosa | File | Download |
+|---|---|---|
+| Firmware ESP32-S3 (aggiornamento OTA) | `h5-IT-<data>-v<versione>.bin` | [ultima release](https://github.com/merletti/NanoEls-H5/releases/latest) |
+| Interfaccia per il display Nextion | `h5_it.tft` | [scarica](https://github.com/merletti/NanoEls-H5/releases/latest/download/h5_it.tft) |
+| Manuale d'uso | `MANUALE_USO.md` | [scarica](https://github.com/merletti/NanoEls-H5/releases/latest/download/MANUALE_USO.md) |
+
+Sorgenti completi: [ZIP di `main`](https://github.com/merletti/NanoEls-H5/archive/refs/heads/main.zip).
+
+Come si caricano i file sul controller: [Caricare firmware e interfaccia](#caricare-firmware-e-interfaccia).
+
 ## Caratteristiche
 
 - **13 modalità di lavoro**: ingranaggi, X-ingranaggi, tornitura, spianatura,
