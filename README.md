@@ -16,7 +16,7 @@ display.
 
 > Il progetto è in fase di rifinitura. Il firmware compila, gira sul controller e
 > l'interfaccia è verificata; restano da completare le prove fisiche sul tornio
-> (vedi [Stato del progetto](#stato-del-progetto)) prima della pubblicazione.
+> (vedi [Stato del progetto](#stato-del-progetto)) prima dell'uso sulla macchina.
 
 ## Scarica
 
@@ -38,7 +38,7 @@ Come si caricano i file sul controller: [Caricare firmware e interfaccia](#caric
 - **13 modalità di lavoro**: ingranaggi, X-ingranaggi, tornitura, spianatura,
   cono, troncatura, filettatura (anche a più principi e conica), ellisse,
   asincrono, asse Y, joystick, scanalatura, G-code.
-- **Display Nextion 800×480**: 21 pagine a card, valori live dipinti dal firmware,
+- **Display Nextion 800×480**: 22 pagine a card, valori live dipinti dal firmware,
   tastierino numerico e tastiera testuale sul pannello.
 - **Pagina LAVORAZIONE**: apre da sola la lavorazione in corso; `STATO/AVVIA`
   conferma il setup già impostato e parte in un tocco.
@@ -145,14 +145,14 @@ sotto. In alternativa si apre `firmware-it/h5/h5.ino` con l'Arduino IDE (scheda
 Verificato:
 
 - compilazione e avvio su ESP32-S3 (firmware H5V65);
-- 21 pagine TFT: sfondi, colori, zone touch, valori dipinti dal firmware;
+- 22 pagine TFT: sfondi, colori, zone touch, valori dipinti dal firmware;
 - logica di setup e avvio in un tocco per tutte le modalità;
 - aggiornamento OTA di firmware e display;
 - caricamento di programmi G-code da file nella UI web;
 - UI web (configurazione, G-code, WiFi) e persistenza in NVS;
 - STOP normali verificati a banco (controller senza assi montati).
 
-Da completare prima della pubblicazione:
+Da completare prima dell'uso sulla macchina:
 
 - prove fisiche sul tornio: sincronizzazione Z/X, finecorsa, mandrino, passate,
   filettatura anche conica;

@@ -133,7 +133,7 @@ A vuoto o con un pezzo di prova morbido, giri bassi, mano sul fungo.
 6. [ ] **Posizione fuori macchina**: forzare un comando oltre la corsa massima e
        verificare l'emergenza (prova controllata, a vuoto).
 
-## F. Prove di lavorazione (obbligatorie prima della pubblicazione)
+## F. Prove di lavorazione (obbligatorie prima della messa in servizio)
 
 Elenco completo in [PUBBLICAZIONE.md](PUBBLICAZIONE.md) §3. Qui l'ordine consigliato.
 
@@ -151,7 +151,7 @@ Elenco completo in [PUBBLICAZIONE.md](PUBBLICAZIONE.md) §3. Qui l'ordine consig
 - [ ] Valori live durante la lavorazione: GIRI/MIN, ANGOLO, posizioni, passata i di n.
 - [ ] Emergenze: `Posizione fuori macchina` e `Spento in manuale` con la causa
       scritta su TFT e UI web.
-- [ ] **21 pagine TFT**, tastierino numerico e tastiera PS/2 (se collegata).
+- [ ] **22 pagine TFT**, tastierino numerico e tastiera PS/2 (se collegata).
 - [ ] **OTA**: aggiornamento firmware e TFT dalla UI web (ELS OFF; display
       alimentato da POWER, non da USB). Dopo il TFT non togliere tensione per
       2–3 minuti.
