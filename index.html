@@ -133,6 +133,12 @@ h2{font-size:clamp(28px,3.4vw,38px);letter-spacing:-.8px;margin:0 0 10px;line-he
 .dl code{font:13.5px ui-monospace,Consolas,monospace;color:#cfe3ff}
 .dl a{color:#8cc0ff;text-decoration:none;white-space:nowrap}
 .dl a:hover{text-decoration:underline}
+.support{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  border:1px solid var(--line);border-radius:14px;padding:22px 24px;
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.02))}
+.support h2{font-size:20px;letter-spacing:-.3px;margin:0 0 4px}
+.support p{margin:0;color:var(--muted);font-size:15px;max-width:620px}
+.support .btn{flex:none}
 .note{border-left:3px solid #f0a33a;background:rgba(240,163,58,.07);
   padding:18px 22px;border-radius:0 12px 12px 0;color:#e9d9c0;margin:0}
 .note strong{color:#ffd08a}
@@ -331,6 +337,19 @@ footer a:hover{color:#fff}
       <a href="https://github.com/merletti/NanoEls-H5/blob/main/MONTAGGIO_TORNIO.md">montaggio e prove</a>.
       Prima di ogni prova togliere l'utensile dal pezzo.
     </p>
+  </section>
+
+  <section class="wrap" style="padding-top:0">
+    <div class="support">
+      <div>
+        <h2>Il progetto è libero</h2>
+        <p>Firmware, interfaccia e manuale restano gratuiti e con licenza MIT anche senza
+          donazioni. Se ti sono stati utili e vuoi sostenere il lavoro, puoi offrirmi un caffè
+          con PayPal.</p>
+      </div>
+      <a class="btn primary" href="https://www.paypal.com/biz/profile/officinamerletti"
+         target="_blank" rel="noopener">Offri un caffè</a>
+    </div>
   </section>
 
   <section class="wrap" style="padding-top:0">
