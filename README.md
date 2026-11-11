@@ -36,6 +36,20 @@ Sorgenti completi: [ZIP di `main`](https://github.com/merletti/NanoEls-H5/archiv
 
 Come si caricano i file sul controller: [Caricare firmware e interfaccia](#caricare-firmware-e-interfaccia).
 
+## Edizioni
+
+Lo stesso controller esiste in tre edizioni, con firmware, interfaccia TFT e
+documentazione nella lingua corrispondente:
+
+| Edizione | Repository | Release |
+|---|---|---|
+| Italiana (originale) | [NanoEls-H5](https://github.com/merletti/NanoEls-H5) | [v0.1.0](https://github.com/merletti/NanoEls-H5/releases/latest) |
+| Inglese | [NanoEls-H5-EN](https://github.com/merletti/NanoEls-H5-EN) | [v0.1.0](https://github.com/merletti/NanoEls-H5-EN/releases/latest) |
+| Russa | [NanoEls-H5-RU](https://github.com/merletti/NanoEls-H5-RU) | [v0.1.0](https://github.com/merletti/NanoEls-H5-RU/releases/latest) |
+
+Le tre edizioni non sono intercambiabili tra loro: ogni firmware va usato con la
+propria interfaccia `.tft` e i propri documenti.
+
 ## Caratteristiche
 
 - **13 modalità di lavoro**: ingranaggi, X-ingranaggi, tornitura, spianatura,
