@@ -23,14 +23,14 @@ schermate, modalità e file da scaricare.
 
 ## Scarica
 
-Non serve compilare nulla: firmware, interfaccia e manuale sono pronti
-nell'**[ultima release](https://github.com/merletti/NanoEls-H5/releases/latest)**.
+Non serve compilare nulla: l'**[ultima release](https://github.com/merletti/NanoEls-H5/releases/latest)**
+contiene firmware, interfaccia e manuale. Qui sotto i singoli file.
 
 | Cosa | File | Download |
 |---|---|---|
-| Firmware ESP32-S3 (aggiornamento OTA) | `h5-IT-<data>-v<versione>.bin` | [ultima release](https://github.com/merletti/NanoEls-H5/releases/latest) |
-| Interfaccia per il display Nextion | `h5_it.tft` | [scarica](https://github.com/merletti/NanoEls-H5/releases/latest/download/h5_it.tft) |
-| Manuale d'uso | `MANUALE_USO.md` | [scarica](https://github.com/merletti/NanoEls-H5/releases/latest/download/MANUALE_USO.md) |
+| Firmware ESP32-S3 (aggiornamento OTA) | `h5-IT-<data>-v<versione>.bin` | [Scarica .bin](https://github.com/merletti/NanoEls-H5/releases/latest) |
+| Interfaccia per il display Nextion | `h5_it.tft` | [Scarica .tft](https://github.com/merletti/NanoEls-H5/releases/latest/download/h5_it.tft) |
+| Manuale d'uso | `MANUALE_USO.md` | [Scarica .md](https://github.com/merletti/NanoEls-H5/releases/latest/download/MANUALE_USO.md) |
 
 Sorgenti completi: [ZIP di `main`](https://github.com/merletti/NanoEls-H5/archive/refs/heads/main.zip).
 
