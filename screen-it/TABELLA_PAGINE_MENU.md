@@ -60,6 +60,18 @@ arriva la fase 2 (componenti testo + mappa firmware).
 | 57 | `import_card49/10_xgear_bg.png` | X-INGRANAGGI con card v49 |
 | 58 | `import_card49/11_scanalatura_bg.png` | SCANALATURA con card v49 |
 | 59 | `lavorazione_tft_bg.png` (rev. 2) | **LAVORAZIONE** (pagina 21): tasti `MAX`/`MIN`, solo disegno statico, valori e tasti li scrive il firmware |
+| 60 | `import_card49/01_ingranaggi_bg.png` | INGRANAGGI, sfondo v50 (etichette con spazio) |
+| 61 | `import_card49/02_filetto_bg.png` | FILETTATURA, sfondo v50 |
+| 62 | `import_card49/03_tornitura_bg.png` | TORNITURA, sfondo v50 |
+| 63 | `import_card49/04_spianatura_bg.png` | SPIANATURA, sfondo v50 |
+| 64 | `import_card49/05_troncatura_bg.png` | TRONCATURA, sfondo v50 |
+| 65 | `import_card49/06_ellisse_bg.png` | ELLISSE, sfondo v50 |
+| 66 | `import_card49/07_asincrono_bg.png` | ASINCRONO, sfondo v50 |
+| 67 | `import_card49/08_assey_bg.png` | ASSE Y, sfondo v50 |
+| 68 | `import_card49/09_joystick_bg.png` | JOYSTICK, sfondo v50 |
+| 69 | `import_card49/10_xgear_bg.png` | X-INGRANAGGI, sfondo v50 |
+| 70 | `import_card49/11_scanalatura_bg.png` | SCANALATURA, sfondo v50 |
+| 71 | `cono_bg5.png` | CONO a 5 righe, sfondo v50 (data `IT 20261030`) |
 
 > **Non rimuovere picture**: gli indici successivi scalano.
 > Gli sfondi 26–36 sono stati importati in coda (l'editor non ha "Replace");
@@ -162,23 +174,23 @@ con l'indice: negli eventi si usa l'indice.
 | indice | nome interno | pic | schermata |
 |-------|------|-----|-----------|
 | 0 | page2 | 24 | **MENU** (prima pagina all'accensione) |
-| 1 | page3 | 48 | INGRANAGGI (F1) |
-| 2 | page4 | 49 | FILETTATURA (F2) |
-| 3 | page5 | 50 | TORNITURA (F3) |
-| 4 | page6 | 51 | SPIANATURA (F4) |
-| 5 | page7 | 41 | CONO (F5) — sfondo a 5 righe |
-| 6 | page8 | 52 | TRONCATURA (F6) |
-| 7 | page9 | 53 | ELLISSE (F7) |
-| 8 | page10 | 54 | ASINCRONO (F8) |
+| 1 | page3 | 60 | INGRANAGGI (F1) |
+| 2 | page4 | 61 | FILETTATURA (F2) |
+| 3 | page5 | 62 | TORNITURA (F3) |
+| 4 | page6 | 63 | SPIANATURA (F4) |
+| 5 | page7 | 71 | CONO (F5) — sfondo a 5 righe |
+| 6 | page8 | 64 | TRONCATURA (F6) |
+| 7 | page9 | 65 | ELLISSE (F7) |
+| 8 | page10 | 66 | ASINCRONO (F8) |
 | 9 | page11 | 13 | G-CODE (F9) |
-| 10 | page12 | 55 | ASSE Y (F10) |
-| 11 | page13 | 56 | JOYSTICK (F11) |
-| 12 | page14 | 57 | X-INGRANAGGI (F12) — sfondo originale = pic **37** |
+| 10 | page12 | 67 | ASSE Y (F10) |
+| 11 | page13 | 68 | JOYSTICK (F11) |
+| 12 | page14 | 69 | X-INGRANAGGI (F12) |
 | 13 | page15 | 20 | COMANDO |
 | 14 | page16 | 21 | SETUP (IMPOSTAZIONI) |
 | 15 | page17 | 22 | WIFI |
 | 16 | page18 | 23 | INFO / STATO |
-| 17 | page19 | 58 | **SCANALATURA (F13)** |
+| 17 | page19 | 70 | **SCANALATURA (F13)** |
 | 21 | page21 | 59 | **LAVORAZIONE** — pagina live aperta dal firmware all'avvio di una modalità |
 
 Attributi pagina: `sta` = image, `pic` = numero della tabella, `bco` = `0841`.
@@ -253,6 +265,21 @@ Su **ogni** sottopagina c'è un hotspot `m0` identico:
 > Nota: fino a questa build la pagina **X-INGRANAGGI (indice 12)** era l'unica
 > sottopagina **senza** hotspot `m0` → da lì non si tornava al MENU. Aggiunto
 > (684, 6, 104, 58) con Touch Press `page 0`.
+
+### Sfondi v50 — etichette con spaziatura (2026-11-12)
+
+- Corrette le etichette dei PNG di sfondo che perdevano lo spazio dopo
+  `CORSA`/`VELOCITÀ` (es. `CORSAZ` → `CORSA Z`): ingranaggi, filetto, tornitura,
+  spianatura, troncatura, ellisse, asincrono, asse Y, joystick, x-ingranaggi,
+  scanalatura e cono. Bandiere di testo ricopiate dai render `mockup-tft/clean`.
+- Corretta anche la data nel piè di pagina della pagina **CONO** (IT 20261030).
+- Importate le picture **60–71** (sfondo 800×480 con la card quotata) e
+  ripuntato `pic` delle 12 pagine: 1→60, 2→61, 3→62, 4→63, 5→71, 6→64, 7→65,
+  8→66, 10→67, 11→68, 12→69, 17→70.
+- `h5_it.HMI` salvato (14.201.774 byte, 10:43); `h5_it.tft` ricompilato con
+  **0 errori** (**5.977.316** byte, 10:46, md5 `6cc5a211cad19ca406d63fa93416e48c`).
+- Simulatore: verificate le 12 pagine con `page <id>`; tutte le etichette
+  mostrano lo spazio corretto e il piè di pagina CONO riporta `IT 20261030`.
 
 ## 5. Fase 2 (mappa firmware)
 
